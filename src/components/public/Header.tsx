@@ -1,9 +1,12 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
+import { getServerAuthSession } from '@/lib/server-auth';
 import Brand from './Brand';
 import MobileMenu from './MobileMenu';
 import { ButtonLink } from '@/components/ui/button';
 import { GitHubIcon } from '@/components/ui/icons';
 import { PRODUCT_REPOSITORY_URL } from '@/lib/site';
+import AccountDropdown from './AccountDropdown';
 
 const NAV_ITEMS = [
   { label: 'Plugins', href: '/plugins' },
@@ -13,6 +16,50 @@ const NAV_ITEMS = [
   { label: 'Neuigkeiten', href: '/news' },
 ] as const;
 
+/** Signed-out controls, used for anonymous visitors and as the streaming fallback. */
+function SignedOutControls() {
+  return (
+    <>
+      <ButtonLink href="/developer" variant="ghost" size="sm">
+        Entwickler
+      </ButtonLink>
+      <ButtonLink href="/auth/login" size="sm">
+        Anmelden
+      </ButtonLink>
+    </>
+  );
+}
+
+/**
+ * Session-dependent desktop controls. Reading cookies here would otherwise make
+ * every page that renders the header dynamic, so the lookup sits behind the
+ * Suspense boundary in `Header` and only this subtree streams.
+ */
+async function HeaderAccountControls() {
+  const session = await getServerAuthSession();
+
+  if (!session?.user) {
+    return <SignedOutControls />;
+  }
+
+  return <AccountDropdown email={session.user.email ?? ''} role={session.user.role ?? 'USER'} />;
+}
+
+/** Session-aware mobile menu; renders the signed-out menu while the session loads. */
+async function HeaderMobileMenu() {
+  const session = await getServerAuthSession();
+
+  return (
+    <MobileMenu
+      items={NAV_ITEMS}
+      isAuthenticated={Boolean(session?.user)}
+      userEmail={session?.user.email ?? ''}
+      userRole={session?.user.role ?? 'USER'}
+    />
+  );
+}
+
+// Server Component: the static shell renders immediately, session controls stream in.
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#07070a]/85 backdrop-blur-xl supports-[backdrop-filter]:bg-[#07070a]/70">
@@ -32,6 +79,7 @@ export default function Header() {
           </nav>
         </div>
 
+        {/* Desktop Navigation - Right Side */}
         <div className="hidden items-center gap-2 md:flex">
           <a
             href={PRODUCT_REPOSITORY_URL}
@@ -42,15 +90,22 @@ export default function Header() {
           >
             <GitHubIcon className="h-[18px] w-[18px]" />
           </a>
-          <ButtonLink href="/developer" variant="ghost" size="sm">
-            Entwickler
-          </ButtonLink>
-          <ButtonLink href="/auth/login" size="sm">
-            Anmelden
-          </ButtonLink>
+
+          <Suspense
+            fallback={
+              <div className="flex items-center gap-2">
+                <SignedOutControls />
+              </div>
+            }
+          >
+            <HeaderAccountControls />
+          </Suspense>
         </div>
 
-        <MobileMenu items={NAV_ITEMS} />
+        {/* Mobile Menu */}
+        <Suspense fallback={<MobileMenu items={NAV_ITEMS} />}>
+          <HeaderMobileMenu />
+        </Suspense>
       </div>
     </header>
   );

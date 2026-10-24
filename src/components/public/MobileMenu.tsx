@@ -2,14 +2,53 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { signOut } from 'next-auth/react';
 import { ButtonLink } from '@/components/ui/button';
-import { CloseIcon, GitHubIcon, MenuIcon } from '@/components/ui/icons';
+import {
+  CloseIcon,
+  GitHubIcon,
+  MenuIcon,
+  UserIcon,
+  SettingsIcon,
+  LogoutIcon,
+  ShieldIcon,
+  CodeIcon,
+  ChevronRightIcon
+} from '@/components/ui/icons';
 import { PRODUCT_REPOSITORY_URL } from '@/lib/site';
+import type { Role } from '@/lib/validations';
 
 type NavItem = { label: string; href: string };
 
-export default function MobileMenu({ items }: { items: readonly NavItem[] }) {
+type MobileMenuProps = {
+  items: readonly NavItem[];
+  isAuthenticated?: boolean;
+  userEmail?: string;
+  userRole?: Role;
+};
+
+const ROLE_LABELS: Record<Role, string> = {
+  USER: 'Benutzer',
+  DEVELOPER: 'Entwickler',
+  ADMIN: 'Administrator',
+  SYSTEM_ADMIN: 'Systemadministrator',
+};
+
+const ROLE_COLORS: Record<Role, string> = {
+  USER: 'text-zinc-400',
+  DEVELOPER: 'text-violet-400',
+  ADMIN: 'text-amber-400',
+  SYSTEM_ADMIN: 'text-rose-400',
+};
+
+export default function MobileMenu({ 
+  items, 
+  isAuthenticated = false, 
+  userEmail = '', 
+  userRole = 'USER' 
+}: MobileMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -19,6 +58,7 @@ export default function MobileMenu({ items }: { items: readonly NavItem[] }) {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMenuOpen(false);
+        setAccountOpen(false);
       }
     };
 
@@ -26,30 +66,63 @@ export default function MobileMenu({ items }: { items: readonly NavItem[] }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [menuOpen]);
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
+  };
+
+  // Account-Navigationslinks basierend auf Rolle
+  const getAccountLinks = () => {
+    const links: { label: string; href: string; icon: React.ReactNode }[] = [
+      { label: 'Mein Konto', href: '/account', icon: <UserIcon className="h-4 w-4" /> },
+      { label: 'Profil', href: '/account/profile', icon: <SettingsIcon className="h-4 w-4" /> },
+      { label: 'Sicherheit', href: '/account/security', icon: <ShieldIcon className="h-4 w-4" /> },
+    ];
+
+    if (userRole === 'DEVELOPER' || userRole === 'ADMIN' || userRole === 'SYSTEM_ADMIN') {
+      links.push({ label: 'Developer-Dashboard', href: '/developer', icon: <CodeIcon className="h-4 w-4" /> });
+    }
+
+    if (userRole === 'ADMIN' || userRole === 'SYSTEM_ADMIN') {
+      links.push({ label: 'Admin-Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> });
+    }
+
+    if (userRole === 'SYSTEM_ADMIN') {
+      links.push({ label: 'Systemverwaltung', href: '/system-admin', icon: <ShieldIcon className="h-4 w-4" /> });
+    }
+
+    return links;
+  };
+
+  const accountLinks = getAccountLinks();
+
   return (
     <div className="md:hidden">
       <button
         type="button"
-        onClick={() => setMenuOpen((value) => !value)}
+        onClick={() => {
+          setAccountOpen(false);
+          setMenuOpen((value) => !value);
+        }}
         aria-expanded={menuOpen}
         aria-controls="mobile-navigation"
         aria-label={menuOpen ? 'Navigation schließen' : 'Navigation öffnen'}
-        className="rounded-lg p-2 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+        className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
       >
         {menuOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
       </button>
 
-      {menuOpen ? (
+      {menuOpen && (
         <div
           id="mobile-navigation"
-          onClick={() => setMenuOpen(false)}
           className="fixed inset-x-0 top-16 z-50 border-t border-white/[0.07] bg-[#07070a]/98 px-4 pb-6 pt-3 backdrop-blur-xl"
         >
+          {/* Hauptnavigation */}
           <nav aria-label="Mobile Hauptnavigation" className="flex flex-col gap-1">
             {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setMenuOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-base font-medium text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white"
               >
                 {item.label}
@@ -57,13 +130,8 @@ export default function MobileMenu({ items }: { items: readonly NavItem[] }) {
             ))}
           </nav>
 
+          {/* Externe Links */}
           <div className="mt-4 flex flex-col gap-2 border-t border-white/[0.07] pt-4">
-            <Link
-              href="/developer"
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white"
-            >
-              Entwicklerbereich
-            </Link>
             <a
               href={PRODUCT_REPOSITORY_URL}
               target="_blank"
@@ -73,12 +141,89 @@ export default function MobileMenu({ items }: { items: readonly NavItem[] }) {
               <GitHubIcon className="h-4 w-4" />
               Quellcode auf GitHub
             </a>
-            <ButtonLink href="/auth/login" className="mt-1 w-full">
-              Anmelden
-            </ButtonLink>
+
+            {/* Entwickler-Link (nur für nicht angemeldete Benutzer) */}
+            {!isAuthenticated && (
+              <Link
+                href="/developer"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white"
+              >
+                Entwicklerbereich
+              </Link>
+            )}
+
+            {/* Account-Bereich für angemeldete Benutzer */}
+            {isAuthenticated && (
+              <div className="border-t border-white/[0.07] pt-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen((prev) => !prev)}
+                  className="flex items-center justify-between w-full rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white text-left"
+                  aria-expanded={accountOpen}
+                >
+                  <span className="flex items-center gap-2">
+                    <UserIcon className="h-4 w-4" />
+                    {userEmail}
+                  </span>
+                  <span className={`text-xs ${ROLE_COLORS[userRole]} font-medium`}>
+                    {ROLE_LABELS[userRole]}
+                  </span>
+                  <ChevronRightIcon className={`h-4 w-4 transition-transform ${accountOpen ? 'rotate-90' : ''}`} />
+                </button>
+
+                {accountOpen && (
+                  <nav aria-label="Konto-Navigation" className="ml-4 mt-1 space-y-1">
+                    {accountLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setAccountOpen(false);
+                        }}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-white"
+                      >
+                        {link.icon}
+                        {link.label}
+                      </Link>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-rose-300 transition-colors hover:bg-rose-500/5 hover:text-rose-200 w-full text-left"
+                    >
+                      <LogoutIcon className="h-4 w-4" />
+                      Abmelden
+                    </button>
+                  </nav>
+                )}
+              </div>
+            )}
+
+            {/* Anmelden/Registrieren für nicht angemeldete Benutzer */}
+            {!isAuthenticated && (
+              <>
+                <ButtonLink
+                  href="/auth/login"
+                  size="md"
+                  className="w-full"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Anmelden
+                </ButtonLink>
+                <Link
+                  href="/auth/register"
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white text-center"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Registrieren
+                </Link>
+              </>
+            )}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

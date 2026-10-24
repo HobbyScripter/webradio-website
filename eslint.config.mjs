@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local scratch space (logs, test fixtures, backups) – git-ignored
+    ".local-db/**",
     // Prisma generated files
     "prisma/contract.d.ts",
     "prisma/contract.json",

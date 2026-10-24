@@ -197,10 +197,17 @@ export const roleSchema = z.enum(['USER', 'DEVELOPER', 'ADMIN', 'SYSTEM_ADMIN'])
 // bootstrap/recovery path, never through registration or an admin endpoint.
 export const assignableRoleSchema = z.enum(['USER', 'DEVELOPER', 'ADMIN']);
 
+export const reviewTargetSchema = z.enum(['PLUGIN', 'THEME']);
+
+export const reviewResultSchema = z.enum(['APPROVED', 'REJECTED', 'CHANGES_REQUESTED']);
+
+// Catalog moderation states of a plugin or theme.
+export const pluginStatusSchema = z.enum(['PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED']);
+
 export const publicationReviewSchema = z.object({
-  targetType: z.enum(['PLUGIN', 'THEME']),
+  targetType: reviewTargetSchema,
   targetId: z.string().min(1, 'Target ID is required'),
-  status: z.enum(['APPROVED', 'REJECTED', 'CHANGES_REQUESTED']),
+  status: reviewResultSchema,
   notes: z.string().max(2000).optional(),
 });
 

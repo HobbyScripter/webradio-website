@@ -67,3 +67,6 @@ Desktop.ini
 
 # Local development database
 .local-db/
+
+
+ci-clean-temp/

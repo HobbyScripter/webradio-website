@@ -9,16 +9,27 @@ const dateFormatter = new Intl.DateTimeFormat('de-DE', {
   timeZone: 'UTC',
 });
 
-/** Format an ISO timestamp as a German date; returns null for invalid input. */
-export function formatDate(value: string | null | undefined): string | null {
-  if (!value) {
+/**
+ * Values accepted by the date helpers: ISO strings, Date objects and Prisma 8
+ * `Temporal.Instant` values (which expose an ISO-8601 `toString()`).
+ */
+export type DateInput = string | Date | { toString(): string } | null | undefined;
+
+function toDate(value: DateInput): Date | null {
+  if (value === null || value === undefined) {
     return null;
   }
-  const date = new Date(value);
+  const date = value instanceof Date ? value : new Date(String(value));
   if (Number.isNaN(date.getTime())) {
     return null;
   }
-  return dateFormatter.format(date);
+  return date;
+}
+
+/** Format an ISO timestamp as a German date; returns null for invalid input. */
+export function formatDate(value: DateInput): string | null {
+  const date = toDate(value);
+  return date ? dateFormatter.format(date) : null;
 }
 
 const dateTimeFormatter = new Intl.DateTimeFormat('de-DE', {
@@ -31,15 +42,9 @@ const dateTimeFormatter = new Intl.DateTimeFormat('de-DE', {
 });
 
 /** Format an ISO timestamp as a German date and time (Europe/Berlin). */
-export function formatDateTime(value: string | null | undefined): string | null {
-  if (!value) {
-    return null;
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-  return dateTimeFormatter.format(date);
+export function formatDateTime(value: DateInput): string | null {
+  const date = toDate(value);
+  return date ? dateTimeFormatter.format(date) : null;
 }
 
 /** 1536 -> "1,5 KB"; null/undefined -> null. */

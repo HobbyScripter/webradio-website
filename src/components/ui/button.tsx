@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import type { AnchorHTMLAttributes, ReactNode } from 'react';
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
@@ -10,6 +10,8 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   secondary:
     'border border-white/12 bg-white/[0.04] text-zinc-100 hover:border-white/20 hover:bg-white/[0.08]',
   ghost: 'text-zinc-300 hover:bg-white/[0.06] hover:text-white',
+  destructive:
+    'border border-rose-500/30 bg-rose-500/10 text-rose-200 hover:border-rose-500/50 hover:bg-rose-500/20',
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -73,5 +75,28 @@ export function ButtonLink({
     <Link href={href} className={classes} {...rest}>
       {children}
     </Link>
+  );
+}
+
+type ButtonProps = {
+  children: ReactNode;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  className?: string;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'>;
+
+/** Native button with the shared WebRadio button styles. */
+export function Button({
+  children,
+  variant = 'primary',
+  size = 'md',
+  className,
+  type = 'button',
+  ...rest
+}: ButtonProps) {
+  return (
+    <button type={type} className={buttonStyles(variant, size, className)} {...rest}>
+      {children}
+    </button>
   );
 }
