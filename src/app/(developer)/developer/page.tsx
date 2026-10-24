@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { hasRole } from '@/lib/auth-service';
+import { db } from '@/lib/db';
 
 async function DeveloperContent() {
   // Database-backed session: revoked or expired sessions are rejected here.
@@ -44,6 +45,26 @@ async function DeveloperContent() {
     );
   }
 
+  // Real counts for this developer profile. No placeholder statistics.
+  const profile = await db.orm.public.DeveloperProfile.where({
+    userId: session.user.id,
+  }).first();
+
+  const [plugins, themes] = profile
+    ? await Promise.all([
+        db.orm.public.Plugin.where({ developerId: profile.id }).all(),
+        db.orm.public.Theme.where({ developerId: profile.id }).all(),
+      ])
+    : [[], []];
+
+  const publishedPlugins = plugins.filter(
+    (plugin) => plugin.isPublished && plugin.status === 'APPROVED',
+  ).length;
+  const publishedThemes = themes.filter(
+    (theme) => theme.isPublished && theme.status === 'APPROVED',
+  ).length;
+  const downloads = [...plugins, ...themes].reduce((sum, entry) => sum + entry.downloads, 0);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -54,7 +75,7 @@ async function DeveloperContent() {
           </p>
         </div>
         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20">
-          Entwickler-Konto aktiv
+          {profile ? 'Entwicklerprofil aktiv' : 'Kein Entwicklerprofil hinterlegt'}
         </span>
       </div>
 
@@ -62,18 +83,18 @@ async function DeveloperContent() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800">
           <div className="text-sm text-zinc-400 font-medium">Veröffentlichte Plugins</div>
-          <div className="text-3xl font-bold text-white mt-2">0</div>
-          <div className="text-xs text-zinc-500 mt-1">Bereit zur Einreichung</div>
+          <div className="text-3xl font-bold text-white mt-2">{publishedPlugins}</div>
+          <div className="text-xs text-zinc-500 mt-1">von {plugins.length} eingereicht</div>
         </div>
         <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800">
           <div className="text-sm text-zinc-400 font-medium">Veröffentlichte Themes</div>
-          <div className="text-3xl font-bold text-white mt-2">0</div>
-          <div className="text-xs text-zinc-500 mt-1">Bereit zur Einreichung</div>
+          <div className="text-3xl font-bold text-white mt-2">{publishedThemes}</div>
+          <div className="text-xs text-zinc-500 mt-1">von {themes.length} eingereicht</div>
         </div>
         <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800">
           <div className="text-sm text-zinc-400 font-medium">Downloads gesamt</div>
-          <div className="text-3xl font-bold text-violet-400 mt-2">0</div>
-          <div className="text-xs text-zinc-500 mt-1">Echtzeit-Statistiken</div>
+          <div className="text-3xl font-bold text-violet-400 mt-2">{downloads}</div>
+          <div className="text-xs text-zinc-500 mt-1">Summe der Katalogzähler</div>
         </div>
       </div>
 
@@ -86,14 +107,16 @@ async function DeveloperContent() {
         </div>
         <h3 className="text-lg font-bold text-white">Noch keine Erweiterungen eingereicht</h3>
         <p className="text-zinc-400 text-sm">
-          Erstelle dein erstes Plugin oder Theme mit unserem SDK und teile es mit der weltweiten WebRadio-Community.
+          {profile
+            ? 'Für dieses Entwicklerprofil sind noch keine Plugins oder Themes hinterlegt.'
+            : 'Für dein Konto existiert noch kein Entwicklerprofil. Ein Einreichungs-Workflow ist derzeit nicht implementiert.'}
         </p>
         <div className="pt-2">
           <Link
-            href="/developer/plugins/new"
+            href="/docs#entwickler"
             className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-500 transition-colors"
           >
-            Jetzt erstes Plugin anlegen
+            Einreichungsprozess dokumentieren
           </Link>
         </div>
       </div>

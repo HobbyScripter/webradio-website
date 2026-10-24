@@ -28,7 +28,7 @@ Die offizielle Website für das WebRadio-Projekt. Verwaltet Plugins, Themes, Rel
 
 ```bash
 # Repository klonen
-git clone <repository-url>
+git clone https://github.com/HobbyScripter/webradio-website.git
 cd webradio-website
 
 # Abhängigkeiten installieren
@@ -89,6 +89,33 @@ npm run dev
 
 Öffne [http://localhost:3000](http://localhost:3000).
 
+## Öffentliche Website (Phase 4)
+
+Die öffentliche Website nutzt Server Components und lädt Kataloge direkt aus
+PostgreSQL. Öffentlich sichtbar sind ausschließlich Einträge mit
+`isPublished = true` **und** `status = APPROVED`.
+
+| Route | Inhalt |
+|---|---|
+| `/` | Startseite mit Live-Vorschau von Katalog und Releases |
+| `/plugins`, `/plugins/[slug]` | Plugin-Katalog und Detailseite |
+| `/themes`, `/themes/[slug]` | Theme-Katalog und Detailseite |
+| `/releases` | Stabile Releases und Beta-Builds aus der Datenbank |
+| `/docs` | Projektinformationen, Installation, API und Einschränkungen |
+| `/news`, `/news/[slug]` | Veröffentlichte und datierte Neuigkeiten |
+| `/roadmap` | Roadmap-Einträge aus der Datenbank |
+
+Öffentliche Read-only-API: `GET /api/plugins`, `GET /api/themes` (jeweils `q`,
+`sort=newest|name|downloads`, `page`), `GET /api/releases` und `GET /api/news`.
+Die Routen liefern keine E-Mail-Adressen, Sessions, Audit-Logs oder Entwürfe.
+
+Ohne `NEXT_PUBLIC_SITE_URL` werden keine Canonical-URLs, Open-Graph-URLs oder
+Sitemap-Einträge erzeugt. Datenschutz und Impressum sind noch nicht
+veröffentlicht; die Website verlinkt daher bewusst keine Platzhalterseiten.
+
+Den vollständigen Stand, die Testergebnisse und offenen Punkte dokumentiert
+[`docs/PHASE4_REPORT.md`](docs/PHASE4_REPORT.md).
+
 ## Verfügbare Befehle
 
 | Befehl | Beschreibung |
@@ -119,21 +146,28 @@ webradio-website/
 │   └── contract.d.ts        # Generiert – nicht bearbeiten
 ├── src/
 │   ├── app/                 # Next.js App Router
-│   │   ├── api/
-│   │   │   ├── auth/        # NextAuth.js Handler
-│   │   │   └── health/      # Health-Check-Endpoint
-│   │   ├── layout.tsx       # Root-Layout
-│   │   └── page.tsx         # Startseite
-│   ├── components/          # React-Komponenten (Phase 3+)
+│   │   ├── (public)/        # Startseite, Kataloge, Releases, Docs, News
+│   │   ├── (auth)/          # Login und Registrierung
+│   │   ├── (developer)/     # Geschützter Entwicklerbereich
+│   │   ├── (admin)/         # Geschützter Adminbereich
+│   │   ├── api/             # Auth, Health, öffentliche Kataloge, Admin
+│   │   ├── layout.tsx       # Root-Layout und Metadaten
+│   │   ├── robots.ts        # Robots-Regeln
+│   │   └── sitemap.ts       # Sitemap (nur mit öffentlicher Basis-URL)
+│   ├── components/          # UI- und öffentliche Komponenten
+│   │   ├── ui/              # Designsystem (Buttons, Badges, States, Icons)
+│   │   └── public/          # Header, Footer, Karten, Katalogfilter
 │   ├── lib/
 │   │   ├── db.ts            # Prisma 8 Datenbank-Singleton
 │   │   ├── env.ts           # Umgebungsvariablen-Validierung
 │   │   ├── auth.ts          # NextAuth.js Konfiguration (JWT + DB-Session)
 │   │   ├── auth-service.ts  # Hashing, Sessions, RBAC, Audit-Log
 │   │   ├── server-auth.ts   # Serverseitige Session-/Rollenprüfung
+│   │   ├── catalog.ts       # Öffentliche Katalogabfragen (Freigabefilter)
+│   │   ├── catalog-query.ts # Suche, Sortierung, Pagination
 │   │   ├── api-response.ts  # Fehler-Sanitisierung + Same-Origin-Schutz
 │   │   └── validations.ts   # Zod-Schemata
-│   └── proxy.ts             # Next.js-16-Proxy (nur optimistischer Cookie-Check)
+│   └── proxy.ts             # Next.js-16-Proxy (Cookie-Check + 404 für Detail-Slugs)
 ├── docs/
 │   ├── ARCHITECTURE.md      # Architektur-Dokumentation
 │   ├── SECURITY.md          # Sicherheitskonzept
@@ -142,7 +176,8 @@ webradio-website/
 │   ├── PHASE1_REPORT.md     # Phase-1-Bericht
 │   ├── PHASE2_REPORT.md     # Phase-2-Bericht
 │   ├── PHASE3_REPORT.md     # Phase-3-Bericht
-│   └── PHASE3_5_REPORT.md   # Phase-3.5-Bericht (DB-Integration)
+│   ├── PHASE3_5_REPORT.md   # Phase-3.5-Bericht (DB-Integration)
+│   └── PHASE4_REPORT.md     # Phase-4-Bericht (öffentliche Website)
 ├── migrations/              # Prisma-8-Migrationspakete + Snapshots
 ├── scripts/
 │   ├── generate-env.cjs     # .env-Generator mit sicherem NEXTAUTH_SECRET
@@ -167,6 +202,13 @@ Alle Variablen sind in [`.env.example`](.env.example) dokumentiert (nur Platzhal
 | `NEXTAUTH_SECRET` | Session-Signierungsschlüssel (`openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | Anwendungs-URL (z.B. `http://localhost:3000`) |
 
+**Optional:**
+
+| Variable | Beschreibung |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | Öffentliche Basis-URL; aktiviert Canonical-URLs, Open Graph und Sitemap |
+| `TEST_DATABASE_URL` | Ausschließlich für `npm run test:integration` (Name muss auf `_test` enden) |
+
 **Sicherheitshinweis:** `.env` ist in `.gitignore` eingetragen und darf **niemals** in Git landen.
 
 ## CI/CD
@@ -188,3 +230,4 @@ GitHub Actions führt bei jedem Push auf `main`/`develop` und bei Pull Requests 
 - [Phase 2 Bericht](docs/PHASE2_REPORT.md)
 - [Phase 3 Bericht](docs/PHASE3_REPORT.md)
 - [Phase 3.5 Bericht — Datenbankintegration](docs/PHASE3_5_REPORT.md)
+- [Phase 4 Bericht — öffentliche Website](docs/PHASE4_REPORT.md)

@@ -1,24 +1,152 @@
-export default function ThemesPage() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Themes & Skins</h1>
-        <p className="text-zinc-400 text-sm mt-1">
-          Passe das Design deines WebRadio-Players und der Weboberfläche an.
-        </p>
-      </div>
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { io } from 'next/cache';
+import CatalogCard from '@/components/public/CatalogCard';
+import CatalogPagination from '@/components/public/CatalogPagination';
+import CatalogToolbar from '@/components/public/CatalogToolbar';
+import { ButtonLink } from '@/components/ui/button';
+import { Container, PageHeader } from '@/components/ui/layout';
+import { PaletteIcon } from '@/components/ui/icons';
+import { CatalogueSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
+import { listPublishedThemes } from '@/lib/catalog';
+import {
+  PAGE_SIZE,
+  buildCatalogHref,
+  parseCatalogQuery,
+  type RawCatalogParams,
+} from '@/lib/catalog-query';
+import { absoluteUrl } from '@/lib/site';
 
-      <div className="p-12 text-center rounded-2xl bg-zinc-900/30 border border-zinc-800/80">
-        <div className="w-12 h-12 rounded-xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072" />
-          </svg>
+export const metadata: Metadata = {
+  title: 'Theme-Katalog',
+  description:
+    'Veröffentlichte Themes für WebRadio: freigegebene Oberflächen-Anpassungen mit Versionen, Tags und Vorschauen aus dem öffentlichen Katalog.',
+  ...(absoluteUrl('/themes') ? { alternates: { canonical: absoluteUrl('/themes') } } : {}),
+};
+
+async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalogParams> }) {
+  const params = await searchParams;
+  const query = parseCatalogQuery(params);
+  await io();
+
+  let result;
+  try {
+    result = await listPublishedThemes({
+      q: query.q,
+      sort: query.sort,
+      page: query.page,
+      pageSize: PAGE_SIZE,
+    });
+  } catch {
+    return (
+      <ErrorState
+        title="Theme-Katalog nicht erreichbar"
+        description="Die Datenbank konnte nicht abgefragt werden. Es werden keine zwischengespeicherten oder erfundenen Einträge angezeigt."
+        retryHref="/themes"
+      />
+    );
+  }
+
+  return (
+    <>
+      <CatalogToolbar
+        action="/themes"
+        query={query}
+        idPrefix="themes"
+        placeholder="Themes nach Name oder Beschreibung durchsuchen …"
+      />
+
+      {result.items.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState
+            icon={<PaletteIcon className="h-5 w-5" />}
+            tone={query.q || query.page > 1 ? 'warning' : 'neutral'}
+            title={
+              query.page > 1
+                ? 'Keine Einträge auf dieser Seite'
+                : query.q
+                  ? `Keine Themes für „${query.q}“ gefunden`
+                  : 'Noch keine veröffentlichten Themes'
+            }
+            description={
+              query.page > 1
+                ? 'Die gewählte Seite liegt hinter dem Ende des Katalogs.'
+                : query.q
+                  ? 'Versuche einen anderen Suchbegriff oder setze die Filter zurück.'
+                  : 'Der Katalog ist leer, weil noch kein Theme freigegeben wurde. Es werden bewusst keine Vorschauen oder Beispieldaten erzeugt.'
+            }
+            action={
+              query.page > 1 ? (
+                <ButtonLink
+                  href={buildCatalogHref('/themes', query, { page: 1 })}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Zur ersten Seite
+                </ButtonLink>
+              ) : query.q ? (
+                <ButtonLink href="/themes" variant="secondary" size="sm">
+                  Filter zurücksetzen
+                </ButtonLink>
+              ) : (
+                <ButtonLink href="/docs#themes" variant="secondary" size="sm">
+                  Theme-Datenmodell ansehen
+                </ButtonLink>
+              )
+            }
+          />
         </div>
-        <h3 className="text-lg font-bold text-white">Theme-Ökosystem in Vorbereitung</h3>
-        <p className="text-sm text-zinc-400 max-w-md mx-auto mt-1">
-          Kuratierte und von der Community entwickelte Themes werden mit Phase 4 gelistet.
+      ) : (
+        <>
+          <p className="mt-6 text-xs text-zinc-500" role="status">
+            {result.items.length} {result.items.length === 1 ? 'Eintrag' : 'Einträge'} auf dieser
+            Seite
+            {query.q ? ` für „${query.q}“` : ''}.
+          </p>
+          <div className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {result.items.map((item) => (
+              <CatalogCard key={item.id} item={item} kind="theme" basePath="/themes" />
+            ))}
+          </div>
+          <CatalogPagination basePath="/themes" query={query} hasNext={result.hasNext} />
+        </>
+      )}
+    </>
+  );
+}
+
+export default function ThemesPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawCatalogParams>;
+}) {
+  return (
+    <>
+      <PageHeader
+        eyebrow="Katalog"
+        title="Themes für deine Oberfläche"
+        description="Freigegebene Themes mit Versionen, Tags und optionalen Vorschaubildern. Externe Vorschauen werden nur als absolute HTTP(S)-URLs eingebunden."
+        actions={
+          <>
+            <ButtonLink href="/docs#themes" variant="secondary">
+              Datenmodell
+            </ButtonLink>
+            <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
+          </>
+        }
+      />
+
+      <Container className="py-10">
+        <Suspense fallback={<CatalogueSkeleton />}>
+          <ThemeResults searchParams={searchParams} />
+        </Suspense>
+
+        <p className="mt-10 text-xs leading-relaxed text-zinc-500">
+          Hinweis: Das Anwenden von Themes im WebRadio-Client ist noch nicht Teil dieses Stands.
+          Vorschauen erscheinen nur, wenn für einen freigegebenen Eintrag tatsächlich Bild-URLs
+          hinterlegt sind.
         </p>
-      </div>
-    </div>
+      </Container>
+    </>
   );
 }

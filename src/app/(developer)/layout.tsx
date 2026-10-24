@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Entwicklerbereich',
+  robots: { index: false, follow: false },
+};
 
 export default function DeveloperLayout({
   children,
@@ -26,15 +32,15 @@ export default function DeveloperLayout({
               Übersicht
             </Link>
             <Link
-              href="/developer/plugins/new"
+              href="/docs#entwickler"
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-600 hover:bg-violet-500 text-white transition-colors"
             >
-              + Neues Plugin einreichen
+              Einreichung dokumentieren
             </Link>
           </div>
         </div>
       </div>
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main id="main-content" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {children}
       </main>
       <Footer />

@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Konto',
+  robots: { index: false, follow: false },
+};
 
 export default function AuthLayout({
   children,
@@ -6,7 +12,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-zinc-950 relative overflow-hidden">
+    <main id="main-content" className="min-h-dvh flex flex-col justify-center items-center px-4 py-12 bg-[#07070a] relative overflow-hidden">
       {/* Background Glow */}
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[500px] bg-gradient-to-tr from-violet-600/15 via-indigo-600/10 to-transparent blur-[140px] rounded-full" />
       
@@ -41,6 +47,6 @@ export default function AuthLayout({
           &larr; Zurück zur Startseite
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

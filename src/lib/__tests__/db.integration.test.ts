@@ -29,6 +29,16 @@ import {
   SELF_DEMOTION_CODE,
 } from '../auth-service';
 import { db } from '../db';
+import {
+  getPublishedNewsBySlug,
+  getPublishedPluginBySlug,
+  getPublishedThemeBySlug,
+  listPublishedNews,
+  listPublishedPlugins,
+  listPublishedThemes,
+  listReleases,
+  listRoadmapItems,
+} from '../catalog';
 
 const RUN = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 const USER_EMAIL = `user_${RUN}@webradio.test`;
@@ -39,6 +49,26 @@ const PASSWORD = 'IntegrationPassword2026!';
 let regularUserId = '';
 let developerId = '';
 let adminId = '';
+
+// Catalogue fixtures created in beforeAll and removed in afterAll.
+let catalogProfileId = '';
+let publishedPluginId = '';
+let secondPluginId = '';
+let publishedThemeId = '';
+let releaseId = '';
+let newsPastId = '';
+let newsFutureId = '';
+let newsDraftId = '';
+let roadmapHighId = '';
+let roadmapLowId = '';
+
+const publishedPluginSlug = `alpha-${RUN}`;
+const draftPluginSlug = `draft-${RUN}`;
+const pendingPluginSlug = `pending-${RUN}`;
+const rejectedPluginSlug = `rejected-${RUN}`;
+const secondPluginSlug = `beta-${RUN}`;
+const publishedThemeSlug = `night-${RUN}`;
+const draftThemeSlug = `day-${RUN}`;
 
 function runBootstrap(env: Record<string, string>): Promise<{ code: number | null; output: string }> {
   return new Promise((resolve, reject) => {
@@ -103,9 +133,183 @@ beforeAll(async () => {
   });
   developerId = developer.id;
   await db.orm.public.User.where({ id: developerId }).update({ role: 'DEVELOPER' });
+
+  const profile = await db.orm.public.DeveloperProfile.create({
+    userId: developerId,
+    displayName: `Catalog Studio ${RUN}`,
+  });
+  catalogProfileId = profile.id;
+
+  const publishedPlugin = await db.orm.public.Plugin.create({
+    slug: publishedPluginSlug,
+    name: `Alpha Radio ${RUN}`,
+    description: 'Streaming integration for the public catalogue',
+    developerId: profile.id,
+    status: 'APPROVED',
+    isPublished: true,
+    downloads: 12,
+  });
+  publishedPluginId = publishedPlugin.id;
+
+  await db.orm.public.PluginVersion.create({
+    pluginId: publishedPlugin.id,
+    version: '1.2.0',
+    description: 'Initial public version',
+    fileUrl: 'https://example.com/alpha.zip',
+    fileSize: 2048,
+    checksum: 'checksum-alpha',
+    isLatest: true,
+  });
+  await db.orm.public.PluginTag.create({ pluginId: publishedPlugin.id, tag: 'audio' });
+  await db.orm.public.PluginScreenshot.create({
+    pluginId: publishedPlugin.id,
+    url: 'https://example.com/alpha.png',
+    caption: 'Player',
+    order: 1,
+  });
+
+  const secondPlugin = await db.orm.public.Plugin.create({
+    slug: secondPluginSlug,
+    name: `Beta Radio ${RUN}`,
+    description: 'Second published plugin for pagination',
+    developerId: profile.id,
+    status: 'APPROVED',
+    isPublished: true,
+    downloads: 3,
+  });
+  secondPluginId = secondPlugin.id;
+
+  await db.orm.public.Plugin.create({
+    slug: draftPluginSlug,
+    name: `Draft Radio ${RUN}`,
+    description: 'Approved but not published',
+    developerId: profile.id,
+    status: 'APPROVED',
+    isPublished: false,
+  });
+
+  await db.orm.public.Plugin.create({
+    slug: pendingPluginSlug,
+    name: `Pending Radio ${RUN}`,
+    description: 'Published flag but pending review',
+    developerId: profile.id,
+    status: 'PENDING_REVIEW',
+    isPublished: true,
+  });
+
+  await db.orm.public.Plugin.create({
+    slug: rejectedPluginSlug,
+    name: `Rejected Radio ${RUN}`,
+    description: 'Rejected but published flag',
+    developerId: profile.id,
+    status: 'REJECTED',
+    isPublished: true,
+  });
+
+  const publishedTheme = await db.orm.public.Theme.create({
+    slug: publishedThemeSlug,
+    name: `Night Theme ${RUN}`,
+    description: 'Published theme',
+    developerId: profile.id,
+    status: 'APPROVED',
+    isPublished: true,
+    downloads: 5,
+  });
+  publishedThemeId = publishedTheme.id;
+  await db.orm.public.ThemeVersion.create({
+    themeId: publishedTheme.id,
+    version: '2.0.0',
+    fileUrl: 'https://example.com/night.zip',
+    fileSize: 4096,
+    checksum: 'checksum-theme',
+    isLatest: true,
+  });
+
+  await db.orm.public.Theme.create({
+    slug: draftThemeSlug,
+    name: `Day Theme ${RUN}`,
+    description: 'Approved theme without publication',
+    developerId: profile.id,
+    status: 'APPROVED',
+    isPublished: false,
+  });
+
+  const release = await db.orm.public.Release.create({
+    version: `0.9.0-integration.${RUN}`,
+    title: `Integration release ${RUN}`,
+    description: 'Release created by the integration test',
+    downloadUrl: 'https://example.com/webradio.zip',
+    fileSize: 1024,
+    checksum: 'checksum-release',
+  });
+  releaseId = release.id;
+  await db.orm.public.Changelog.create({
+    releaseId: release.id,
+    category: 'Added',
+    text: 'Catalogue integration',
+  });
+
+  const pastNews = await db.orm.public.News.create({
+    slug: `past-${RUN}`,
+    title: `Past news ${RUN}`,
+    summary: 'Visible',
+    content: 'Visible content',
+    isPublished: true,
+    publishedAt: Temporal.Now.instant().subtract({ hours: 1 }),
+  });
+  newsPastId = pastNews.id;
+
+  const futureNews = await db.orm.public.News.create({
+    slug: `future-${RUN}`,
+    title: `Future news ${RUN}`,
+    summary: 'Scheduled',
+    content: 'Scheduled content',
+    isPublished: true,
+    publishedAt: Temporal.Now.instant().add({ hours: 24 }),
+  });
+  newsFutureId = futureNews.id;
+
+  const draftNews = await db.orm.public.News.create({
+    slug: `draft-news-${RUN}`,
+    title: `Draft news ${RUN}`,
+    summary: 'Draft',
+    content: 'Draft content',
+    isPublished: false,
+    publishedAt: Temporal.Now.instant().subtract({ hours: 1 }),
+  });
+  newsDraftId = draftNews.id;
+
+  const highPriority = await db.orm.public.RoadmapItem.create({
+    title: `High priority ${RUN}`,
+    description: 'First',
+    status: 'IN_PROGRESS',
+    priority: 10,
+  });
+  roadmapHighId = highPriority.id;
+
+  const lowPriority = await db.orm.public.RoadmapItem.create({
+    title: `Low priority ${RUN}`,
+    description: 'Second',
+    status: 'PLANNED',
+    priority: 1,
+  });
+  roadmapLowId = lowPriority.id;
 });
 
 afterAll(async () => {
+  // Catalogue fixtures have no user relation for releases/news/roadmap, so
+  // remove them explicitly before the users (which cascade to profiles).
+  await db.orm.public.Changelog.where({ releaseId }).deleteAll();
+  await db.orm.public.Release.where({ id: releaseId }).delete();
+  await db.orm.public.News.where({ id: newsPastId }).delete();
+  await db.orm.public.News.where({ id: newsFutureId }).delete();
+  await db.orm.public.News.where({ id: newsDraftId }).delete();
+  await db.orm.public.RoadmapItem.where({ id: roadmapHighId }).delete();
+  await db.orm.public.RoadmapItem.where({ id: roadmapLowId }).delete();
+  if (catalogProfileId) {
+    await db.orm.public.DeveloperProfile.where({ id: catalogProfileId }).delete();
+  }
+
   await db.orm.public.Session.where({}).deleteAll();
   await db.orm.public.AuditLog.where({}).deleteAll();
   await db.orm.public.User.where({}).deleteAll();
@@ -411,5 +615,121 @@ describe('7. Error handling', () => {
     const publicError = toPublicError(new InvalidCredentialsError());
     expect(publicError.status).toBe(401);
     expect(publicError.body.error).toBe('INVALID_CREDENTIALS');
+  });
+});
+
+describe('8. Public catalogue filters (real PostgreSQL)', () => {
+  it('lists only plugins that are both published and approved', async () => {
+    const result = await listPublishedPlugins({
+      q: `Radio ${RUN}`,
+      sort: 'newest',
+      page: 1,
+      pageSize: 10,
+    });
+    const slugs = result.items.map((item) => item.slug);
+
+    expect(slugs).toContain(publishedPluginSlug);
+    expect(slugs).toContain(secondPluginSlug);
+    expect(result.items.find((item) => item.slug === secondPluginSlug)?.id).toBe(secondPluginId);
+    expect(slugs).not.toContain(draftPluginSlug);
+    expect(slugs).not.toContain(pendingPluginSlug);
+    expect(slugs).not.toContain(rejectedPluginSlug);
+
+    const alpha = result.items.find((item) => item.slug === publishedPluginSlug);
+    expect(alpha).toMatchObject({
+      id: publishedPluginId,
+      name: `Alpha Radio ${RUN}`,
+      developerName: `Catalog Studio ${RUN}`,
+      latestVersion: '1.2.0',
+      tags: ['audio'],
+      downloads: 12,
+    });
+  });
+
+  it('filters by name/description and paginates without duplicates', async () => {
+    const pageOne = await listPublishedPlugins({
+      q: `Radio ${RUN}`,
+      sort: 'name',
+      page: 1,
+      pageSize: 1,
+    });
+    expect(pageOne.items).toHaveLength(1);
+    expect(pageOne.hasNext).toBe(true);
+
+    const pageTwo = await listPublishedPlugins({
+      q: `Radio ${RUN}`,
+      sort: 'name',
+      page: 2,
+      pageSize: 1,
+    });
+    expect(pageTwo.items).toHaveLength(1);
+    expect(pageTwo.hasNext).toBe(false);
+
+    const allSlugs = [...pageOne.items, ...pageTwo.items].map((item) => item.slug);
+    expect(new Set(allSlugs).size).toBe(allSlugs.length);
+  });
+
+  it('returns only approved+published entries from the detail lookup', async () => {
+    const published = await getPublishedPluginBySlug(publishedPluginSlug);
+    expect(published?.id).toBe(publishedPluginId);
+    expect(published?.versions[0]?.version).toBe('1.2.0');
+    expect(published?.screenshots).toEqual([
+      { url: 'https://example.com/alpha.png', caption: 'Player' },
+    ]);
+
+    expect(await getPublishedPluginBySlug(draftPluginSlug)).toBeNull();
+    expect(await getPublishedPluginBySlug(pendingPluginSlug)).toBeNull();
+    expect(await getPublishedPluginBySlug(rejectedPluginSlug)).toBeNull();
+    expect(await getPublishedPluginBySlug(`missing-${RUN}`)).toBeNull();
+  });
+
+  it('applies the same publication rule to themes', async () => {
+    const result = await listPublishedThemes({
+      q: `Theme ${RUN}`,
+      sort: 'downloads',
+      page: 1,
+      pageSize: 10,
+    });
+
+    expect(result.items.map((item) => item.slug)).toEqual([publishedThemeSlug]);
+    expect(result.items[0]?.latestVersion).toBe('2.0.0');
+
+    const published = await getPublishedThemeBySlug(publishedThemeSlug);
+    expect(published?.id).toBe(publishedThemeId);
+    expect(await getPublishedThemeBySlug(draftThemeSlug)).toBeNull();
+  });
+
+  it('returns release notes, download URL and beta channel from the database', async () => {
+    const releases = await listReleases(50);
+    const release = releases.find((entry) => entry.id === releaseId);
+
+    expect(release).toBeDefined();
+    expect(release?.version).toContain('integration');
+    expect(release?.downloadUrl).toBe('https://example.com/webradio.zip');
+    expect(release?.changelogs).toEqual([{ category: 'Added', text: 'Catalogue integration' }]);
+  });
+
+  it('hides unpublished and future-dated news', async () => {
+    const entries = await listPublishedNews(50);
+    const ids = entries.map((entry) => entry.id);
+
+    expect(ids).toContain(newsPastId);
+    expect(ids).not.toContain(newsFutureId);
+    expect(ids).not.toContain(newsDraftId);
+
+    expect(await getPublishedNewsBySlug(`past-${RUN}`)).not.toBeNull();
+    expect(await getPublishedNewsBySlug(`future-${RUN}`)).toBeNull();
+    expect(await getPublishedNewsBySlug(`draft-news-${RUN}`)).toBeNull();
+  });
+
+  it('orders roadmap items by priority from the database', async () => {
+    const items = await listRoadmapItems();
+    const highIndex = items.findIndex((item) => item.id === roadmapHighId);
+    const lowIndex = items.findIndex((item) => item.id === roadmapLowId);
+
+    expect(highIndex).toBeGreaterThanOrEqual(0);
+    expect(lowIndex).toBeGreaterThanOrEqual(0);
+    expect(highIndex).toBeLessThan(lowIndex);
+    expect(items[highIndex]?.status).toBe('IN_PROGRESS');
   });
 });

@@ -154,21 +154,47 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 ## 7. API Security
 
 ### API Authentication
-- Session-based authentication for web app
+- Session-based authentication for the protected web app
+- The read-only endpoints `/api/plugins`, `/api/themes`, `/api/releases` and
+  `/api/news` are intentionally public; they expose only published data
+- Every protected route validates the database session and re-reads the role
+  (see `src/lib/server-auth.ts`)
 - Future: API keys for third-party integrations
-- Token validation on every request
 
 ### API Rate Limiting
+**Not implemented yet.** The following remains a required production task:
 - Per-user rate limits
 - Per-IP rate limits for anonymous users
 - Burst protection
 - Configurable limits per endpoint
+
+### Public Catalogue and API (Phase 4)
+- Every public query filters on `isPublished = true` **and**
+  `status = APPROVED`; the condition lives in `src/lib/catalog.ts`, not in the
+  client
+- Responses are whitelisted DTOs. They never contain e-mail addresses, session
+  tokens, audit logs, review notes or private drafts
+- `q`, `sort` and `page` are validated with Zod; invalid values return `400`
+- Download and preview URLs must be absolute HTTP(S) URLs without embedded
+  credentials. Unsafe values are returned as `null` or not rendered
+- Public API responses use `s-maxage=60, stale-while-revalidate=300`. A newly
+  unpublished entry can therefore remain in a shared cache for a short time;
+  publication changes should be treated as eventually consistent within that
+  window
+- With Cache Components, `notFound()` after an awaited lookup would keep a
+  `200` status. The Next.js proxy checks plugin/theme/news detail slugs before
+  rendering and rewrites unknown or unpublished entries to `/404` with status
+  `404`. A database outage is not turned into a 404
+- The proxy check adds one indexed slug lookup per detail request. It is not an
+  authorization boundary and does not replace the page-level filter
 
 ### API Input Validation
 - Zod schemas for all API inputs
 - Strict type checking
 - No implicit type coercion
 - Error messages don't leak sensitive info
+- Public read-only endpoints reject invalid query parameters instead of
+  silently coercing them
 
 ## 8. GitHub Integration Security
 

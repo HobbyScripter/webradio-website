@@ -97,6 +97,15 @@ describe('registerSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('strips a client-supplied role so registration cannot self-assign privileges', () => {
+    const result = registerSchema.safeParse({ ...validInput, role: 'ADMIN' });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).not.toHaveProperty('role');
+    }
+  });
 });
 
 describe('slugSchema', () => {

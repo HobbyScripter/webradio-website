@@ -171,6 +171,31 @@ PostgreSQL.
 - Failed login attempt monitoring
 - Suspicious activity alerts (TBD)
 
+## Public Website (Phase 4)
+
+- Public pages are Server Components by default. Client Components are limited
+  to interactive pieces: the mobile navigation, the login and registration
+  forms, and the error boundary.
+- `src/lib/catalog.ts` is the public data access layer. It applies the
+  publication filter (`isPublished` + `APPROVED`), returns whitelisted DTOs and
+  implements search, sorting and pagination.
+- Catalogue pages stream their results behind `<Suspense>` with skeletons, so
+  the header, page heading and footer are part of the static shell. Database
+  failures render an error panel; empty results render an explicit empty state.
+- Detail pages are blocking routes (`instant = false`) and use the proxy's
+  pre-render existence check so an unknown slug returns a real `404`.
+- Public API routes (`/api/plugins`, `/api/themes`, `/api/releases`,
+  `/api/news`) are read-only, validate query parameters with Zod, return
+  `Cache-Control: s-maxage=60, stale-while-revalidate=300`, and return generic
+  `500` errors without driver details.
+- Releases use the existing `Release`/`Changelog` models. The channel is derived
+  from SemVer prerelease syntax; the contract has no platform field, so no
+  platform support is displayed.
+- SEO: metadata is defined per public page. Canonical URLs, Open Graph URLs and
+  the sitemap are only emitted when `NEXT_PUBLIC_SITE_URL` is configured.
+  `/admin`, `/developer` and `/auth` are marked `noindex` and disallowed in
+  `robots.txt`.
+
 ## Performance Optimizations
 
 ### Database
@@ -180,10 +205,14 @@ PostgreSQL.
 - Caching for frequently accessed data (TBD)
 
 ### Frontend
-- Static generation for public pages where possible
-- ISR (Incremental Static Regeneration) for dynamic content
-- Image optimization via Next.js Image component
-- Code splitting and lazy loading
+- Partial Prerendering via Cache Components: static shell plus streamed
+  catalogue regions
+- No ISR is configured for catalogue pages; publication state is read at
+  request time so a newly published entry appears immediately
+- External screenshot previews are rendered as lazy, non-proxied `<img>`
+  elements with `referrerPolicy="no-referrer"`. They are not passed through
+  the Next.js image optimizer because remote host configuration is data-driven
+- Code splitting and lazy loading via the App Router
 
 ### CDN & Caching
 - Static assets served via CDN

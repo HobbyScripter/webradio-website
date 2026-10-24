@@ -1,51 +1,157 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { io } from 'next/cache';
+import CatalogCard from '@/components/public/CatalogCard';
+import CatalogPagination from '@/components/public/CatalogPagination';
+import CatalogToolbar from '@/components/public/CatalogToolbar';
+import { ButtonLink } from '@/components/ui/button';
+import { Container, PageHeader } from '@/components/ui/layout';
+import { PlugIcon } from '@/components/ui/icons';
+import { CatalogueSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
+import { listPublishedPlugins } from '@/lib/catalog';
+import {
+  PAGE_SIZE,
+  buildCatalogHref,
+  parseCatalogQuery,
+  type RawCatalogParams,
+} from '@/lib/catalog-query';
+import { absoluteUrl } from '@/lib/site';
 
-export default function PluginsPage() {
+export const metadata: Metadata = {
+  title: 'Plugin-Katalog',
+  description:
+    'Veröffentlichte Plugins für WebRadio: durchsuche freigegebene Erweiterungen nach Name und Beschreibung, sortiert nach Aktualität, Name oder Downloads.',
+  ...(absoluteUrl('/plugins') ? { alternates: { canonical: absoluteUrl('/plugins') } } : {}),
+};
+
+async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalogParams> }) {
+  const params = await searchParams;
+  const query = parseCatalogQuery(params);
+  await io();
+
+  let result;
+  try {
+    result = await listPublishedPlugins({
+      q: query.q,
+      sort: query.sort,
+      page: query.page,
+      pageSize: PAGE_SIZE,
+    });
+  } catch {
+    return (
+      <ErrorState
+        title="Plugin-Katalog nicht erreichbar"
+        description="Die Datenbank konnte nicht abgefragt werden. Es werden keine zwischengespeicherten oder erfundenen Einträge angezeigt."
+        retryHref="/plugins"
+      />
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">Plugin-Verzeichnis</h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            Erweitere dein WebRadio um Playlisten-Automation, DSP-Effekte und Webhook-Benachrichtigungen.
+    <>
+      <CatalogToolbar
+        action="/plugins"
+        query={query}
+        idPrefix="plugins"
+        placeholder="Plugins nach Name oder Beschreibung durchsuchen …"
+      />
+
+      {result.items.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState
+            icon={<PlugIcon className="h-5 w-5" />}
+            tone={query.q || query.page > 1 ? 'warning' : 'neutral'}
+            title={
+              query.page > 1
+                ? 'Keine Einträge auf dieser Seite'
+                : query.q
+                  ? `Keine Plugins für „${query.q}“ gefunden`
+                  : 'Noch keine veröffentlichten Plugins'
+            }
+            description={
+              query.page > 1
+                ? 'Die gewählte Seite liegt hinter dem Ende des Katalogs.'
+                : query.q
+                  ? 'Versuche einen anderen Suchbegriff oder setze die Filter zurück.'
+                  : 'Der Katalog ist leer, weil noch kein Plugin freigegeben wurde. Es werden bewusst keine Beispieldaten erzeugt.'
+            }
+            action={
+              query.page > 1 ? (
+                <ButtonLink
+                  href={buildCatalogHref('/plugins', query, { page: 1 })}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Zur ersten Seite
+                </ButtonLink>
+              ) : query.q ? (
+                <ButtonLink href="/plugins" variant="secondary" size="sm">
+                  Filter zurücksetzen
+                </ButtonLink>
+              ) : (
+                <ButtonLink href="/docs#entwickler" variant="secondary" size="sm">
+                  Einreichung dokumentieren
+                </ButtonLink>
+              )
+            }
+          />
+        </div>
+      ) : (
+        <>
+          <p className="mt-6 text-xs text-zinc-500" role="status">
+            {result.items.length} {result.items.length === 1 ? 'Eintrag' : 'Einträge'} auf dieser
+            Seite
+            {query.q ? ` für „${query.q}“` : ''}.
           </p>
-        </div>
-        <Link
-          href="/developer"
-          className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-500 transition-colors shadow-sm"
-        >
-          Plugin veröffentlichen
-        </Link>
-      </div>
+          <div className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {result.items.map((item) => (
+              <CatalogCard key={item.id} item={item} kind="plugin" basePath="/plugins" />
+            ))}
+          </div>
+          <CatalogPagination basePath="/plugins" query={query} hasNext={result.hasNext} />
+        </>
+      )}
+    </>
+  );
+}
 
-      {/* Filter / Search Bar */}
-      <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 flex flex-col sm:flex-row gap-3">
-        <input
-          type="text"
-          placeholder="Nach Plugins suchen (z.B. Icecast, AutoDJ, Equalizer)..."
-          className="flex-1 px-4 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500"
-        />
-        <select className="px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-300 focus:outline-none focus:border-violet-500">
-          <option value="all">Alle Kategorien</option>
-          <option value="audio">Audio / DSP</option>
-          <option value="automation">Automation</option>
-          <option value="streaming">Streaming-Server</option>
-          <option value="integration">Integrationen</option>
-        </select>
-      </div>
+export default function PluginsPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawCatalogParams>;
+}) {
+  return (
+    <>
+      <PageHeader
+        eyebrow="Katalog"
+        title="Plugins für dein WebRadio"
+        description="Freigegebene Erweiterungen mit Versionen, Tags und Download-Paketen. Private Entwürfe, ausstehende Einreichungen und abgelehnte Einträge bleiben unsichtbar."
+        actions={
+          <>
+            <ButtonLink href="/docs#entwickler" variant="secondary">
+              Einreichung
+            </ButtonLink>
+            <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
+          </>
+        }
+      />
 
-      {/* Empty State */}
-      <div className="p-12 text-center rounded-2xl bg-zinc-900/30 border border-zinc-800/80">
-        <div className="w-12 h-12 rounded-xl bg-violet-600/10 text-violet-400 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-bold text-white">Katalog wird in Phase 4 mit Live-Daten befüllt</h3>
-        <p className="text-sm text-zinc-400 max-w-md mx-auto mt-1">
-          Die Datenbank-Anbindung und das Plugin-Management werden in den nächsten Phasen freigeschaltet.
+      <Container className="py-10">
+        <Suspense fallback={<CatalogueSkeleton />}>
+          <PluginResults searchParams={searchParams} />
+        </Suspense>
+
+        <p className="mt-10 text-xs leading-relaxed text-zinc-500">
+          Hinweis: Die Installation von Plugins im WebRadio-Client ist noch nicht Teil dieses
+          Stands. Der Katalog zeigt ausschließlich Daten, die in PostgreSQL als veröffentlicht und
+          freigegeben markiert sind.{' '}
+          <Link href="/docs#plugins" className="text-zinc-400 underline-offset-4 hover:underline">
+            Mehr zur Architektur
+          </Link>
+          .
         </p>
-      </div>
-    </div>
+      </Container>
+    </>
   );
 }

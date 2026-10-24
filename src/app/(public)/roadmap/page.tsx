@@ -1,76 +1,129 @@
-export default function RoadmapPage() {
-  const PHASES = [
-    {
-      phase: 'Phase 1',
-      title: 'Projektvorbereitung & Architektur',
-      status: 'Abgeschlossen',
-      statusColor: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10',
-      description: 'Architekturdefinition, Prisma 8 RC Integration, Sicherheitskonzept und Spezifikationen.',
-    },
-    {
-      phase: 'Phase 2',
-      title: 'Projektbasis & App-Struktur',
-      status: 'Abgeschlossen',
-      statusColor: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10',
-      description: 'Bereinigung, Validierungsschemata, NextAuth Setup, Route-Groups, Layouts & Middleware.',
-    },
-    {
-      phase: 'Phase 3',
-      title: 'Authentifizierung & Datenbank-Anbindung',
-      status: 'Geplant',
-      statusColor: 'text-violet-400 border-violet-500/20 bg-violet-500/10',
-      description: 'Prisma 8 Adapter für NextAuth, PostgreSQL-Datenbankmigration und rollenbasierter Zugriff.',
-    },
-    {
-      phase: 'Phase 4',
-      title: 'Plugin- & Theme-Katalog',
-      status: 'Geplant',
-      statusColor: 'text-zinc-400 border-zinc-700 bg-zinc-800',
-      description: 'Verzeichnisanzeige, Upload-Pipeline für Zip-Pakete und Object-Storage-Integration.',
-    },
-    {
-      phase: 'Phase 5',
-      title: 'Community, Analytics & Production Readiness',
-      status: 'Geplant',
-      statusColor: 'text-zinc-400 border-zinc-700 bg-zinc-800',
-      description: 'Releases, News, Monitoring und Go-Live Vorbereitung.',
-    },
-  ];
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { io } from 'next/cache';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { ButtonLink } from '@/components/ui/button';
+import { Container, PageHeader } from '@/components/ui/layout';
+import { CalendarIcon, LayersIcon } from '@/components/ui/icons';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { listRoadmapItems } from '@/lib/catalog';
+import { formatDate } from '@/lib/format';
+import { absoluteUrl } from '@/lib/site';
+
+export const metadata: Metadata = {
+  title: 'Roadmap',
+  description:
+    'Öffentliche Projekt-Roadmap von WebRadio. Einträge und Status stammen aus der Datenbank und werden nicht redaktionell erfunden.',
+  ...(absoluteUrl('/roadmap') ? { alternates: { canonical: absoluteUrl('/roadmap') } } : {}),
+};
+
+const STATUS_LABELS: Record<string, { label: string; tone: BadgeTone }> = {
+  PLANNED: { label: 'Geplant', tone: 'neutral' },
+  IN_PROGRESS: { label: 'In Arbeit', tone: 'accent' },
+  COMPLETED: { label: 'Abgeschlossen', tone: 'success' },
+  CANCELLED: { label: 'Verworfen', tone: 'danger' },
+};
+
+async function RoadmapContent() {
+  await io();
+
+  let items;
+  try {
+    items = await listRoadmapItems();
+  } catch {
+    return (
+      <ErrorState
+        title="Roadmap konnte nicht geladen werden"
+        description="Die Datenbank ist momentan nicht erreichbar. Es werden keine Ersatzphasen angezeigt."
+        retryHref="/roadmap"
+      />
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={<LayersIcon className="h-5 w-5" />}
+        title="Noch keine Roadmap-Einträge"
+        description="Die Roadmap wird aus der Datenbank geladen. Solange keine Einträge hinterlegt sind, werden hier keine Phasen oder Termine erfunden."
+        action={
+          <ButtonLink href="/docs" variant="secondary" size="sm">
+            Zum Projektstand
+          </ButtonLink>
+        }
+      />
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Projekt-Roadmap</h1>
-        <p className="text-zinc-400 text-sm mt-1">
-          Der strukturierte Phasenplan für die Entwicklung der WebRadio-Plattform.
-        </p>
-      </div>
+    <ol className="space-y-4">
+      {items.map((item) => {
+        const status = STATUS_LABELS[item.status] ?? {
+          label: item.status,
+          tone: 'neutral' as BadgeTone,
+        };
+        const target = formatDate(item.targetDate);
+        const completed = formatDate(item.completedAt);
 
-      <div className="space-y-4">
-        {PHASES.map((p) => (
-          <div
-            key={p.phase}
-            className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4"
+        return (
+          <li
+            key={item.id}
+            className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6"
           >
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-mono font-bold text-zinc-500 uppercase">
-                  {p.phase}
-                </span>
-                <h2 className="text-lg font-bold text-white">{p.title}</h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-white">{item.title}</h2>
+                <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-zinc-400">
+                  {item.description}
+                </p>
               </div>
-              <p className="text-sm text-zinc-400">{p.description}</p>
+              <Badge tone={status.tone}>{status.label}</Badge>
             </div>
-            <div>
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${p.statusColor}`}
-              >
-                {p.status}
-              </span>
+            {target || completed ? (
+              <div className="mt-4 flex flex-wrap gap-4 border-t border-white/[0.06] pt-3 text-xs text-zinc-500">
+                {target ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarIcon className="h-3.5 w-3.5" /> Ziel: {target}
+                  </span>
+                ) : null}
+                {completed ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarIcon className="h-3.5 w-3.5" /> Abgeschlossen: {completed}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export default function RoadmapPage() {
+  return (
+    <>
+      <PageHeader
+        eyebrow="Projekt"
+        title="Roadmap"
+        description="Geplante, laufende und abgeschlossene Arbeiten am WebRadio-Projekt. Die Einträge werden aus PostgreSQL geladen; Priorität und Status sind keine Client-Angaben."
+      />
+      <Container className="py-10">
+        <Suspense
+          fallback={
+            <div className="space-y-4" aria-hidden="true">
+              {[0, 1, 2].map((index) => (
+                <div
+                  key={index}
+                  className="h-32 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.03]"
+                />
+              ))}
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          }
+        >
+          <RoadmapContent />
+        </Suspense>
+      </Container>
+    </>
   );
 }

@@ -42,7 +42,7 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as { message?: string };
 
       if (!res.ok) {
         setError(data.message || 'Registrierung fehlgeschlagen.');
@@ -59,95 +59,125 @@ export default function RegisterPage() {
     }
   };
 
+  const inputClass =
+    'w-full rounded-xl border border-white/10 bg-[#07070a] px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20';
+  const labelClass =
+    'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-300';
+
   return (
-    <div className="p-8 rounded-2xl bg-zinc-900/80 border border-zinc-800 shadow-2xl backdrop-blur-xl">
+    <div className="rounded-2xl border border-white/[0.08] bg-[#0b0b10]/90 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Konto erstellen</h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          Werde Teil der WebRadio Entwickler- & Sender-Community
+        <h1 className="text-2xl font-bold tracking-tight text-white">Konto erstellen</h1>
+        <p className="mt-1 text-sm text-zinc-400">
+          Registriere dich für den Entwicklerbereich. Neue Konten erhalten die Rolle USER.
         </p>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+      {error ? (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-200"
+        >
           {error}
         </div>
-      )}
+      ) : null}
 
-      {success && (
-        <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs">
-          Konto erfolgreich erstellt! Weiterleitung zum Login...
+      {success ? (
+        <div
+          role="status"
+          className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-200"
+        >
+          Konto erfolgreich erstellt. Du wirst zur Anmeldung weitergeleitet …
         </div>
-      )}
+      ) : null}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-            Benutzername / Entwicklername
+          <label htmlFor="register-name" className={labelClass}>
+            Anzeigename (optional)
           </label>
           <input
+            id="register-name"
+            name="name"
             type="text"
+            autoComplete="nickname"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="audio_pro"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all text-sm"
+            placeholder="z. B. Studio Nord"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+          <label htmlFor="register-email" className={labelClass}>
             E-Mail-Adresse
           </label>
           <input
+            id="register-email"
+            name="email"
             type="email"
             required
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="developer@webradio.local"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all text-sm"
+            placeholder="name@example.com"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+          <label htmlFor="register-password" className={labelClass}>
             Passwort (mindestens 8 Zeichen)
           </label>
           <input
+            id="register-password"
+            name="password"
             type="password"
             required
+            minLength={8}
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••••••"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all text-sm"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+          <label htmlFor="register-password-confirm" className={labelClass}>
             Passwort bestätigen
           </label>
           <input
+            id="register-password-confirm"
+            name="confirmPassword"
             type="password"
             required
+            minLength={8}
+            autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="••••••••••••"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all text-sm"
+            className={inputClass}
           />
         </div>
 
         <button
           type="submit"
           disabled={loading || success}
-          className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 transition-all shadow-md shadow-violet-600/25 active:scale-[0.99] mt-2 flex items-center justify-center gap-2"
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-violet-950/40 transition-colors hover:bg-violet-500 disabled:opacity-50"
         >
-          {loading ? 'Konto wird erstellt...' : 'Registrieren'}
+          {loading ? 'Konto wird erstellt …' : success ? 'Konto erstellt' : 'Registrieren'}
         </button>
       </form>
 
-      <div className="mt-6 pt-6 border-t border-zinc-800 text-center text-xs text-zinc-400">
+      <p className="mt-4 text-[11px] leading-relaxed text-zinc-500">
+        Eine Administrator- oder Entwicklerrolle kann nicht über dieses Formular vergeben werden.
+        Rollenänderungen sind ausschließlich Administratoren vorbehalten und werden auditiert.
+      </p>
+
+      <div className="mt-6 border-t border-white/[0.07] pt-6 text-center text-xs text-zinc-400">
         Bereits registriert?{' '}
-        <Link href="/auth/login" className="text-violet-400 hover:text-violet-300 font-semibold">
+        <Link href="/auth/login" className="font-semibold text-violet-300 hover:text-violet-200">
           Hier anmelden
         </Link>
       </div>

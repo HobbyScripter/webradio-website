@@ -82,10 +82,10 @@ async function AdminContent() {
           <div className="text-2xl font-bold text-zinc-300 mt-1">{auditLogs.length}</div>
         </div>
         <div className="p-5 rounded-xl bg-zinc-900/60 border border-zinc-800">
-          <div className="text-xs text-zinc-400 font-semibold uppercase">System-Status</div>
+          <div className="text-xs text-zinc-400 font-semibold uppercase">Datenbank</div>
           <div className="text-sm font-semibold text-emerald-400 mt-2 flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            Normal
+            Abfragen erfolgreich
           </div>
         </div>
       </div>
