@@ -1,0 +1,311 @@
+// use prisma-8
+// WebRadio Website - Database Contract
+// Prisma ORM 8 format (contract.prisma)
+
+// User model
+model User {
+  id            String    @id @onCreate(uuid(7))
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  emailVerified DateTime?
+  createdAt     DateTime  @onCreate(now())
+  updatedAt     DateTime  @onCreate(now()) @onUpdate(now())
+
+  sessions      Session[]
+  developerProfile DeveloperProfile?
+  pluginPlugins Plugin[]
+  themeThemes  Theme[]
+  auditLogs    AuditLog[]
+
+  @@index([email])
+}
+
+// Session model for server-side authentication
+model Session {
+  id           String   @id @onCreate(uuid(7))
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @onCreate(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+// Developer profile for plugin/theme authors
+model DeveloperProfile {
+  id          String   @id @onCreate(uuid(7))
+  userId      String   @unique
+  displayName String
+  bio         String?
+  githubUrl   String?
+  websiteUrl  String?
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plugins     Plugin[]
+  themes      Theme[]
+
+  @@index([userId])
+}
+
+// Plugin model
+model Plugin {
+  id          String   @id @onCreate(uuid(7))
+  slug        String   @unique
+  name        String
+  description String
+  developerId String
+  status      PluginStatus @default(PENDING_REVIEW)
+  isPublished Boolean  @default(false)
+  downloads   Int      @default(0)
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+  developer   DeveloperProfile @relation(fields: [developerId], references: [id])
+  user        User             @relation(fields: [developerId], references: [id])
+  versions    PluginVersion[]
+  screenshots PluginScreenshot[]
+  tags        PluginTag[]
+
+  @@index([slug])
+  @@index([developerId])
+  @@index([status])
+}
+
+enum PluginStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+// Plugin version
+model PluginVersion {
+  id          String   @id @onCreate(uuid(7))
+  pluginId    String
+  version     String
+  description String?
+  fileUrl     String
+  fileSize    Int
+  checksum    String
+  minWebradioVersion String?
+  maxWebradioVersion String?
+  releasedAt  DateTime @onCreate(now())
+  isLatest    Boolean  @default(false)
+
+  plugin      Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+  @@unique([pluginId, version])
+  @@index([pluginId])
+}
+
+// Plugin screenshot
+model PluginScreenshot {
+  id       String @id @onCreate(uuid(7))
+  pluginId String
+  url      String
+  caption  String?
+  order    Int
+  createdAt DateTime @onCreate(now())
+
+  plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+  @@index([pluginId])
+}
+
+// Plugin tag
+model PluginTag {
+  id       String @id @onCreate(uuid(7))
+  pluginId String
+  tag      String
+
+  plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+  @@unique([pluginId, tag])
+  @@index([tag])
+}
+
+// Theme model
+model Theme {
+  id          String   @id @onCreate(uuid(7))
+  slug        String   @unique
+  name        String
+  description String
+  developerId String
+  status      ThemeStatus @default(PENDING_REVIEW)
+  isPublished Boolean  @default(false)
+  downloads   Int      @default(0)
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+  developer   DeveloperProfile @relation(fields: [developerId], references: [id])
+  user        User             @relation(fields: [developerId], references: [id])
+  versions    ThemeVersion[]
+  screenshots ThemeScreenshot[]
+  tags        ThemeTag[]
+
+  @@index([slug])
+  @@index([developerId])
+  @@index([status])
+}
+
+enum ThemeStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+// Theme version
+model ThemeVersion {
+  id          String   @id @onCreate(uuid(7))
+  themeId     String
+  version     String
+  description String?
+  fileUrl     String
+  fileSize    Int
+  checksum    String
+  minWebradioVersion String?
+  maxWebradioVersion String?
+  releasedAt  DateTime @onCreate(now())
+  isLatest    Boolean  @default(false)
+
+  theme       Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([themeId, version])
+  @@index([themeId])
+}
+
+// Theme screenshot
+model ThemeScreenshot {
+  id      String @id @onCreate(uuid(7))
+  themeId String
+  url     String
+  caption String?
+  order   Int
+  createdAt DateTime @onCreate(now())
+
+  theme   Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@index([themeId])
+}
+
+// Theme tag
+model ThemeTag {
+  id      String @id @onCreate(uuid(7))
+  themeId String
+  tag     String
+
+  theme   Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([themeId, tag])
+  @@index([tag])
+}
+
+// Release model
+model Release {
+  id          String   @id @onCreate(uuid(7))
+  version     String   @unique
+  title       String
+  description String
+  releaseDate DateTime @onCreate(now())
+  isLatest    Boolean  @default(false)
+  downloadUrl String?
+  fileSize    Int?
+  checksum    String?
+
+  changelogs  Changelog[]
+
+  @@index([version])
+  @@index([releaseDate])
+}
+
+// Changelog entry
+model Changelog {
+  id        String   @id @onCreate(uuid(7))
+  releaseId String
+  category  String
+  text      String
+  createdAt DateTime @onCreate(now())
+
+  release   Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@index([releaseId])
+}
+
+// News article
+model News {
+  id          String   @id @onCreate(uuid(7))
+  slug        String   @unique
+  title       String
+  content     String
+  summary     String?
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([publishedAt])
+}
+
+// Roadmap item
+model RoadmapItem {
+  id          String        @id @onCreate(uuid(7))
+  title       String
+  description String
+  status      RoadmapStatus @default(PLANNED)
+  priority    Int           @default(0)
+  targetDate  DateTime?
+  completedAt DateTime?
+  createdAt   DateTime      @onCreate(now())
+  updatedAt   DateTime      @onCreate(now()) @onUpdate(now())
+
+  @@index([status])
+  @@index([priority])
+}
+
+enum RoadmapStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Audit log for security and compliance
+model AuditLog {
+  id        String   @id @onCreate(uuid(7))
+  userId    String?
+  action    String
+  details   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @onCreate(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// GitHub integration tokens (stored encrypted)
+model GitHubToken {
+  id        String   @id @onCreate(uuid(7))
+  userId    String   @unique
+  token     String
+  scopes    String[]
+  expiresAt DateTime?
+  createdAt DateTime @onCreate(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
+
+  @@index([userId])
+}

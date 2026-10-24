@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel in-progress runs for the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Prisma skills
+        run: npx prisma skills sync
+
+      - name: Emit Prisma contract
+        run: npm run prisma:contract:emit
+
+      - name: Run ESLint
+        run: npm run lint
+
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Prisma skills
+        run: npx prisma skills sync
+
+      - name: Emit Prisma contract
+        run: npm run prisma:contract:emit
+
+      - name: Run TypeScript check
+        run: npm run type-check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    # NOTE: Database integration tests will be enabled in Phase 3.
+    # Unit tests (which don't require a database) run without a service.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Prisma skills
+        run: npx prisma skills sync
+
+      - name: Emit Prisma contract
+        run: npm run prisma:contract:emit
+
+      - name: Run tests
+        run: npm test
+        env:
+          # DATABASE_URL is set to a placeholder for unit tests that don't
+          # need a real database. Integration tests in Phase 3 will use a
+          # PostgreSQL service container.
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/webradio_test
+          NEXTAUTH_SECRET: ci-test-secret-not-for-production
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Security audit
+        # Prisma 8 RC ships transitive dev-deps (hono, lodash, valibot via
+        # @prisma/composer-cli) with known high-severity issues that cannot be
+        # fixed without downgrading Prisma. Audit at "critical" level only
+        # until Prisma 8 reaches GA and these deps are updated upstream.
+        # See docs/PHASE1_REPORT.md §10.1 and docs/SECURITY.md for details.
+        run: npm audit --audit-level=critical
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Prisma skills
+        run: npx prisma skills sync
+
+      - name: Emit Prisma contract
+        run: npm run prisma:contract:emit
+
+      - name: Build
+        run: npm run build
+        env:
+          # The build uses prebuild (prisma contract emit), which already ran.
+          # DATABASE_URL is required by prisma.config.ts loader but not used
+          # during static analysis — set a placeholder.
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/webradio_test
+          NEXTAUTH_SECRET: ci-build-secret-not-for-production
+          NEXTAUTH_URL: http://localhost:3000

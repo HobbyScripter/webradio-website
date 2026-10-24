@@ -4,22 +4,46 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "prisma contract emit",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "type-check": "tsc --noEmit",
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --passWithNoTests",
+    "prisma:contract:emit": "prisma contract emit",
+    "prisma:db:init": "prisma db init",
+    "prisma:db:update": "prisma db update",
+    "prisma:db:migrate": "prisma db migrate",
+    "prisma:studio": "prisma studio",
+    "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
+    "@prisma/orm-postgres": "^8.0.0-rc.20",
+    "bcryptjs": "^3.0.3",
     "next": "16.4.3",
+    "next-auth": "^4.24.15",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "temporal-polyfill": "^1.0.6",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
+    "prisma": "^8.0.0-rc.27",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

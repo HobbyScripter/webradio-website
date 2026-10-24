@@ -12,7 +12,23 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Prisma generated files
+    "prisma/contract.d.ts",
+    "prisma/contract.json",
+    // Prisma skills (generated dependencies)
+    ".agents/**",
+    ".claude/**",
+    ".cursor/**",
+    ".devin/**",
   ]),
+  {
+    rules: {
+      // Allow require() in Jest config
+      "@typescript-eslint/no-require-imports": "off",
+      // Ignore empty object types in generated files
+      "@typescript-eslint/no-empty-object-type": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
