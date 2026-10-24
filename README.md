@@ -19,7 +19,7 @@ Die offizielle Website für das WebRadio-Desktop-Projekt. Sie präsentiert die A
 
 ### Voraussetzungen
 
-- Node.js 22+
+- Node.js 24.11+
 - npm
 - PostgreSQL 18 (lokal oder per `docker-compose.yml`) — **ausschließlich eine neue,
   getrennte Entwicklungsdatenbank**, niemals die alte Website-Datenbank
@@ -327,13 +327,12 @@ Requests aus (Token nur mit `contents: read`):
   Contract-Emit, `db:migrate`, `db:verify` und `npm run test:integration`
 - **Build:** Next.js Produktionsbuild
 
-Der Integration-Job wurde lokal mit derselben Datenbankkette ausgeführt. Ein
-realer Lauf auf GitHub Actions (Run `40125408700`, Commit `6e5a5e3`) ist
-allerdings in allen fünf Jobs an `npm ci` gescheitert: Der Lockfile war mit
-einem neueren npm erzeugt worden und enthielt für npm 10 zwei fehlende
-Peer-Pakete. Der Lockfile-Fix ist lokal mit npm 10.9.4 validiert; ein neuer
-grüner Lauf steht noch aus. Details stehen im
-[Phase-4.7-Bericht](docs/PHASE4_7_REPORT.md).
+Der Integration-Job wurde lokal mit derselben Datenbankkette ausgeführt. Die
+realen Läufe auf GitHub Actions zeigten zwei konkrete CI-Probleme: Run
+`40125408700` scheiterte an einem unvollständigen npm-10-Lockfile, Run
+`40128763959` danach an Jest/ESM unter Node 22. Beide Ursachen sind behoben;
+CI nutzt jetzt Node 24. Ein grüner Lauf des aktuellen Stands steht noch aus.
+Details stehen im [Phase-4.7-Bericht](docs/PHASE4_7_REPORT.md).
 
 ## Dokumentation
 

@@ -13,7 +13,7 @@ Datenbanken oder Zugangsdaten angelegt oder verändert.
 | Komponente | Befund |
 |---|---|
 | Next.js | 16.4.3, App Router, `cacheComponents: true` |
-| Node.js | Projekt verlangt `>=22.18.0`; lokal 26.8.2, CI 22.x |
+| Node.js | Projekt verlangt `>=24.11.0`; lokal 26.8.2, CI 24.x |
 | Prisma | CLI 8.0.0-rc.27, Runtime `@prisma/orm-postgres` 8.0.0-rc.20 |
 | PostgreSQL | 18.4 lokal; CI-Service `postgres:18.4-alpine` |
 | NextAuth | 4.24.15, Credentials-Provider + eigene DB-Session |
