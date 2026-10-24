@@ -21,10 +21,20 @@ import type { Contract } from '../../prisma/contract.d';
 import contractJson from '../../prisma/contract.json' with { type: 'json' };
 
 /**
- * The typed contract value. Import this if you need the contract type
- * for advanced use cases. Most app code only needs `db`.
+ * The typed contract value.
  */
 export const contract = contractFromJson<Contract>(contractJson);
+
+/**
+ * Database connection URL resolution:
+ * Uses DATABASE_URL if non-empty, or a placeholder during build/evaluation time
+ * so static analysis and Next.js page collection succeed before live credentials are provided.
+ */
+const rawUrl = process.env['DATABASE_URL'];
+const connectionUrl =
+  rawUrl && rawUrl.trim() !== ''
+    ? rawUrl
+    : 'postgresql://placeholder:placeholder@localhost:5432/webradio_placeholder';
 
 /**
  * The Prisma 8 database client.
@@ -32,10 +42,8 @@ export const contract = contractFromJson<Contract>(contractJson);
  * Usage:
  *   import { db } from '@/lib/db';
  *   const users = await db.orm.public.User.all();
- *
- * DATABASE_URL must be set in .env (loaded via dotenv in prisma.config.ts).
  */
 export const db = postgres({
   contract,
-  url: process.env['DATABASE_URL'],
+  url: connectionUrl,
 });

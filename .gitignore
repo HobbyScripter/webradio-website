@@ -64,3 +64,6 @@ next-env.d.ts
 .DS_Store
 ehthumbs.db
 Desktop.ini
+
+# Local development database
+.local-db/

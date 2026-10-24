@@ -2,26 +2,34 @@
 // WebRadio Website - Database Contract
 // Prisma ORM 8 format (contract.prisma)
 
-// User model
-model User {
-  id            String    @id @onCreate(uuid(7))
-  email         String    @unique
-  passwordHash  String
-  name          String?
-  emailVerified DateTime?
-  createdAt     DateTime  @onCreate(now())
-  updatedAt     DateTime  @onCreate(now()) @onUpdate(now())
-
-  sessions      Session[]
-  developerProfile DeveloperProfile?
-  pluginPlugins Plugin[]
-  themeThemes  Theme[]
-  auditLogs    AuditLog[]
-
-  @@index([email])
+// User role enum for Role-Based Access Control (RBAC)
+enum Role {
+  USER
+  DEVELOPER
+  ADMIN
 }
 
-// Session model for server-side authentication
+// User model - Core authentication entity
+model User {
+  id               String             @id @onCreate(uuid(7))
+  email            String             @unique
+  passwordHash     String
+  name             String?
+  role             Role               @default(USER)
+  emailVerified    DateTime?
+  createdAt        DateTime           @onCreate(now())
+  updatedAt        DateTime           @onCreate(now()) @onUpdate(now())
+
+  sessions         Session[]
+  developerProfile DeveloperProfile?
+  auditLogs        AuditLog[]
+  reviews          PublicationReview[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// Session model for server-side authentication & revocation
 model Session {
   id           String   @id @onCreate(uuid(7))
   userId       String
@@ -35,6 +43,7 @@ model Session {
 
   @@index([userId])
   @@index([token])
+  @@index([expiresAt])
 }
 
 // Developer profile for plugin/theme authors
@@ -57,19 +66,18 @@ model DeveloperProfile {
 
 // Plugin model
 model Plugin {
-  id          String   @id @onCreate(uuid(7))
-  slug        String   @unique
+  id          String       @id @onCreate(uuid(7))
+  slug        String       @unique
   name        String
   description String
   developerId String
   status      PluginStatus @default(PENDING_REVIEW)
-  isPublished Boolean  @default(false)
-  downloads   Int      @default(0)
-  createdAt   DateTime @onCreate(now())
-  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+  isPublished Boolean      @default(false)
+  downloads   Int          @default(0)
+  createdAt   DateTime     @onCreate(now())
+  updatedAt   DateTime     @onCreate(now()) @onUpdate(now())
 
-  developer   DeveloperProfile @relation(fields: [developerId], references: [id])
-  user        User             @relation(fields: [developerId], references: [id])
+  developer   DeveloperProfile   @relation(fields: [developerId], references: [id], onDelete: Cascade)
   versions    PluginVersion[]
   screenshots PluginScreenshot[]
   tags        PluginTag[]
@@ -77,6 +85,7 @@ model Plugin {
   @@index([slug])
   @@index([developerId])
   @@index([status])
+  @@index([isPublished])
 }
 
 enum PluginStatus {
@@ -88,34 +97,35 @@ enum PluginStatus {
 
 // Plugin version
 model PluginVersion {
-  id          String   @id @onCreate(uuid(7))
-  pluginId    String
-  version     String
-  description String?
-  fileUrl     String
-  fileSize    Int
-  checksum    String
+  id                 String   @id @onCreate(uuid(7))
+  pluginId           String
+  version            String
+  description        String?
+  fileUrl            String
+  fileSize           Int
+  checksum           String
   minWebradioVersion String?
   maxWebradioVersion String?
-  releasedAt  DateTime @onCreate(now())
-  isLatest    Boolean  @default(false)
+  releasedAt         DateTime @onCreate(now())
+  isLatest           Boolean  @default(false)
 
-  plugin      Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  plugin             Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
   @@unique([pluginId, version])
   @@index([pluginId])
+  @@index([isLatest])
 }
 
 // Plugin screenshot
 model PluginScreenshot {
-  id       String @id @onCreate(uuid(7))
-  pluginId String
-  url      String
-  caption  String?
-  order    Int
+  id        String   @id @onCreate(uuid(7))
+  pluginId  String
+  url       String
+  caption   String?
+  order     Int
   createdAt DateTime @onCreate(now())
 
-  plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  plugin    Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
   @@index([pluginId])
 }
@@ -134,19 +144,18 @@ model PluginTag {
 
 // Theme model
 model Theme {
-  id          String   @id @onCreate(uuid(7))
-  slug        String   @unique
+  id          String      @id @onCreate(uuid(7))
+  slug        String      @unique
   name        String
   description String
   developerId String
   status      ThemeStatus @default(PENDING_REVIEW)
-  isPublished Boolean  @default(false)
-  downloads   Int      @default(0)
-  createdAt   DateTime @onCreate(now())
-  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+  isPublished Boolean     @default(false)
+  downloads   Int         @default(0)
+  createdAt   DateTime    @onCreate(now())
+  updatedAt   DateTime    @onCreate(now()) @onUpdate(now())
 
-  developer   DeveloperProfile @relation(fields: [developerId], references: [id])
-  user        User             @relation(fields: [developerId], references: [id])
+  developer   DeveloperProfile  @relation(fields: [developerId], references: [id], onDelete: Cascade)
   versions    ThemeVersion[]
   screenshots ThemeScreenshot[]
   tags        ThemeTag[]
@@ -154,6 +163,7 @@ model Theme {
   @@index([slug])
   @@index([developerId])
   @@index([status])
+  @@index([isPublished])
 }
 
 enum ThemeStatus {
@@ -165,34 +175,35 @@ enum ThemeStatus {
 
 // Theme version
 model ThemeVersion {
-  id          String   @id @onCreate(uuid(7))
-  themeId     String
-  version     String
-  description String?
-  fileUrl     String
-  fileSize    Int
-  checksum    String
+  id                 String   @id @onCreate(uuid(7))
+  themeId            String
+  version            String
+  description        String?
+  fileUrl            String
+  fileSize           Int
+  checksum           String
   minWebradioVersion String?
   maxWebradioVersion String?
-  releasedAt  DateTime @onCreate(now())
-  isLatest    Boolean  @default(false)
+  releasedAt         DateTime @onCreate(now())
+  isLatest           Boolean  @default(false)
 
-  theme       Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  theme              Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@unique([themeId, version])
   @@index([themeId])
+  @@index([isLatest])
 }
 
 // Theme screenshot
 model ThemeScreenshot {
-  id      String @id @onCreate(uuid(7))
-  themeId String
-  url     String
-  caption String?
-  order   Int
+  id        String   @id @onCreate(uuid(7))
+  themeId   String
+  url       String
+  caption   String?
+  order     Int
   createdAt DateTime @onCreate(now())
 
-  theme   Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  theme     Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@index([themeId])
 }
@@ -203,20 +214,48 @@ model ThemeTag {
   themeId String
   tag     String
 
-  theme   Theme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  theme   Theme  @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@unique([themeId, tag])
   @@index([tag])
 }
 
+// Publication Review for Plugins & Themes (Approval workflow)
+enum ReviewTarget {
+  PLUGIN
+  THEME
+}
+
+enum ReviewResult {
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+model PublicationReview {
+  id         String       @id @onCreate(uuid(7))
+  targetType ReviewTarget
+  targetId   String
+  reviewerId String
+  status     ReviewResult
+  notes      String?
+  createdAt  DateTime     @onCreate(now())
+
+  reviewer   User         @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, targetId])
+  @@index([reviewerId])
+  @@index([createdAt])
+}
+
 // Release model
 model Release {
-  id          String   @id @onCreate(uuid(7))
-  version     String   @unique
+  id          String      @id @onCreate(uuid(7))
+  version     String      @unique
   title       String
   description String
-  releaseDate DateTime @onCreate(now())
-  isLatest    Boolean  @default(false)
+  releaseDate DateTime    @onCreate(now())
+  isLatest    Boolean     @default(false)
   downloadUrl String?
   fileSize    Int?
   checksum    String?
@@ -235,22 +274,22 @@ model Changelog {
   text      String
   createdAt DateTime @onCreate(now())
 
-  release   Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  release   Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
 
   @@index([releaseId])
 }
 
 // News article
 model News {
-  id          String   @id @onCreate(uuid(7))
-  slug        String   @unique
+  id          String    @id @onCreate(uuid(7))
+  slug        String    @unique
   title       String
   content     String
   summary     String?
-  isPublished Boolean  @default(false)
+  isPublished Boolean   @default(false)
   publishedAt DateTime?
-  createdAt   DateTime @onCreate(now())
-  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+  createdAt   DateTime  @onCreate(now())
+  updatedAt   DateTime  @onCreate(now()) @onUpdate(now())
 
   @@index([slug])
   @@index([isPublished])
@@ -299,13 +338,13 @@ model AuditLog {
 
 // GitHub integration tokens (stored encrypted)
 model GitHubToken {
-  id        String   @id @onCreate(uuid(7))
-  userId    String   @unique
+  id        String    @id @onCreate(uuid(7))
+  userId    String    @unique
   token     String
   scopes    String[]
   expiresAt DateTime?
-  createdAt DateTime @onCreate(now())
-  updatedAt DateTime @onCreate(now()) @onUpdate(now())
+  createdAt DateTime  @onCreate(now())
+  updatedAt DateTime  @onCreate(now()) @onUpdate(now())
 
   @@index([userId])
 }

@@ -1,164 +1,144 @@
 # WebRadio Website
 
-A modern web platform for the WebRadio project, providing plugin and theme management, release distribution, documentation, and community resources.
+Die offizielle Website für das WebRadio-Projekt. Verwaltet Plugins, Themes, Releases, News und Community-Ressourcen.
 
-## Overview
+## Tech Stack
 
-This is a greenfield Next.js application built from scratch with modern technologies. It provides:
+| Technologie | Version | Zweck |
+|---|---|---|
+| [Next.js](https://nextjs.org) | 16.4.3 | Framework (App Router) |
+| [React](https://react.dev) | 19.3.0 | UI-Bibliothek |
+| [TypeScript](https://typescriptlang.org) | 5.x | Sprache |
+| [Tailwind CSS](https://tailwindcss.com) | 4.x | Styling |
+| [Prisma 8](https://www.prisma.io) | 8.0.0-rc | ORM (contract-based) |
+| [PostgreSQL](https://www.postgresql.org) | - | Datenbank |
+| [NextAuth.js](https://next-auth.js.org) | 4.24.15 | Authentifizierung |
+| [Zod](https://zod.dev) | 4.x | Validierung |
 
-- **Public Website**: Project information, downloads, plugin/theme catalogs, documentation, news, and roadmap
-- **User Accounts**: Registration, authentication, profile management
-- **Developer Portal**: Plugin and theme submission, version management
-- **Administration**: Content moderation, user management, audit logging
-- **GitHub Integration**: Release synchronization and webhook handling
+## Schnellstart
 
-## Technology Stack
+### Voraussetzungen
 
-- **Framework**: Next.js 16.4.3 with App Router
-- **Language**: TypeScript 5
-- **Database**: PostgreSQL with Prisma ORM 8
-- **Authentication**: NextAuth.js with server-side sessions
-- **Styling**: Tailwind CSS 4
-- **Validation**: Zod
-- **Testing**: Jest, React Testing Library, Playwright
-- **Deployment**: Vercel
-
-## Project Structure
-
-```
-webradio-website/
-├── prisma/
-│   └── contract.prisma          # Database schema
-├── src/
-│   ├── app/                     # Next.js App Router
-│   ├── components/             # React components
-│   ├── lib/                    # Utility libraries
-│   └── middleware/             # Middleware
-├── docs/                        # Documentation
-└── prisma.config.ts             # Prisma CLI configuration
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 22.18+ or 24.11+ or 26+
-- PostgreSQL database
-- npm, yarn, pnpm, or bun
+- Node.js 22+
+- npm
+- PostgreSQL-Datenbank (Neon, Supabase, Railway oder lokal)
 
 ### Installation
 
-1. Clone the repository:
 ```bash
+# Repository klonen
 git clone <repository-url>
 cd webradio-website
-```
 
-2. Install dependencies:
-```bash
+# Abhängigkeiten installieren
 npm install
-```
 
-3. Set up environment variables:
-```bash
+# Umgebungsvariablen konfigurieren
 cp docs/env.example .env
+# → .env bearbeiten und DATABASE_URL + NEXTAUTH_SECRET eintragen
+# → oder: node scripts/generate-env.cjs (erzeugt .env mit generiertem NEXTAUTH_SECRET)
 ```
 
-Edit `.env` and fill in the required values:
-- `DATABASE_URL`: PostgreSQL connection string
-- `NEXTAUTH_SECRET`: Generate with `openssl rand -base64 32`
-- `NEXTAUTH_URL`: Application URL (http://localhost:3000 for development)
-- Other variables as needed
+### Datenbank einrichten
 
-4. Set up the database:
 ```bash
-npm run prisma:migrate
+# Prisma-Schema gegen Datenbank anwenden (erste Einrichtung)
+npm run prisma:db:init
+
+# Datenbankstatus prüfen
+npx prisma db verify
 ```
 
-5. Generate Prisma client:
-```bash
-npm run prisma:generate
-```
+### Entwicklungsserver starten
 
-6. Run the development server:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser.
+Öffne [http://localhost:3000](http://localhost:3000).
 
-## Available Scripts
+## Verfügbare Befehle
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
-- `npm run type-check` - Run TypeScript type checking
-- `npm test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage
-- `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Run database migrations
-- `npm run prisma:studio` - Open Prisma Studio
+| Befehl | Beschreibung |
+|---|---|
+| `npm run dev` | Entwicklungsserver starten |
+| `npm run build` | Produktionsbuild erzeugen (inkl. `prisma contract emit`) |
+| `npm run lint` | ESLint ausführen |
+| `npm run lint:fix` | ESLint-Fehler automatisch beheben |
+| `npm run type-check` | TypeScript-Typprüfung |
+| `npm test` | Tests ausführen |
+| `npm run test:coverage` | Tests mit Coverage-Report |
+| `npm run prisma:contract:emit` | Prisma-Contract-Artefakte generieren |
+| `npm run prisma:db:init` | Schema erstmalig auf Datenbank anwenden |
+| `npm run prisma:db:update` | Schema-Änderungen (Entwicklung, ohne Migration) |
+| `npm run prisma:db:migrate` | Migrationen anwenden |
 
-## Documentation
+## Projektstruktur
 
-- [Architecture](docs/ARCHITECTURE.md) - System architecture and design decisions
-- [Security](docs/SECURITY.md) - Security concept and best practices
-- [Testing](docs/TESTING.md) - Testing strategy and procedures
-- [Requirements](docs/REQUIREMENTS.md) - Functional and non-functional requirements
-- [Phase 1 Report](docs/PHASE1_REPORT.md) - Project preparation report
+```
+webradio-website/
+├── prisma/
+│   ├── contract.prisma      # Datenbankschema (Prisma 8 Format)
+│   ├── contract.json        # Generiert – nicht bearbeiten
+│   └── contract.d.ts        # Generiert – nicht bearbeiten
+├── src/
+│   ├── app/                 # Next.js App Router
+│   │   ├── api/
+│   │   │   ├── auth/        # NextAuth.js Handler
+│   │   │   └── health/      # Health-Check-Endpoint
+│   │   ├── layout.tsx       # Root-Layout
+│   │   └── page.tsx         # Startseite
+│   ├── components/          # React-Komponenten (Phase 3+)
+│   ├── lib/
+│   │   ├── db.ts            # Prisma 8 Datenbank-Singleton
+│   │   ├── env.ts           # Umgebungsvariablen-Validierung
+│   │   ├── auth.ts          # NextAuth.js Konfiguration
+│   │   └── validations.ts   # Zod-Schemata
+│   └── middleware/
+│       └── index.ts         # Route-Schutz-Middleware
+├── docs/
+│   ├── ARCHITECTURE.md      # Architektur-Dokumentation
+│   ├── SECURITY.md          # Sicherheitskonzept
+│   ├── TESTING.md           # Teststrategie
+│   ├── REQUIREMENTS.md      # Anforderungen
+│   ├── env.example          # Umgebungsvariablen-Vorlage
+│   ├── PHASE1_REPORT.md     # Phase-1-Bericht
+│   └── PHASE2_REPORT.md     # Phase-2-Bericht
+├── scripts/
+│   └── generate-env.cjs     # .env-Generator mit sicherem NEXTAUTH_SECRET
+├── prisma.config.ts         # Prisma CLI Konfiguration
+├── next.config.ts           # Next.js Konfiguration
+└── vercel.json              # Vercel-Deployment-Konfiguration
+```
 
-## Development
+## Umgebungsvariablen
 
-### Code Style
+Alle Variablen sind in [`docs/env.example`](docs/env.example) dokumentiert.
 
-- Use TypeScript for type safety
-- Follow ESLint rules
-- Write tests for new features
-- Document complex logic
+**Pflichtfelder:**
 
-### Database Changes
+| Variable | Beschreibung |
+|---|---|
+| `DATABASE_URL` | PostgreSQL Connection String |
+| `NEXTAUTH_SECRET` | Session-Signierungsschlüssel (`openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | Anwendungs-URL (z.B. `http://localhost:3000`) |
 
-1. Edit `prisma/contract.prisma`
-2. Run `npm run prisma:migrate` to create a migration
-3. Run `npm run prisma:generate` to update the client
+**Sicherheitshinweis:** `.env` ist in `.gitignore` eingetragen und darf **niemals** in Git landen.
 
-### Adding New Features
+## CI/CD
 
-1. Create feature branch
-2. Implement feature with tests
-3. Run linting and type checking
-4. Submit pull request
+GitHub Actions führt bei jedem Push auf `main`/`develop` und bei Pull Requests aus:
 
-## Deployment
+- **Lint:** ESLint
+- **Type Check:** TypeScript
+- **Test:** Jest (16 Unit-Tests, datenbanklos)
+- **Build:** Next.js Produktionsbuild
 
-### Vercel
+## Dokumentation
 
-The project is configured for Vercel deployment:
-
-1. Connect repository to Vercel
-2. Configure environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
-
-### Environment Variables
-
-Production requires the following environment variables:
-- `DATABASE_URL` - Production PostgreSQL connection string
-- `NEXTAUTH_SECRET` - Secret for NextAuth.js
-- `NEXTAUTH_URL` - Production URL
-- `STORAGE_*` - Object storage credentials
-- `GITHUB_*` - GitHub integration credentials (optional)
-
-## Contributing
-
-Contributions are welcome! Please read the contributing guidelines before submitting pull requests.
-
-## License
-
-[Specify your license here]
-
-## Support
-
-For support, please open an issue in the repository or contact the development team.
+- [Architektur](docs/ARCHITECTURE.md)
+- [Sicherheitskonzept](docs/SECURITY.md)
+- [Teststrategie](docs/TESTING.md)
+- [Anforderungen](docs/REQUIREMENTS.md)
+- [Phase 1 Bericht](docs/PHASE1_REPORT.md)
+- [Phase 2 Bericht](docs/PHASE2_REPORT.md)

@@ -40,6 +40,10 @@
       "model": "PluginVersion",
       "namespace": "public"
     },
+    "PublicationReview": {
+      "model": "PublicationReview",
+      "namespace": "public"
+    },
     "Release": {
       "model": "Release",
       "namespace": "public"
@@ -98,6 +102,36 @@
               }
             ]
           },
+          "ReviewResult": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "REJECTED",
+                "value": "REJECTED"
+              },
+              {
+                "name": "CHANGES_REQUESTED",
+                "value": "CHANGES_REQUESTED"
+              }
+            ]
+          },
+          "ReviewTarget": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PLUGIN",
+                "value": "PLUGIN"
+              },
+              {
+                "name": "THEME",
+                "value": "THEME"
+              }
+            ]
+          },
           "RoadmapStatus": {
             "codecId": "pg/text@1",
             "members": [
@@ -116,6 +150,23 @@
               {
                 "name": "CANCELLED",
                 "value": "CANCELLED"
+              }
+            ]
+          },
+          "Role": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "USER",
+                "value": "USER"
+              },
+              {
+                "name": "DEVELOPER",
+                "value": "DEVELOPER"
+              },
+              {
+                "name": "ADMIN",
+                "value": "ADMIN"
               }
             ]
           },
@@ -767,22 +818,6 @@
                   "namespace": "public"
                 }
               },
-              "user": {
-                "cardinality": "N:1",
-                "nullable": false,
-                "on": {
-                  "localFields": [
-                    "developerId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "User",
-                  "namespace": "public"
-                }
-              },
               "versions": {
                 "cardinality": "1:N",
                 "on": {
@@ -1118,6 +1153,116 @@
               },
               "namespaceId": "public",
               "table": "PluginVersion"
+            }
+          },
+          "PublicationReview": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reviewerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ReviewResult",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "targetId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "targetType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ReviewTarget",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "reviewer": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "reviewerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "reviewerId": {
+                  "column": "reviewerId"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "targetId": {
+                  "column": "targetId"
+                },
+                "targetType": {
+                  "column": "targetType"
+                }
+              },
+              "namespaceId": "public",
+              "table": "PublicationReview"
             }
           },
           "Release": {
@@ -1568,22 +1713,6 @@
                   "namespace": "public"
                 }
               },
-              "user": {
-                "cardinality": "N:1",
-                "nullable": false,
-                "on": {
-                  "localFields": [
-                    "developerId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "User",
-                  "namespace": "public"
-                }
-              },
               "versions": {
                 "cardinality": "1:N",
                 "on": {
@@ -1965,6 +2094,19 @@
                   "kind": "scalar"
                 }
               },
+              "role": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Role",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -2005,18 +2147,18 @@
                   "namespace": "public"
                 }
               },
-              "pluginPlugins": {
+              "reviews": {
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
                     "id"
                   ],
                   "targetFields": [
-                    "developerId"
+                    "reviewerId"
                   ]
                 },
                 "to": {
-                  "model": "Plugin",
+                  "model": "PublicationReview",
                   "namespace": "public"
                 }
               },
@@ -2032,21 +2174,6 @@
                 },
                 "to": {
                   "model": "Session",
-                  "namespace": "public"
-                }
-              },
-              "themeThemes": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "developerId"
-                  ]
-                },
-                "to": {
-                  "model": "Theme",
                   "namespace": "public"
                 }
               }
@@ -2070,6 +2197,9 @@
                 },
                 "passwordHash": {
                   "column": "passwordHash"
+                },
+                "role": {
+                  "column": "role"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -2559,6 +2689,7 @@
                   "index": {
                     "name": "Plugin_developerId_idx_656c5b34"
                   },
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "developerId"
@@ -2573,25 +2704,6 @@
                     "namespaceId": "public",
                     "tableName": "DeveloperProfile"
                   }
-                },
-                {
-                  "index": {
-                    "name": "Plugin_developerId_idx_656c5b34"
-                  },
-                  "source": {
-                    "columns": [
-                      "developerId"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "Plugin"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "User"
-                  }
                 }
               ],
               "indexes": [
@@ -2601,6 +2713,14 @@
                   ],
                   "name": "Plugin_developerId_idx_656c5b34",
                   "prefix": "Plugin_developerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "isPublished"
+                  ],
+                  "name": "Plugin_isPublished_idx_d7ee5985",
+                  "prefix": "Plugin_isPublished_idx",
                   "unique": false
                 },
                 {
@@ -2856,6 +2976,14 @@
               "indexes": [
                 {
                   "columns": [
+                    "isLatest"
+                  ],
+                  "name": "PluginVersion_isLatest_idx_b20b6025",
+                  "prefix": "PluginVersion_isLatest_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "pluginId"
                   ],
                   "name": "PluginVersion_pluginId_idx_32c3e11d",
@@ -2876,6 +3004,124 @@
                   ]
                 }
               ]
+            },
+            "PublicationReview": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('APPROVED', 'REJECTED', 'CHANGES_REQUESTED')",
+                  "name": "PublicationReview_status_check_13038551",
+                  "prefix": "PublicationReview_status_check"
+                },
+                {
+                  "expression": "\"targetType\" IN ('PLUGIN', 'THEME')",
+                  "name": "PublicationReview_targetType_check_0ff7a46a",
+                  "prefix": "PublicationReview_targetType_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "reviewerId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ReviewResult",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "targetId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "targetType": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ReviewTarget",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "PublicationReview_reviewerId_idx_25a27b4e"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "reviewerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "PublicationReview"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "PublicationReview_createdAt_idx_9575dbd7",
+                  "prefix": "PublicationReview_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "reviewerId"
+                  ],
+                  "name": "PublicationReview_reviewerId_idx_25a27b4e",
+                  "prefix": "PublicationReview_reviewerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "targetType",
+                    "targetId"
+                  ],
+                  "name": "PublicationReview_targetType_targetId_idx_7a5ee9cb",
+                  "prefix": "PublicationReview_targetType_targetId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
             },
             "Release": {
               "columns": {
@@ -3111,6 +3357,14 @@
               "indexes": [
                 {
                   "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "Session_expiresAt_idx_6b6b8c10",
+                  "prefix": "Session_expiresAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "userId"
                   ],
                   "name": "Session_userId_idx_a489d58a",
@@ -3214,6 +3468,7 @@
                   "index": {
                     "name": "Theme_developerId_idx_656c5b34"
                   },
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "developerId"
@@ -3228,25 +3483,6 @@
                     "namespaceId": "public",
                     "tableName": "DeveloperProfile"
                   }
-                },
-                {
-                  "index": {
-                    "name": "Theme_developerId_idx_656c5b34"
-                  },
-                  "source": {
-                    "columns": [
-                      "developerId"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "Theme"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "User"
-                  }
                 }
               ],
               "indexes": [
@@ -3256,6 +3492,14 @@
                   ],
                   "name": "Theme_developerId_idx_656c5b34",
                   "prefix": "Theme_developerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "isPublished"
+                  ],
+                  "name": "Theme_isPublished_idx_d7ee5985",
+                  "prefix": "Theme_isPublished_idx",
                   "unique": false
                 },
                 {
@@ -3511,6 +3755,14 @@
               "indexes": [
                 {
                   "columns": [
+                    "isLatest"
+                  ],
+                  "name": "ThemeVersion_isLatest_idx_b20b6025",
+                  "prefix": "ThemeVersion_isLatest_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "themeId"
                   ],
                   "name": "ThemeVersion_themeId_idx_c1ca6728",
@@ -3533,6 +3785,13 @@
               ]
             },
             "User": {
+              "checks": [
+                {
+                  "expression": "\"role\" IN ('USER', 'DEVELOPER', 'ADMIN')",
+                  "name": "User_role_check_251e1149",
+                  "prefix": "User_role_check"
+                }
+              ],
               "columns": {
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -3564,6 +3823,21 @@
                   "dataType": "pg/text",
                   "nullable": false
                 },
+                "role": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "USER"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Role",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "dataType": "pg/timestamptz",
@@ -3571,7 +3845,16 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "role"
+                  ],
+                  "name": "User_role_idx_2c1ddf83",
+                  "prefix": "User_role_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -3596,6 +3879,21 @@
                 "ARCHIVED"
               ]
             },
+            "ReviewResult": {
+              "kind": "valueSet",
+              "values": [
+                "APPROVED",
+                "REJECTED",
+                "CHANGES_REQUESTED"
+              ]
+            },
+            "ReviewTarget": {
+              "kind": "valueSet",
+              "values": [
+                "PLUGIN",
+                "THEME"
+              ]
+            },
             "RoadmapStatus": {
               "kind": "valueSet",
               "values": [
@@ -3603,6 +3901,14 @@
                 "IN_PROGRESS",
                 "COMPLETED",
                 "CANCELLED"
+              ]
+            },
+            "Role": {
+              "kind": "valueSet",
+              "values": [
+                "USER",
+                "DEVELOPER",
+                "ADMIN"
               ]
             },
             "ThemeStatus": {
@@ -3620,10 +3926,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "5da733d45cfac7db8c4dcdfbd723561ea4d718891421ec49d9e46df8a36343ad"
+    "storageHash": "b0d9463c5ca3151b86d063e4791193bef2a6dfc12294b1b6735f16b6b06adc94"
   },
   "execution": {
-    "executionHash": "0353666af11ff1dc476df3d0a04175ab687b175a0bf659bfb357d8354dfa33f8",
+    "executionHash": "c58c8d1501bfc066597269dab0ab4c1bc47d5ad2d0150af6f5fecd9575fe89af",
     "mutations": {
       "defaults": [
         {
@@ -3870,6 +4176,28 @@
           "ref": {
             "entry": "PluginVersion",
             "field": "releasedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "PublicationReview",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "PublicationReview",
+            "field": "id",
             "namespace": "public"
           }
         },

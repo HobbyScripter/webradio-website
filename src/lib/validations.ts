@@ -153,9 +153,24 @@ export const roadmapItemSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Role & Review schemas
+// ---------------------------------------------------------------------------
+
+export const roleSchema = z.enum(['USER', 'DEVELOPER', 'ADMIN']);
+
+export const publicationReviewSchema = z.object({
+  targetType: z.enum(['PLUGIN', 'THEME']),
+  targetId: z.string().min(1, 'Target ID is required'),
+  status: z.enum(['APPROVED', 'REJECTED', 'CHANGES_REQUESTED']),
+  notes: z.string().max(2000).optional(),
+});
+
+// ---------------------------------------------------------------------------
 // Type exports
 // ---------------------------------------------------------------------------
 
+export type Role = z.infer<typeof roleSchema>;
+export type PublicationReviewInput = z.infer<typeof publicationReviewSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'5da733d45cfac7db8c4dcdfbd723561ea4d718891421ec49d9e46df8a36343ad'>;
+  StorageHashBase<'b0d9463c5ca3151b86d063e4791193bef2a6dfc12294b1b6735f16b6b06adc94'>;
 export type ExecutionHash =
-  ExecutionHashBase<'0353666af11ff1dc476df3d0a04175ab687b175a0bf659bfb357d8354dfa33f8'>;
+  ExecutionHashBase<'c58c8d1501bfc066597269dab0ab4c1bc47d5ad2d0150af6f5fecd9575fe89af'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -247,6 +247,16 @@ type FieldTypeOverrides = {
           readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
         };
       };
+      readonly PublicationReview: {
+        readonly status: {
+          readonly output: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED';
+          readonly input: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED';
+        };
+        readonly targetType: {
+          readonly output: 'PLUGIN' | 'THEME';
+          readonly input: 'PLUGIN' | 'THEME';
+        };
+      };
       readonly RoadmapItem: {
         readonly status: {
           readonly output: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -257,6 +267,12 @@ type FieldTypeOverrides = {
         readonly status: {
           readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
           readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+        };
+      };
+      readonly User: {
+        readonly role: {
+          readonly output: 'USER' | 'DEVELOPER' | 'ADMIN';
+          readonly input: 'USER' | 'DEVELOPER' | 'ADMIN';
         };
       };
     };
@@ -284,6 +300,16 @@ type ColumnTypeOverrides = {
         readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
       };
     };
+    readonly PublicationReview: {
+      readonly status: {
+        readonly output: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED';
+        readonly input: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED';
+      };
+      readonly targetType: {
+        readonly output: 'PLUGIN' | 'THEME';
+        readonly input: 'PLUGIN' | 'THEME';
+      };
+    };
     readonly RoadmapItem: {
       readonly status: {
         readonly output: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -294,6 +320,12 @@ type ColumnTypeOverrides = {
       readonly status: {
         readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
         readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+      };
+    };
+    readonly User: {
+      readonly role: {
+        readonly output: 'USER' | 'DEVELOPER' | 'ADMIN';
+        readonly input: 'USER' | 'DEVELOPER' | 'ADMIN';
       };
     };
   };
@@ -384,9 +416,8 @@ export namespace Models {
     developer: public_DeveloperProfile;
     screenshots: public_PluginScreenshot[];
     tags: public_PluginTag[];
-    user: public_User;
     versions: public_PluginVersion[];
-    readonly [RelationKeys]?: 'developer' | 'screenshots' | 'tags' | 'user' | 'versions';
+    readonly [RelationKeys]?: 'developer' | 'screenshots' | 'tags' | 'versions';
   };
   export type public_PluginScreenshot = {
     caption: FieldOutputTypes['public']['PluginScreenshot']['caption'];
@@ -419,6 +450,17 @@ export namespace Models {
     version: FieldOutputTypes['public']['PluginVersion']['version'];
     plugin: public_Plugin;
     readonly [RelationKeys]?: 'plugin';
+  };
+  export type public_PublicationReview = {
+    createdAt: FieldOutputTypes['public']['PublicationReview']['createdAt'];
+    id: FieldOutputTypes['public']['PublicationReview']['id'];
+    notes: FieldOutputTypes['public']['PublicationReview']['notes'];
+    reviewerId: FieldOutputTypes['public']['PublicationReview']['reviewerId'];
+    status: FieldOutputTypes['public']['PublicationReview']['status'];
+    targetId: FieldOutputTypes['public']['PublicationReview']['targetId'];
+    targetType: FieldOutputTypes['public']['PublicationReview']['targetType'];
+    reviewer: public_User;
+    readonly [RelationKeys]?: 'reviewer';
   };
   export type public_Release = {
     checksum: FieldOutputTypes['public']['Release']['checksum'];
@@ -470,9 +512,8 @@ export namespace Models {
     developer: public_DeveloperProfile;
     screenshots: public_ThemeScreenshot[];
     tags: public_ThemeTag[];
-    user: public_User;
     versions: public_ThemeVersion[];
-    readonly [RelationKeys]?: 'developer' | 'screenshots' | 'tags' | 'user' | 'versions';
+    readonly [RelationKeys]?: 'developer' | 'screenshots' | 'tags' | 'versions';
   };
   export type public_ThemeScreenshot = {
     caption: FieldOutputTypes['public']['ThemeScreenshot']['caption'];
@@ -513,14 +554,13 @@ export namespace Models {
     id: FieldOutputTypes['public']['User']['id'];
     name: FieldOutputTypes['public']['User']['name'];
     passwordHash: FieldOutputTypes['public']['User']['passwordHash'];
+    role: FieldOutputTypes['public']['User']['role'];
     updatedAt: FieldOutputTypes['public']['User']['updatedAt'];
     auditLogs: public_AuditLog[];
     developerProfile: public_DeveloperProfile | null;
-    pluginPlugins: public_Plugin[];
+    reviews: public_PublicationReview[];
     sessions: public_Session[];
-    themeThemes: public_Theme[];
-    readonly [RelationKeys]?:
-      'auditLogs' | 'developerProfile' | 'pluginPlugins' | 'sessions' | 'themeThemes';
+    readonly [RelationKeys]?: 'auditLogs' | 'developerProfile' | 'reviews' | 'sessions';
   };
 }
 
@@ -535,6 +575,7 @@ export declare const models: {
     PluginScreenshot: Models.public_PluginScreenshot;
     PluginTag: Models.public_PluginTag;
     PluginVersion: Models.public_PluginVersion;
+    PublicationReview: Models.public_PublicationReview;
     Release: Models.public_Release;
     RoadmapItem: Models.public_RoadmapItem;
     Session: Models.public_Session;
@@ -987,6 +1028,12 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'Plugin_isPublished_idx_d7ee5985';
+                  readonly prefix: 'Plugin_isPublished_idx';
+                  readonly columns: readonly ['isPublished'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'Plugin_status_idx_e98638ab';
                   readonly prefix: 'Plugin_status_idx';
                   readonly columns: readonly ['status'];
@@ -1003,18 +1050,6 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'DeveloperProfile';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Plugin';
-                    readonly columns: readonly ['developerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'User';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1213,6 +1248,12 @@ type ContractBase = Omit<
               uniques: readonly [{ readonly columns: readonly ['pluginId', 'version'] }];
               indexes: readonly [
                 {
+                  readonly name: 'PluginVersion_isLatest_idx_b20b6025';
+                  readonly prefix: 'PluginVersion_isLatest_idx';
+                  readonly columns: readonly ['isLatest'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'PluginVersion_pluginId_idx_32c3e11d';
                   readonly prefix: 'PluginVersion_pluginId_idx';
                   readonly columns: readonly ['pluginId'];
@@ -1229,6 +1270,88 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'Plugin';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly PublicationReview: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly notes: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly reviewerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly targetId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly targetType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'PublicationReview_createdAt_idx_9575dbd7';
+                  readonly prefix: 'PublicationReview_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PublicationReview_reviewerId_idx_25a27b4e';
+                  readonly prefix: 'PublicationReview_reviewerId_idx';
+                  readonly columns: readonly ['reviewerId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PublicationReview_targetType_targetId_idx_7a5ee9cb';
+                  readonly prefix: 'PublicationReview_targetType_targetId_idx';
+                  readonly columns: readonly ['targetType', 'targetId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'PublicationReview';
+                    readonly columns: readonly ['reviewerId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1439,6 +1562,12 @@ type ContractBase = Omit<
               uniques: readonly [{ readonly columns: readonly ['token'] }];
               indexes: readonly [
                 {
+                  readonly name: 'Session_expiresAt_idx_6b6b8c10';
+                  readonly prefix: 'Session_expiresAt_idx';
+                  readonly columns: readonly ['expiresAt'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'Session_userId_idx_a489d58a';
                   readonly prefix: 'Session_userId_idx';
                   readonly columns: readonly ['userId'];
@@ -1545,6 +1674,12 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'Theme_isPublished_idx_d7ee5985';
+                  readonly prefix: 'Theme_isPublished_idx';
+                  readonly columns: readonly ['isPublished'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'Theme_status_idx_e98638ab';
                   readonly prefix: 'Theme_status_idx';
                   readonly columns: readonly ['status'];
@@ -1561,18 +1696,6 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'DeveloperProfile';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Theme';
-                    readonly columns: readonly ['developerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'User';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1771,6 +1894,12 @@ type ContractBase = Omit<
               uniques: readonly [{ readonly columns: readonly ['themeId', 'version'] }];
               indexes: readonly [
                 {
+                  readonly name: 'ThemeVersion_isLatest_idx_b20b6025';
+                  readonly prefix: 'ThemeVersion_isLatest_idx';
+                  readonly columns: readonly ['isLatest'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'ThemeVersion_themeId_idx_c1ca6728';
                   readonly prefix: 'ThemeVersion_themeId_idx';
                   readonly columns: readonly ['themeId'];
@@ -1830,6 +1959,16 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly role: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'USER'>;
+                  };
+                  readonly many: false;
+                };
                 readonly updatedAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
@@ -1839,7 +1978,14 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['email'] }];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'User_role_idx_2c1ddf83';
+                  readonly prefix: 'User_role_idx';
+                  readonly columns: readonly ['role'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
           };
@@ -1848,9 +1994,21 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED'];
             };
+            readonly ReviewResult: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['APPROVED', 'REJECTED', 'CHANGES_REQUESTED'];
+            };
+            readonly ReviewTarget: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['PLUGIN', 'THEME'];
+            };
             readonly RoadmapStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+            };
+            readonly Role: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['USER', 'DEVELOPER', 'ADMIN'];
             };
             readonly ThemeStatus: {
               readonly kind: 'valueSet';
@@ -1887,6 +2045,10 @@ type ContractBase = Omit<
     readonly PluginVersion: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'PluginVersion';
+    };
+    readonly PublicationReview: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'PublicationReview';
     };
     readonly Release: { readonly namespace: 'public' & NamespaceId; readonly model: 'Release' };
     readonly RoadmapItem: {
@@ -2315,15 +2477,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['pluginId'];
                 };
               };
-              readonly user: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['developerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
               readonly versions: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -2528,6 +2681,65 @@ type ContractBase = Omit<
                 readonly pluginId: { readonly column: 'pluginId' };
                 readonly releasedAt: { readonly column: 'releasedAt' };
                 readonly version: { readonly column: 'version' };
+              };
+            };
+          };
+          readonly PublicationReview: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly notes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly reviewerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly targetId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly targetType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly reviewer: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['reviewerId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'PublicationReview';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly notes: { readonly column: 'notes' };
+                readonly reviewerId: { readonly column: 'reviewerId' };
+                readonly status: { readonly column: 'status' };
+                readonly targetId: { readonly column: 'targetId' };
+                readonly targetType: { readonly column: 'targetType' };
               };
             };
           };
@@ -2816,15 +3028,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['themeId'];
                 };
               };
-              readonly user: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['developerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
               readonly versions: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -3064,6 +3267,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly role: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly updatedAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -3096,15 +3303,15 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['userId'];
                 };
               };
-              readonly pluginPlugins: {
+              readonly reviews: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Plugin';
+                  readonly model: 'PublicationReview';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
                   readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['developerId'];
+                  readonly targetFields: readonly ['reviewerId'];
                 };
               };
               readonly sessions: {
@@ -3118,17 +3325,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['userId'];
                 };
               };
-              readonly themeThemes: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Theme';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['developerId'];
-                };
-              };
             };
             readonly storage: {
               readonly table: 'User';
@@ -3140,6 +3336,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly name: { readonly column: 'name' };
                 readonly passwordHash: { readonly column: 'passwordHash' };
+                readonly role: { readonly column: 'role' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
@@ -3155,6 +3352,21 @@ type ContractBase = Omit<
               { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
             ];
           };
+          readonly ReviewResult: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
+              { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+              { readonly name: 'CHANGES_REQUESTED'; readonly value: 'CHANGES_REQUESTED' },
+            ];
+          };
+          readonly ReviewTarget: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'PLUGIN'; readonly value: 'PLUGIN' },
+              { readonly name: 'THEME'; readonly value: 'THEME' },
+            ];
+          };
           readonly RoadmapStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -3162,6 +3374,14 @@ type ContractBase = Omit<
               { readonly name: 'IN_PROGRESS'; readonly value: 'IN_PROGRESS' },
               { readonly name: 'COMPLETED'; readonly value: 'COMPLETED' },
               { readonly name: 'CANCELLED'; readonly value: 'CANCELLED' },
+            ];
+          };
+          readonly Role: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'USER'; readonly value: 'USER' },
+              { readonly name: 'DEVELOPER'; readonly value: 'DEVELOPER' },
+              { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
             ];
           };
           readonly ThemeStatus: {
@@ -3181,11 +3401,25 @@ type ContractBase = Omit<
             { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
             { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
           ];
+          readonly ReviewResult: readonly [
+            { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
+            { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+            { readonly name: 'CHANGES_REQUESTED'; readonly value: 'CHANGES_REQUESTED' },
+          ];
+          readonly ReviewTarget: readonly [
+            { readonly name: 'PLUGIN'; readonly value: 'PLUGIN' },
+            { readonly name: 'THEME'; readonly value: 'THEME' },
+          ];
           readonly RoadmapStatus: readonly [
             { readonly name: 'PLANNED'; readonly value: 'PLANNED' },
             { readonly name: 'IN_PROGRESS'; readonly value: 'IN_PROGRESS' },
             { readonly name: 'COMPLETED'; readonly value: 'COMPLETED' },
             { readonly name: 'CANCELLED'; readonly value: 'CANCELLED' },
+          ];
+          readonly Role: readonly [
+            { readonly name: 'USER'; readonly value: 'USER' },
+            { readonly name: 'DEVELOPER'; readonly value: 'DEVELOPER' },
+            { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
           ];
           readonly ThemeStatus: readonly [
             { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
@@ -3398,6 +3632,22 @@ type ContractBase = Omit<
           readonly ref: {
             readonly entry: 'PluginVersion';
             readonly field: 'releasedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PublicationReview';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PublicationReview';
+            readonly field: 'id';
             readonly namespace: 'public';
           };
         },
