@@ -187,6 +187,51 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 - Wait 7 days after release before adopting (as per general policy)
 - Only use actively maintained packages
 
+### Stand der Prüfung (Phase 4.6)
+
+`npm audit` vom 2026-10-24 meldet **15 Findings: 0 critical, 10 high,
+5 moderate**. Auf Produktionsabhängigkeiten begrenzt (`npm audit --omit=dev`)
+sind es **2 high**; beide hängen an `nodemailer@7.0.13`.
+
+| Paket | Version | Art | Hinweis / offered fix |
+|---|---|---|---|
+| `nodemailer` | 7.0.13 | direkt, Production | Fix wäre 10.2.1 (Major). `next-auth@4.24.15` deklariert Peer `nodemailer ^7.0.7`; Upgrade nicht kompatibel |
+| `next-auth` | 4.24.15 | direkt, Production | wird nur wegen der `nodemailer`-Abhängigkeit gemeldet; angebotener „Fix“ (1.12.1) ist ein unsinniger Downgrade |
+| `@hono/node-server` | 1.19.9 | transitiv, nur Dev | über `prisma` → `@prisma/composer-cli` → `@prisma/dev` |
+| `hono` | 4.11.4 | transitiv, nur Dev | dito |
+| `lodash` | 4.17.21 | transitiv, nur Dev | über `@mrleebo/prisma-ast`/`chevrotain` |
+| `@prisma/composer`, `@prisma/composer-cli`, `@prisma/dev`, `alchemy` | 0.34.0 / 0.34.0 / 0.20.0 / 2.0.0-beta.83 | transitiv, nur Dev | Prisma-8-RC-Werkzeugkette |
+| `@mrleebo/prisma-ast`, `chevrotain`, `@chevrotain/*` | 0.13.1 / 10.5.0 | transitiv, nur Dev | Parser-Werkzeuge der Prisma-CLI |
+| `valibot` | 1.2.0 | transitiv, nur Dev | Prisma-CLI |
+
+Für die Dev-Findings bietet `npm audit` ausschließlich `prisma@7.10.1` an. Das
+wäre ein Major-Wechsel **weg vom Contract-basierten Prisma-8-Workflow** und
+wurde deshalb nicht ausgeführt. Die Pakete sind nicht Teil des
+Next.js-Runtime-Bundles; `npm audit --omit=dev` bestätigt, dass nur der
+E-Mail-Pfad betroffen ist.
+
+#### Nodemailer-Mitigation im aktuellen Code
+
+`src/lib/email.ts` verwendet ausschließlich:
+
+- `createTransport({ host, port, secure, requireTLS, auth? })`,
+- `sendMail({ from, to, subject, text })` mit festen, serverseitig erzeugten
+  Texten,
+- Empfängeradressen aus der Datenbank (bei Registrierung per Zod validiert).
+
+Nicht verwendet werden `envelope.size`, `raw`, benutzerdefinierte Header,
+`List-*`-Kommentare, OAuth2-Tokenabruf, DKIM-Signierung, `jsonTransport`,
+`disableFileAccess`/`disableUrlAccess`, `resolveContent()` oder ein
+benutzerdefinierter `name` der Transportverbindung. Damit sind mehrere der
+gemeldeten Vektoren im aktuellen Pfad nicht erreichbar. Das beseitigt die
+Advisories **nicht**: Adressparser-DoS und ein kompromittierter SMTP-Server
+bleiben möglich.
+
+**Empfehlung:** Vor einem Produktivstart entweder auf eine Nodemailer-Version
+mit Fixes wechseln, sobald `next-auth` sie als Peer akzeptiert, oder den
+E-Mail-Versand über einen gepflegten Anbieter-SDK/HTTP-API ersetzen. Kein
+`npm audit fix --force`, kein unkontrolliertes Major-Upgrade.
+
 ## 7. API Security
 
 ### API Authentication

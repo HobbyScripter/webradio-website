@@ -30,6 +30,10 @@ npm run db:verify
 npm run build
 ```
 
+Zusätzlich dokumentiert `PHASE4_6_REPORT.md` einen lokalen HTTP-Smoke-Test:
+Ein zunächst unveröffentlichter Plugin-Slug liefert 404 mit `no-store`; nach
+dem Veröffentlichen liefert derselbe Slug 200 und erscheint in der API.
+
 ## 3. Schutz der Testdatenbank
 
 `npm run test:integration` startet `scripts/run-integration-tests.mjs`:
@@ -61,6 +65,9 @@ Preview- oder Produktionsdatenbank wird vorher abgebrochen.
 - Auth-Routen: 429-Weitergabe, generische Reset-Antwort, Tokenfehler
 - NextAuth-Credentials-Guard: Konto-/IP-Bucket, Body bleibt lesbar
 - Server-Auth: DB-Session statt JWT-Claim, Rollen aus der DB
+- Proxy: unbekannter/unveröffentlichter Detail-Slug → 404 mit
+  `no-store` auf Browser-, CDN- und Vercel-Ebene, kein Prerender-Header,
+  `HEAD` ohne Body, DB-Ausfall ≠ 404, Veröffentlichung nach 404 → 200
 - E-Mail: sichere `NEXTAUTH_URL`-Ableitung, lokale Outbox ohne Token-Log
 - öffentliche UI: Inhalte, Links, leere Zustände, mobile Navigation
 
@@ -101,9 +108,18 @@ Preview- oder Produktionsdatenbank wird vorher abgebrochen.
   `db:migrate`, `db:verify`, `test:integration`)
 - Build
 
-Der Integration-Job ist lokal mit derselben Befehlskette verifiziert. Eine
-Ausführung auf GitHub Actions ist noch nicht erfolgt; das ist im
-`PHASE4_5_REPORT.md` als nicht extern verifiziert vermerkt.
+Der Workflow läuft auf `main`, `master` und `develop` (Push und Pull Request),
+hat `permissions: contents: read`, setzt `persist-credentials: false` beim
+Checkout und verwendet ausschließlich Wegwerf-Testwerte. Der Integration-Job
+nutzt eine leere Datenbank `webradio_ci_test` auf Loopback; der
+Unit-Test-Job benötigt keine Datenbank. Der Build-Job verwendet eine nicht
+erreichbare Platzhalter-`DATABASE_URL` und wurde lokal in dieser Form
+ausgeführt.
+
+Die vollständige Befehlskette wurde lokal auf einer frischen
+PostgreSQL-Datenbank reproduziert. Eine Ausführung auf GitHub Actions ist
+noch nicht erfolgt; das ist im `PHASE4_6_REPORT.md` als nicht extern
+verifiziert vermerkt.
 
 ## 6. Nicht vorhanden / offen
 

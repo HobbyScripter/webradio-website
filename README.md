@@ -185,6 +185,10 @@ Den vollständigen Stand, die Testergebnisse und offenen Punkte dokumentiert
 - Alle öffentlichen Katalog-APIs und personalisierten Antworten senden
   `Cache-Control: no-store`. Zurückgezogene Einträge verschwinden damit beim
   nächsten Request.
+- Unbekannte oder unveröffentlichte Plugin-/Theme-/News-Slugs beantwortet der
+  Proxy direkt mit 404 und `no-store` auf Browser-, CDN- und Vercel-Ebene.
+  Ein einmaliger 404-Treffer kann eine spätere Veröffentlichung nicht
+  überdecken.
 - Die Plattform ist strukturell auf das WebRadio-Desktop-Programm begrenzt:
   `Plugin`, `Theme` und `Release` tragen ein `Product`-Enum mit ausschließlich
   `WEBRADIO`; öffentliche Abfragen filtern darauf.
@@ -242,7 +246,7 @@ webradio-website/
 │   │   ├── catalog-query.ts # Suche, Sortierung, Pagination
 │   │   ├── api-response.ts  # Fehler-Sanitisierung + Same-Origin-Schutz
 │   │   └── validations.ts   # Zod-Schemata
-│   └── proxy.ts             # Next.js-16-Proxy (Cookie-Check + 404 für Detail-Slugs)
+│   └── proxy.ts             # Next.js-16-Proxy (Cookie-Check + uncachebarer 404)
 ├── docs/
 │   ├── ARCHITECTURE.md      # Architektur-Dokumentation
 │   ├── SECURITY.md          # Sicherheitskonzept
@@ -291,7 +295,8 @@ Alle Variablen sind in [`.env.example`](.env.example) dokumentiert (nur Platzhal
 
 ## CI/CD
 
-GitHub Actions führt bei jedem Push auf `main`/`develop` und bei Pull Requests aus:
+GitHub Actions führt bei jedem Push auf `main`/`master`/`develop` und bei Pull
+Requests aus (Token nur mit `contents: read`):
 
 - **Lint:** ESLint
 - **Type Check:** TypeScript
@@ -316,5 +321,6 @@ Abschlussbericht als nicht extern verifiziert gekennzeichnet.
 - [Phase 3.5 Bericht — Datenbankintegration](docs/PHASE3_5_REPORT.md)
 - [Phase 4 Bericht — öffentliche Website](docs/PHASE4_REPORT.md)
 - [Phase 4.5 Bericht — Sicherheit, Cache, CI, Vercel](docs/PHASE4_5_REPORT.md)
+- [Phase 4.6 Bericht — CI, 404-Cache, Vercel-Vorbereitung](docs/PHASE4_6_REPORT.md)
 - [Deployment & Vercel-Readiness](docs/DEPLOYMENT.md)
 - [Legal- & Lizenz-Checkliste](docs/LEGAL_LAUNCH_CHECKLIST.md)

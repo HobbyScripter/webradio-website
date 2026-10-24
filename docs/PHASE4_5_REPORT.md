@@ -235,9 +235,13 @@ setzt. Geprüft und ausgeschlossen wurden:
 **Auswirkung:** Es wird kein zurückgezogener Inhalt ausgeliefert — die
 200-Antwort und die API sind `no-store`. Es kann aber eine *negative*
 404-Antwort für einen zunächst unbekannten Slug im CDN liegen bleiben und eine
-spätere Veröffentlichung überlagern. Dieses Risiko ist offen und muss durch
-eine CDN-Regel, eine neuere Next.js-Version oder eine bewusste
-Cache-Invalidierung beim Veröffentlichen adressiert werden.
+spätere Veröffentlichung überlagern.
+
+> **Nachtrag Phase 4.6:** Der in diesem Abschnitt beschriebene Rewrite wurde
+> entfernt. Unbekannte Detail-Slugs beantwortet der Proxy jetzt direkt mit
+> einer `no-store`-Antwort inklusive `CDN-Cache-Control` und
+> `Vercel-CDN-Cache-Control`; es wird keine gerenderte 404-Seite mehr
+> verwendet. Siehe [`PHASE4_6_REPORT.md`](PHASE4_6_REPORT.md).
 
 ---
 
@@ -557,10 +561,11 @@ Benutzeränderungen im Arbeitsbaum wurden nicht zurückgesetzt.
 
 ## 13. Verbleibende Risiken und nicht verifizierte Punkte
 
-1. **404-Cache-Header (Next.js 16.4.3).** Gerenderte 404-Antworten erhalten
-   `s-maxage=31536000`. Kein zurückgezogener Inhalt wird dadurch
-   ausgeliefert, aber eine negative Antwort kann eine spätere
-   Veröffentlichung überlagern. CDN-Regel oder Next.js-Update nötig.
+1. **404-Cache-Header (Next.js 16.4.3).** Gerenderte 404-Antworten konnten
+   `s-maxage=31536000` erhalten. Kein zurückgezogener Inhalt wurde dadurch
+   ausgeliefert, aber eine negative Antwort konnte eine spätere
+   Veröffentlichung überlagern. **In Phase 4.6 behoben:** direkte,
+   uncachebare 404-Antwort aus dem Proxy (siehe `PHASE4_6_REPORT.md`).
 2. **Prisma 8 RC.** CLI 8.0.0-rc.27, Runtime 8.0.0-rc.20; APIs können sich
    bis GA ändern.
 3. **Kein initialer ADMIN und kein SYSTEM_ADMIN.** Die CLI-Bootstraps wurden

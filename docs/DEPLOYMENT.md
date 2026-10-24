@@ -1,6 +1,7 @@
 # Deployment & Vercel-Readiness
 
-**Stand:** 2026-10-24  
+**Stand:** 2026-10-24 (Phase 4.6)
+
 **Status:** vorbereitet, **nicht deployt** und **nicht gegen Vercel verifiziert**.
 
 Dieses Dokument beschreibt, was für einen späteren Vercel-Betrieb geprüft wurde.
@@ -144,13 +145,19 @@ Versionen prüfen, Migration auf leerer DB testen, `db:verify` ausführen.
   Eintrag darf nicht aus einem Shared Cache weiterleben.
 - Erfolgreiche Katalog- und Detailseiten senden `private, no-cache, no-store`,
   weil jede Anfrage PostgreSQL liest.
-- Bekannte Einschränkung: Next.js 16.4 setzt bei einer gerenderten `404`-
-  Antwort (Proxy-Rewrite auf `/404`) `s-maxage=31536000`, obwohl der Proxy
-  `no-store` setzt. Der Inhalt eines zurückgezogenen Eintrags wird dadurch
-  **nicht** ausgeliefert (die 200-Antwort und die API sind `no-store`), aber
-  eine negative 404-Antwort kann eine spätere Veröffentlichung überlagern.
-  `vercel.json`-Header überschreiben Funktions-Header nicht; eine spätere
-  Prüfung mit einer aktuellen Next.js-Version oder eine CDN-Regel ist nötig.
+- **Unbekannte oder unveröffentlichte Detail-Slugs** beantwortet der Proxy
+  direkt mit HTTP 404, `Cache-Control: no-store, max-age=0`,
+  `CDN-Cache-Control: no-store` und `Vercel-CDN-Cache-Control: no-store`.
+  Es wird keine gerenderte 404-Seite und kein Rewrite mehr verwendet; damit
+  kann keine `s-maxage`-Direktive einer vorgerenderten Seite an einer
+  negativen Antwort hängen. Lokal mit `next start` geprüft: 404-Header und
+  kein `x-nextjs-prerender`; nach dem Veröffentlichen desselben Slugs sofort
+  HTTP 200. Der `HEAD`-Fall ist zusätzlich durch den Proxy-Unit-Test
+  abgedeckt (gleiche Header, kein Body).
+- Die Vercel-CDN-Semantik selbst ist **nicht** verifiziert, weil kein
+  Deployment erfolgte. Die drei Cache-Header sind die dokumentierte,
+  providerübergreifende Absicherung; ein Preview-Test muss bestätigen, dass
+  Vercel sie unverändert ausliefert.
 - Auth-, Session- und personalisierte Antworten senden ebenfalls `no-store`.
 - Session-Cookie: `HttpOnly`, `SameSite=Lax`, `Path=/`, in Produktion
   `Secure` und `__Secure-`-Präfix.
@@ -188,3 +195,95 @@ Aufbewahrungsrichtlinie nötig; die Korrektheit hängt nicht davon ab.
 `vercel.json` enthält nur Build-/Framework-Konfiguration. Die früheren
 `@secret`-Referenzen wurden entfernt, weil Secrets über die Vercel-
 Projekteinstellungen verwaltet werden.
+
+**Offene Regionsentscheidung:** `vercel.json` pinnt derzeit `regions: ["iad1"]`
+(US). Für eine deutschsprachige Website mit EU-Datenverarbeitung sind
+Datenresidenz, Latenz und die Angaben in der Datenschutzerklärung zu prüfen;
+`fra1` wäre eine naheliegende Alternative. Die Region wurde in Phase 4.6
+**nicht** eigenmächtig geändert, weil sie von Betreiber- und Rechtsentscheidungen
+abhängt.
+
+## 10. Build, Migration und Produktionsschutz
+
+- `npm run build` führt **keine** Datenbankmigration und keinen
+  `prisma db migrate`-Aufruf aus. Der `prebuild`-Schritt ist ausschließlich
+  `prisma contract emit` (Contract-Artefakte, kein Datenbankzugriff).
+- `vercel.json` setzt nur `installCommand`, `buildCommand`, `devCommand`,
+  `framework` und `regions`; dort ist kein Migrationsbefehl verdrahtet.
+- Migrationen sind ein separater, freizugebender Schritt mit einer explizit
+  gesetzten `DATABASE_URL` der Zielumgebung:
+
+```bash
+# Ziel-URL bewusst prüfen, niemals aus einer lokalen .env übernehmen
+export DATABASE_URL="postgresql://…/webradio_production"
+npm run prisma:contract:emit
+npm run db:migrate
+npm run db:verify
+```
+
+- Vor jeder Produktionsmigration: Backup/Snapshot, `db:status`, Review der
+  `ops.json` auf `destructive`-Operationen. Bei einer destruktiven Operation
+  abbrechen und eine additive Migration planen.
+- `npm run db:migrate` setzt den Live-Marker, aber nicht den `db`-Ref. Nach
+  dem Anwenden den Ref auf die neue Spitze setzen (siehe README), sonst plant
+  der nächste Schritt von einem älteren Stand.
+- Ein normaler Vercel-Build darf keine Produktionsdatenbank erreichen müssen.
+  Der Build wurde lokal mit einer nicht erreichbaren Platzhalter-URL
+  erfolgreich ausgeführt.
+
+## 11. Rollback und Wiederherstellung
+
+- **Anwendung:** Vercel-Rollback auf die vorherige Deployment-Version.
+  Datenbankmigrationen werden dadurch nicht rückgängig gemacht.
+- **Datenbank:** Wiederherstellung aus dem letzten verifizierten Backup /
+  Point-in-Time-Recovery des Anbieters. Ein Rollback der Anwendung setzt einen
+  kompatiblen Schemastand voraus; additive Migrationen bleiben in der Regel
+  rückwärtskompatibel, destruktive nicht.
+- **Migrationsfehler:** Nicht blind erneut ausführen. Zuerst `db:status`,
+  Operator-Log und die fehlgeschlagene Operation prüfen; bei unbekanntem
+  Zustand den Vorgang stoppen und den Datenbankzustand rekonstruieren.
+- **Sessions/Cookies:** Nach einem Rollback können Cookie-Namen und
+  `NEXTAUTH_URL` abweichen. Betroffene Nutzer müssen sich neu anmelden;
+  Datenbank-Sessions bleiben gültig, bis sie ablaufen oder widerrufen werden.
+- **Wiederherstellung der Admin-Kontrolle:** Nur über den dokumentierten
+  SYSTEM_ADMIN-Recovery-Weg mit Shell- und Datenbankzugriff; kein HTTP-Weg.
+
+## 12. Preview-Prüfmatrix (nach einem echten Deployment)
+
+- [ ] `GET /api/health` → 200, keine internen Daten
+- [ ] Startseite, `/plugins`, `/themes`, `/releases`, `/docs` laden ohne
+      Konsolen-/Netzwerkfehler
+- [ ] Login, Session-Cookie (`Secure`, `HttpOnly`, `SameSite=Lax`), Logout
+- [ ] Geschützte Seiten `/admin`, `/developer` ohne Session → Redirect
+- [ ] USER/DEVELOPER erhalten serverseitig keine Admin-Aktionen
+- [ ] Registrierung, E-Mail-Verifizierung, Passwort-Reset (nur mit echtem
+      SMTP; sonst als nicht zustellbar dokumentieren)
+- [ ] Fremde `Origin` bei schreibenden Requests → 403
+- [ ] Öffentliche APIs und Detailseiten → `Cache-Control: no-store`
+- [ ] Unbekannter Detail-Slug → 404 mit allen drei `no-store`-Headern
+- [ ] Veröffentlichung desselben Slugs → sofort 200 (kein CDN-404)
+- [ ] `NEXTAUTH_URL` entspricht der Preview-Origin; Reset-Links zeigen dorthin
+
+## 13. Health-Checks, Logs und Datenschutz bei der Diagnose
+
+- `/api/health` ist ein **Liveness**-Check: Er prüft Prozess und Version, nicht
+  PostgreSQL. Für Readiness muss ein separater, nicht öffentlicher Check die
+  Datenbank anpingen; ein öffentlicher DB-Check würde Last und
+  Informationsleck-Risiko erzeugen.
+- Vercel-Funktionslogs enthalten die von `console.error` ausgegebenen
+  Fehlernamen/-codes. Es werden keine Passwörter, Tokens, Session-IDs,
+  E-Mail-Adressen oder vollständigen Verbindungs-Strings geloggt.
+- Logs nur so lange aufbewahren, wie für Betrieb und Sicherheit nötig; die
+  Aufbewahrungsfrist muss in die Datenschutzerklärung.
+- Bei der Fehlerdiagnose keine vollständigen Request-Bodies oder Cookies in
+  Tickets/Screenshots übernehmen.
+- Ein Datenbankausfall wird im Proxy **nicht** zu einem 404 (sonst würde ein
+  temporärer Fehler als „nicht vorhanden“ gecacht); die Seite zeigt ihren
+  Fehlerzustand.
+- **Offener Header-Befund:** API-Antworten setzen `X-Content-Type-Options:
+  nosniff`, und der direkte 404 setzt zusätzlich CSP/Referrer-Policy. Für die
+  übrigen HTML-Seiten ist derzeit **keine** globale CSP, HSTS,
+  `X-Frame-Options`- oder `Permissions-Policy`-Konfiguration vorhanden. Das
+  ist vor einem öffentlichen Launch zu ergänzen und mit Next.js-Inline-Skripten
+  bzw. HTTPS zu testen; ohne Deployment wurde bewusst keine ungeprüfte
+  CSP aktiviert.

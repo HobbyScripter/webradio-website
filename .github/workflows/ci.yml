@@ -1,10 +1,14 @@
 name: CI
 
+# The workflow only reads the repository. No job needs a write token.
+permissions:
+  contents: read
+
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
 
 # Cancel in-progress runs for the same branch/PR
 concurrency:
@@ -15,9 +19,12 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,9 +47,12 @@ jobs:
   type-check:
     name: Type Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -63,13 +73,16 @@ jobs:
         run: npm run type-check
 
   test:
-    name: Test
+    name: Unit Tests
     runs-on: ubuntu-latest
-    # NOTE: Database integration tests will be enabled in Phase 3.
-    # Unit tests (which don't require a database) run without a service.
+    timeout-minutes: 10
+    # Unit/component tests do not connect to a database. The PostgreSQL
+    # integration suite runs in the separate `integration` job.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -132,6 +145,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -160,9 +175,12 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

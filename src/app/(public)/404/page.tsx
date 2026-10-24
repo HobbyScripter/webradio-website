@@ -11,13 +11,12 @@ export const metadata: Metadata = {
 export const instant = false;
 
 /**
- * Reached through the proxy rewrite for unknown plugin/theme/news slugs.
+ * Public `/404` page for direct requests.
  *
- * The proxy sets the real `404` status. `headers()` keeps this route out of the
- * static shell so it can render the public layout per request. Next.js still
- * attaches its pre-rendered 404 cache header to the rewritten response; that
- * framework behaviour is documented as a residual risk in
- * docs/PHASE4_5_REPORT.md.
+ * Unknown plugin/theme/news slugs no longer rewrite here: the proxy answers
+ * them directly with a `no-store` 404 so no framework or CDN cache directive
+ * can keep a negative answer alive. `headers()` still keeps this route out of
+ * the static shell and gives it the same per-request cache policy.
  */
 export default async function NotFoundRoute() {
   await headers();

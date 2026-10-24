@@ -11,7 +11,11 @@
  * 2. **Real 404 status for detail routes.** With Cache Components, a
  *    `notFound()` that runs after an async database read has already started
  *    streaming, so the response would keep a 200 status. Checking the slug
- *    before rendering lets us rewrite unknown slugs to the 404 route.
+ *    before rendering lets us answer with a real 404. The response is built
+ *    here instead of rewriting to `/404`: a rendered 404 page can inherit
+ *    Next.js/CDN caching headers, which would leave a negative hit (for a
+ *    slug that is published later) cached. This response is explicitly
+ *    `no-store` for every cache layer.
  *
  * Authorization itself happens on the server for every protected page, route
  * handler and data access:
@@ -40,14 +44,69 @@ const SESSION_COOKIE_NAMES = [
 
 const DETAIL_ROUTE_PATTERN = /^\/(plugins|themes|news)\/([^/]+)\/?$/;
 
+// Minimal, self-contained 404 page. It is intentionally not rendered through
+// the App Router, so no framework/CDN cache directive for a prerendered page
+// can be attached to a negative answer. Styling is inline to avoid shipping
+// assets for a page that must never be cached.
+const NOT_FOUND_HTML = `<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>404 — Seite nicht gefunden | WebRadio</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 2rem;
+    background: #09090b; color: #f4f4f5; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { width: min(32rem, 100%); text-align: center; }
+  .code { display: inline-grid; place-items: center; width: 5rem; height: 5rem; border-radius: 1rem;
+    border: 1px solid rgb(139 92 246 / .25); background: rgb(139 92 246 / .1);
+    color: #c4b5fd; font: 700 1.5rem/1 ui-monospace, monospace; }
+  h1 { margin: 1.5rem 0 .75rem; font-size: clamp(1.75rem, 5vw, 2.5rem); letter-spacing: -.02em; }
+  p { margin: 0 auto; max-width: 28rem; color: #a1a1aa; line-height: 1.6; }
+  nav { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin-top: 2rem; }
+  a { display: inline-block; padding: .7rem 1.2rem; border-radius: .75rem; font-size: .9rem;
+    font-weight: 600; text-decoration: none; }
+  a.primary { background: #7c3aed; color: #fff; }
+  a.secondary { border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; }
+  a:focus-visible { outline: 3px solid #a78bfa; outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="code">404</div>
+  <h1>Seite nicht gefunden</h1>
+  <p>Dieser Eintrag existiert nicht, wurde zurückgezogen oder ist noch nicht freigegeben.</p>
+  <nav>
+    <a class="primary" href="/">Zur Startseite</a>
+    <a class="secondary" href="/plugins">Plugins entdecken</a>
+  </nav>
+</main>
+</body>
+</html>`;
+
 function notFoundResponse(request: NextRequest): NextResponse {
-  const response = NextResponse.rewrite(new URL('/404', request.url), { status: 404 });
-  // Attempt to keep the negative answer out of caches. Next.js 16.4 still
-  // overwrites `Cache-Control` for a rendered 404 with its pre-rendered
-  // `s-maxage=31536000`; the successful detail page and the public APIs are
-  // `no-store`, so no withdrawn *content* can be cached. The remaining
-  // stale-404 risk is documented in docs/PHASE4_5_REPORT.md.
-  response.headers.set('Cache-Control', 'no-store');
+  const response = new NextResponse(
+    request.method === 'HEAD' ? null : NOT_FOUND_HTML,
+    { status: 404 },
+  );
+
+  response.headers.set('Content-Type', 'text/html; charset=utf-8');
+  response.headers.set('Cache-Control', 'no-store, max-age=0');
+  // Vercel's CDN prefers these headers over Cache-Control when present.
+  // Setting all three keeps the negative answer out of browser, shared and
+  // provider caches.
+  response.headers.set('CDN-Cache-Control', 'no-store');
+  response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'no-referrer');
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  );
   return response;
 }
 

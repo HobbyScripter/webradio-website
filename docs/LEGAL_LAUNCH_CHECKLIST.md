@@ -1,6 +1,7 @@
 # Legal & Licensing Launch Checklist
 
-**Stand:** 2026-10-24  
+**Stand:** 2026-10-24 (Phase 4.6)
+
 **Status:** offen. Dieses Dokument ist **keine Rechtsberatung** und enthält
 bewusst keine erfundenen Anbieter-, Adress- oder Lizenzangaben.
 
@@ -126,3 +127,113 @@ vollständigen Lizenz-Scan geprüft und die Hinweise gebündelt werden.
 - [ ] Rechtsprüfung durch qualifizierte Person
 
 Bis dahin bleibt der Footer-Hinweis „noch nicht veröffentlicht“ bestehen.
+
+## 7. Erweiterte Launch-Checkliste
+
+### Impressum und Anbieter
+
+- [ ] Anbieter-/Firmenname, Rechtsform und ladungsfähige Anschrift
+- [ ] Vertretungsberechtigte Person
+- [ ] Kontakt-E-Mail und ggf. Telefon
+- [ ] Registereintrag, Registernummer, zuständiges Register
+- [ ] Umsatzsteuer-/Wirtschafts-ID, falls einschlägig
+- [ ] Verantwortliche Person für journalistisch-redaktionelle Inhalte
+- [ ] Aufsichtsbehörde, falls eine Zulassung erforderlich ist
+- [ ] Impressum von jeder Seite mit maximal zwei Klicks erreichbar
+
+### Datenschutz und Cookies
+
+- [ ] Verzeichnis aller Verarbeitungen mit Zweck, Rechtsgrundlage,
+      Empfängern, Drittlandtransfer und Löschfrist
+- [ ] Hosting-/Datenbank-/SMTP-Anbieter und Auftragsverarbeitungsverträge
+- [ ] Session-Cookie: technisch notwendig, `HttpOnly`, `SameSite=Lax`,
+      `Secure` unter HTTPS; keine Werbe-/Tracking-Cookies implementiert
+- [ ] Entscheidung, ob für das Session-Cookie ein Einwilligungsbanner nötig
+      ist — rechtlich prüfen, nicht pauschal annehmen
+- [ ] Server-/Fehlerlogs: Rechtsgrundlage, Inhalt, Aufbewahrung, Zugriff
+- [ ] Audit-Log: Zweck (Sicherheit/Nachvollziehbarkeit), Felder, Löschfrist
+- [ ] Rate-Limit-Daten: nur Hashes, Löschfrist und Zweck beschreiben
+- [ ] E-Mail-Versand: Empfänger, Anbieter, Aufbewahrung, Reset-/Token-Links
+- [ ] Analytics: **derzeit keine** implementiert; falls später, vorher
+      Datenschutz und Einwilligung klären
+- [ ] Betroffenenrechte und Beschwerdestelle benennen
+- [ ] Lösch-/Sperrverfahren für Konten, Sessions, Audit- und Rate-Limit-Daten
+- [ ] Keine echten personenbezogenen Daten in Logs, Tickets oder Screenshots
+
+### Inhalte, Plugins, Themes und Haftung
+
+- [ ] Lizenzbedingungen für eingereichte Plugins und Themes festlegen
+      (Erlaubnis, Weitergabe, Änderung, Haftungsausschluss)
+- [ ] Nachweis/Erklärung, dass Einreichende die erforderlichen Rechte besitzen
+- [ ] Urheberrechtshinweise und Lizenztexte je Download bereitstellen
+- [ ] Keine geschützten Logos, Screenshots oder Namen ohne Erlaubnis
+- [ ] Prüfprozess für Einreichungen (Malware, Rechte, Funktion, WebRadio-Bezug)
+- [ ] Melde- und Entfernungsprozess für rechtswidrige Inhalte mit
+      Bearbeitungsfristen und Ansprechpartner
+- [ ] Sperr-/Widerrufsprozess für bereits veröffentlichte Einträge
+- [ ] Haftungsausschluss für Plugins/Themes Dritter, rechtlich geprüft
+- [ ] Sicherheitskontakt und Responsible-Disclosure-Verfahren veröffentlichen
+
+### Technischer Launch
+
+- [ ] Produktionsdatenbank, Backups und Wiederherstellung getestet
+- [ ] SMTP-Zustellung für Reset und Verifizierung getestet
+- [ ] `NEXTAUTH_URL`/`NEXT_PUBLIC_SITE_URL` auf der echten Domain
+- [ ] Health-Check, Fehlerlogs und Alarmierung eingerichtet
+- [ ] 404-/Cache-Verhalten auf der echten CDN-Origin geprüft
+- [ ] Keine Secrets in Repository, Logs oder Client-Bundle
+- [ ] Rechtstexte und Lizenz von qualifizierter Person geprüft
+
+## 8. Vorlagen mit Platzhaltern (nicht veröffentlichen)
+
+Die folgenden Texte sind **Vorlagen**. Sie dürfen erst veröffentlicht werden,
+nachdem alle Platzhalter durch geprüfte Angaben ersetzt und die Texte
+rechtlich geprüft wurden.
+
+### Impressum — Vorlage
+
+```text
+Angaben gemäß § 5 DDG
+
+[VOLLSTÄNDIGER NAME / FIRMA]
+[STRASSE UND HAUSNUMMER]
+[PLZ UND ORT]
+[LAND]
+
+Vertreten durch: [VERTRETUNGSBERECHTIGTE PERSON]
+Kontakt: [TELEFON] · [E-MAIL]
+Register: [REGISTERGERICHT] · [REGISTERNUMMER]
+Umsatzsteuer-ID: [UST-ID, falls vorhanden]
+Verantwortlich für den Inhalt: [NAME, ANSCHRIFT]
+```
+
+### Datenschutzerklärung — Mindestgliederung
+
+```text
+1. Verantwortlicher: [NAME, ANSCHRIFT, KONTAKT]
+2. Hosting: [ANBIETER, REGION, AV-VERTRAG, Drittlandtransfer]
+3. Datenbank: [ANBIETER, REGION, AV-VERTRAG, BACKUPS]
+4. Konto und Anmeldung: [DATEN, ZWECK, RECHTSGRUNDLAGE, LÖSCHFRIST]
+5. Sessions und Cookies: [COOKIE-NAME, DAUER, ZWECK, EINWILLIGUNG?]
+6. Audit- und Sicherheitslogs: [FELDER, ZWECK, AUFBEWAHRUNG]
+7. Rate-Limiting: [GEHASHTE KENNUNGEN, ZWECK, LÖSCHFRIST]
+8. E-Mail-Versand: [ANBIETER, EMPFÄNGERDATEN, AUFBEWAHRUNG]
+9. Betroffenenrechte: [AUSKUNFT, BERICHTIGUNG, LÖSCHUNG, …]
+10. Beschwerdestelle: [ZUSTÄNDIGE AUFSICHTSBEHÖRDE]
+11. Stand: [DATUM], Fassung [VERSION]
+```
+
+Diese Gliederung ist keine fertige Datenschutzerklärung und ersetzt keine
+rechtliche Prüfung.
+
+## 9. Offene Betreiberangaben (Sammelliste)
+
+- [ ] Name/Firma, Anschrift, Kontakt, Vertretung
+- [ ] Hosting-, Datenbank- und SMTP-Anbieter inkl. Region und AV-Vertrag
+- [ ] Aufbewahrungsfristen für Sessions, Audit-Logs, Rate-Limit-Daten und Logs
+- [ ] Projektlizenz und Lizenzbedingungen für Plugins/Themes
+- [ ] Melde-/Entfernungsprozess und Sicherheitskontakt
+- [ ] Entscheidung zu Cookie-Hinweis und Rechtsgrundlagen
+
+Bis diese Angaben vorliegen, bleiben Impressum und Datenschutz als „noch nicht
+veröffentlicht“ gekennzeichnet. Es wurden keine Ersatzangaben erfunden.
