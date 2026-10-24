@@ -1,6 +1,5 @@
 'use client';
 
-import { useId } from 'react';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -58,7 +57,6 @@ export default function DashboardNav({
   mobileLabel?: string;
 }) {
   const pathname = usePathname() ?? '';
-  const disclosureId = useId();
   const classes = TONE_CLASSES[tone];
 
   const list = (showIcons: boolean) => (
@@ -93,7 +91,7 @@ export default function DashboardNav({
           <span>{mobileLabel}</span>
           <ChevronRightIcon className="h-4 w-4 text-zinc-500 transition-transform group-open:rotate-90" />
         </summary>
-        <div className="border-t border-zinc-800 px-3 py-3" id={disclosureId}>
+        <div className="border-t border-zinc-800 px-3 py-3">
           <p className={`mb-2 px-1 text-xs font-semibold uppercase tracking-wider ${classes.heading}`}>
             {heading}
           </p>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
-import { hashSessionToken, logServerError } from '@/lib/auth-service';
+import { logServerError } from '@/lib/auth-service';
 
 // DELETE a specific session
 export async function DELETE(

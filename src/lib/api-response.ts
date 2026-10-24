@@ -9,6 +9,38 @@
 import { NextResponse } from 'next/server';
 import { logServerError, toPublicError } from './auth-service';
 
+type JsonObjectResult =
+  | { ok: true; body: Record<string, unknown> }
+  | { ok: false; response: NextResponse };
+
+/** Parse a JSON object body, rejecting arrays, scalars and invalid JSON. */
+export async function readJsonObject(request: Request): Promise<JsonObjectResult> {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'INVALID_JSON', message: 'Ungültiger JSON-Inhalt.' },
+        { status: 400, headers: { 'Cache-Control': 'no-store' } },
+      ),
+    };
+  }
+
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'INVALID_BODY', message: 'Es wird ein JSON-Objekt erwartet.' },
+        { status: 400, headers: { 'Cache-Control': 'no-store' } },
+      ),
+    };
+  }
+
+  return { ok: true, body: body as Record<string, unknown> };
+}
+
 export function errorResponse(scope: string, error: unknown): NextResponse {
   logServerError(scope, error);
 

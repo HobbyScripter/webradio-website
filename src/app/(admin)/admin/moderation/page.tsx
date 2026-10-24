@@ -1,320 +1,271 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getServerAuthSession } from '@/lib/server-auth';
 import { requireAdminSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
-import { reviewResultSchema, reviewTargetSchema } from '@/lib/validations';
-import { Button, ButtonLink } from '@/components/ui/button';
+import { formatDateTime } from '@/lib/format';
+import CatalogStatusBadge from '@/components/dashboard/CatalogStatusBadge';
 import {
   PlugIcon,
   PaletteIcon,
   ClockIcon,
   CheckIcon,
-  XIcon,
   ArrowRightIcon,
   SearchIcon,
 } from '@/components/ui/icons';
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  PENDING_REVIEW: { bg: 'bg-amber-500/10', text: 'text-amber-400' },
-  APPROVED: { bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
-  REJECTED: { bg: 'bg-rose-500/10', text: 'text-rose-400' },
-  CHANGES_REQUESTED: { bg: 'bg-violet-500/10', text: 'text-violet-400' },
-};
+async function ModerationContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string; search?: string; decided?: string; error?: string }>;
+}) {
+  await requireAdminSession();
+  const query = await searchParams;
+  const type = query.type === 'PLUGIN' || query.type === 'THEME' ? query.type : 'all';
+  const search = (query.search ?? '').toLowerCase();
 
-const STATUS_LABELS: Record<string, string> = {
-  PENDING_REVIEW: 'In Prüfung',
-  APPROVED: 'Genehmigt',
-  REJECTED: 'Abgelehnt',
-  CHANGES_REQUESTED: 'Änderungen angefordert',
-};
-
-async function ModerationContent({ searchParams }: { searchParams: Promise<{ type?: string; status?: string; search?: string }> }) {
-  const user = await requireAdminSession();
-  const { type = 'all', status = 'all', search = '' } = await searchParams;
-
-  // Get pending reviews with related data
-  let reviewsQuery = db.orm.public.PublicationReview.orderBy((r) => r.createdAt.desc());
-
-  const statusFilter = reviewResultSchema.safeParse(status);
-  if (statusFilter.success) {
-    reviewsQuery = reviewsQuery.where((r) => r.status.eq(statusFilter.data));
-  }
-
-  const typeFilter = reviewTargetSchema.safeParse(type);
-  if (typeFilter.success) {
-    reviewsQuery = reviewsQuery.where((r) => r.targetType.eq(typeFilter.data));
-  }
-
-  const reviews = await reviewsQuery.all();
-
-  // Enrich reviews with target data
-  const enrichedReviews = await Promise.all(
-    reviews.map(async (review) => {
-      let targetData = null;
-      
-      if (review.targetType === 'PLUGIN') {
-        const plugin = await db.orm.public.Plugin.first({ id: review.targetId });
-        const developer = plugin
-          ? await db.orm.public.DeveloperProfile.first({ id: plugin.developerId })
-          : null;
-        const user = developer
-          ? await db.orm.public.User.first({ id: developer.userId })
-          : null;
-        
-        targetData = {
-          type: 'PLUGIN' as const,
-          slug: plugin?.slug || 'unknown',
-          name: plugin?.name || 'Unbekanntes Plugin',
-          developerName: user?.name || user?.email || 'Unbekannt',
-          developerEmail: user?.email || '',
-          createdAt: plugin?.createdAt.toString() || '',
-        };
-      } else if (review.targetType === 'THEME') {
-        const theme = await db.orm.public.Theme.first({ id: review.targetId });
-        const developer = theme
-          ? await db.orm.public.DeveloperProfile.first({ id: theme.developerId })
-          : null;
-        const user = developer
-          ? await db.orm.public.User.first({ id: developer.userId })
-          : null;
-        
-        targetData = {
-          type: 'THEME' as const,
-          slug: theme?.slug || 'unknown',
-          name: theme?.name || 'Unbekanntes Theme',
-          developerName: user?.name || user?.email || 'Unbekannt',
-          developerEmail: user?.email || '',
-          createdAt: theme?.createdAt.toString() || '',
-        };
-      }
-
-      return {
-        ...review,
-        targetData,
-        createdAt: review.createdAt.toString(),
-      };
-    })
-  );
-
-  // Filter by search
-  const filteredReviews = enrichedReviews.filter((review) => {
-    if (!search) return true;
-    const searchLower = search.toLowerCase();
-    return (
-      review.targetData?.name.toLowerCase().includes(searchLower) ||
-      review.targetData?.developerName.toLowerCase().includes(searchLower) ||
-      review.targetData?.developerEmail.toLowerCase().includes(searchLower) ||
-      review.targetData?.slug.toLowerCase().includes(searchLower)
-    );
-  });
-
-  // Get counts. PublicationReview only stores completed decisions; entries still
-  // waiting for a decision live on Plugin/Theme with status PENDING_REVIEW.
-  const [allReviews, plugins, themes] = await Promise.all([
-    db.orm.public.PublicationReview.all(),
-    db.orm.public.Plugin.all(),
-    db.orm.public.Theme.all(),
+  const [plugins, themes, reviews, profiles] = await Promise.all([
+    db.orm.public.Plugin.where({ status: 'PENDING_REVIEW' }).all(),
+    db.orm.public.Theme.where({ status: 'PENDING_REVIEW' }).all(),
+    db.orm.public.PublicationReview.orderBy((review) => review.createdAt.desc()).limit(25).all(),
+    db.orm.public.DeveloperProfile.all(),
   ]);
 
-  const counts: Record<string, number> = {
-    all: allReviews.length,
-    PENDING_SUBMISSIONS:
-      plugins.filter((p) => p.status === 'PENDING_REVIEW').length +
-      themes.filter((t) => t.status === 'PENDING_REVIEW').length,
-    APPROVED: allReviews.filter((r) => r.status === 'APPROVED').length,
-    REJECTED: allReviews.filter((r) => r.status === 'REJECTED').length,
-    CHANGES_REQUESTED: allReviews.filter((r) => r.status === 'CHANGES_REQUESTED').length,
-  };
+  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
 
-  const typeCounts: Record<string, number> = {
-    all: allReviews.length,
-    PLUGIN: allReviews.filter((r) => r.targetType === 'PLUGIN').length,
-    THEME: allReviews.filter((r) => r.targetType === 'THEME').length,
-  };
+  const pending = [
+    ...plugins.map((plugin) => ({
+      type: 'PLUGIN' as const,
+      id: plugin.id,
+      slug: plugin.slug,
+      name: plugin.name,
+      status: plugin.status,
+      submittedAt: plugin.updatedAt,
+      developer: profileById.get(plugin.developerId)?.displayName ?? 'Unbekannt',
+    })),
+    ...themes.map((theme) => ({
+      type: 'THEME' as const,
+      id: theme.id,
+      slug: theme.slug,
+      name: theme.name,
+      status: theme.status,
+      submittedAt: theme.updatedAt,
+      developer: profileById.get(theme.developerId)?.displayName ?? 'Unbekannt',
+    })),
+  ]
+    .filter((entry) => (type === 'all' ? true : entry.type === type))
+    .filter((entry) =>
+      search
+        ? entry.name.toLowerCase().includes(search) ||
+          entry.slug.toLowerCase().includes(search) ||
+          entry.developer.toLowerCase().includes(search)
+        : true,
+    )
+    .sort(
+      (a, b) => Number(b.submittedAt.epochMilliseconds) - Number(a.submittedAt.epochMilliseconds),
+    );
+
+  // Labels for the recent decisions; ids that no longer resolve are shown as
+  // deleted instead of being silently dropped.
+  const pluginNames = new Map((await db.orm.public.Plugin.all()).map((p) => [p.id, p.name]));
+  const themeNames = new Map((await db.orm.public.Theme.all()).map((t) => [t.id, t.name]));
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <ClockIcon className="h-6 w-6" />
-            Moderation
-          </h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Verwalte Plugin- und Theme-Einreichungen
-          </p>
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white">
+          <ClockIcon className="h-6 w-6" />
+          Moderation
+        </h1>
+        <p className="mt-1 text-sm text-zinc-400">
+          Offene Plugin- und Theme-Einreichungen prüfen und entscheiden.
+        </p>
+      </div>
+
+      {query.decided ? (
+        <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
+          Entscheidung gespeichert ({query.decided}). Das Audit-Protokoll wurde aktualisiert.
+        </p>
+      ) : null}
+      {query.error ? (
+        <p role="alert" className="rounded-xl border border-rose-500/20 bg-rose-500/[0.06] px-4 py-3 text-sm text-rose-200">
+          {query.error}
+        </p>
+      ) : null}
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-center">
+          <div className="text-lg font-bold text-amber-400">{pending.length}</div>
+          <div className="mt-0.5 text-xs text-zinc-500">Offene Fälle (gefiltert)</div>
+        </div>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-center">
+          <div className="text-lg font-bold text-white">
+            {plugins.length + themes.length}
+          </div>
+          <div className="mt-0.5 text-xs text-zinc-500">Offen gesamt</div>
+        </div>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-center">
+          <div className="text-lg font-bold text-emerald-400">
+            {reviews.filter((review) => review.status === 'APPROVED').length}
+          </div>
+          <div className="mt-0.5 text-xs text-zinc-500">Genehmigungen (letzte 25)</div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 text-center">
-          <div className="text-lg font-bold text-amber-400">{counts.PENDING_SUBMISSIONS}</div>
-          <div className="text-xs text-zinc-500 mt-0.5">Ausstehende Einreichungen</div>
-        </div>
-        <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 text-center">
-          <div className="text-lg font-bold text-emerald-400">{counts.APPROVED}</div>
-          <div className="text-xs text-zinc-500 mt-0.5">Genehmigt</div>
-        </div>
-        <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 text-center">
-          <div className="text-lg font-bold text-rose-400">{counts.REJECTED}</div>
-          <div className="text-xs text-zinc-500 mt-0.5">Abgelehnt</div>
-        </div>
-        <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 text-center">
-          <div className="text-lg font-bold text-violet-400">{counts.CHANGES_REQUESTED}</div>
-          <div className="text-xs text-zinc-500 mt-0.5">Änderungen</div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:items-center" role="search">
         <div className="relative flex-1">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+          <label htmlFor="moderation-search" className="sr-only">
+            Einreichungen durchsuchen
+          </label>
           <input
+            id="moderation-search"
             type="search"
+            name="search"
+            defaultValue={query.search ?? ''}
             placeholder="Suche nach Name oder Entwickler..."
-            defaultValue={search}
-            className="w-full rounded-xl border border-white/10 bg-[#07070a] pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+            className="w-full rounded-xl border border-white/10 bg-[#07070a] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
           />
         </div>
-        <div className="flex flex-wrap gap-1">
-          <Link
-            href="/admin/moderation?type=PLUGIN"
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              type === 'PLUGIN'
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-            }`}
-          >
-            Plugins ({typeCounts.PLUGIN})
-          </Link>
-          <Link
-            href="/admin/moderation?type=THEME"
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              type === 'THEME'
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-            }`}
-          >
-            Themes ({typeCounts.THEME})
-          </Link>
-          <Link
-            href="/admin/moderation?status=all"
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              status === 'all'
-                ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
-                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-            }`}
-          >
-            Alle Status ({counts.all})
-          </Link>
-        </div>
-      </div>
+        <label htmlFor="moderation-type" className="sr-only">
+          Typ
+        </label>
+        <select
+          id="moderation-type"
+          name="type"
+          defaultValue={type}
+          className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+        >
+          <option value="all">Alle Typen</option>
+          <option value="PLUGIN">Plugins</option>
+          <option value="THEME">Themes</option>
+        </select>
+        <button
+          type="submit"
+          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800"
+        >
+          Filtern
+        </button>
+      </form>
 
-      {/* Reviews Table */}
-      {filteredReviews.length === 0 ? (
-        <div className="p-8 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800 text-center">
-          <div className="w-12 h-12 rounded-xl bg-amber-600/10 text-amber-400 flex items-center justify-center mx-auto">
-            <ClockIcon className="h-6 w-6" />
+      {pending.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-400">
+            <CheckIcon className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-bold text-white mt-4">Keine Moderationen gefunden</h3>
-          <p className="text-zinc-400 text-sm mt-2">
-            {search || type !== 'all' || status !== 'all'
-              ? 'Keine Einreichungen passen zu den aktuellen Filterkriterien.'
-              : 'Es liegen noch keine Moderationsergebnisse vor.'}
+          <h2 className="mt-4 text-lg font-bold text-white">Keine offenen Einreichungen</h2>
+          <p className="mt-2 text-sm text-zinc-400">
+            {search || type !== 'all'
+              ? 'Keine Einreichung passt zu den Filterkriterien.'
+              : 'Die Moderationswarteschlange ist leer.'}
           </p>
         </div>
       ) : (
-        <div className="rounded-xl bg-zinc-900/60 border border-zinc-800 overflow-hidden">
+        <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-800/50 border-b border-zinc-800">
+            <caption className="sr-only">Offene Einreichungen</caption>
+            <thead className="border-b border-zinc-800 bg-zinc-800/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Typ
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Name
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Einreichung
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Entwickler
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Datum
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Eingereicht
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Aktionen
+                <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Aktion
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {filteredReviews.map((review) => {
-                const statusColor =
-                  STATUS_COLORS[review.status] ?? {
-                    bg: 'bg-zinc-800',
-                    text: 'text-zinc-400',
-                  };
-                const statusLabel = STATUS_LABELS[review.status] || review.status;
-                const Icon = review.targetType === 'PLUGIN' ? PlugIcon : PaletteIcon;
-
-                return (
-                  <tr key={review.id} className="hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-800">
-                        <Icon className="h-4 w-4 text-violet-400" />
+              {pending.map((entry) => (
+                <tr key={`${entry.type}-${entry.id}`} className="transition-colors hover:bg-zinc-800/30">
+                  <td className="px-4 py-3">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 text-violet-400">
+                      {entry.type === 'PLUGIN' ? (
+                        <PlugIcon className="h-4 w-4" />
+                      ) : (
+                        <PaletteIcon className="h-4 w-4" />
+                      )}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/moderation/${entry.type}/${entry.id}`}
+                      className="group"
+                    >
+                      <div className="font-semibold text-white group-hover:text-violet-400">
+                        {entry.name}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/moderation/${review.id}`}
-                        className="group"
-                      >
-                        <div className="font-semibold text-white group-hover:text-violet-400">
-                          {review.targetData?.name || 'Unbekannt'}
-                        </div>
-                        <div className="text-xs text-zinc-500">{review.targetData?.slug || review.targetId}</div>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm text-zinc-300">{review.targetData?.developerName || 'Unbekannt'}</div>
-                      <div className="text-xs text-zinc-500">{review.targetData?.developerEmail || ''}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-1 rounded-md text-xs font-medium ${statusColor.bg} ${statusColor.text}`}
-                      >
-                        {statusLabel}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-zinc-500">
-                        {new Date(review.createdAt).toLocaleDateString('de-DE', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/moderation/${review.id}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-violet-400 hover:bg-violet-500/10 hover:text-violet-300 transition-colors"
-                      >
-                        Prüfen
-                        <ArrowRightIcon className="h-4 w-4" />
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
+                      <div className="text-xs text-zinc-500">{entry.slug}</div>
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-zinc-300">{entry.developer}</td>
+                  <td className="px-4 py-3">
+                    <CatalogStatusBadge status={entry.status} />
+                  </td>
+                  <td className="px-4 py-3 text-xs text-zinc-500">
+                    {formatDateTime(entry.submittedAt) ?? '—'}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/admin/moderation/${entry.type}/${entry.id}`}
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-violet-400 transition-colors hover:bg-violet-500/10 hover:text-violet-300"
+                    >
+                      Prüfen
+                      <ArrowRightIcon className="h-4 w-4" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       )}
+
+      <div>
+        <h2 className="mb-4 text-lg font-semibold text-white">Letzte Entscheidungen</h2>
+        {reviews.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 p-6 text-center text-sm text-zinc-400">
+            Noch keine Moderationsentscheidungen vorhanden.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {reviews.map((review) => {
+              const label =
+                review.targetType === 'PLUGIN'
+                  ? (pluginNames.get(review.targetId) ?? 'Gelöschtes Plugin')
+                  : (themeNames.get(review.targetId) ?? 'Gelöschtes Theme');
+              return (
+                <li
+                  key={review.id}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4"
+                >
+                  <div className="flex flex-wrap items-center gap-3">
+                    <CatalogStatusBadge status={review.status} />
+                    <span className="text-sm font-medium text-white">{label}</span>
+                    <span className="text-xs text-zinc-500">
+                      {review.targetType === 'PLUGIN' ? 'Plugin' : 'Theme'} ·{' '}
+                      {formatDateTime(review.createdAt) ?? '—'}
+                    </span>
+                  </div>
+                  {review.notes ? (
+                    <p className="mt-2 whitespace-pre-line text-sm text-zinc-400">{review.notes}</p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
@@ -322,15 +273,11 @@ async function ModerationContent({ searchParams }: { searchParams: Promise<{ typ
 export default function AdminModerationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; status?: string; search?: string }>;
+  searchParams: Promise<{ type?: string; search?: string; decided?: string; error?: string }>;
 }) {
   return (
     <Suspense
-      fallback={
-        <div className="py-12 text-center text-zinc-500 text-sm">
-          Moderationen werden geladen...
-        </div>
-      }
+      fallback={<div className="py-12 text-center text-sm text-zinc-500">Moderation wird geladen...</div>}
     >
       <ModerationContent searchParams={searchParams} />
     </Suspense>

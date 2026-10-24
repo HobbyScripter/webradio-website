@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
-import { Container } from '@/components/ui/layout';
 
 export const metadata: Metadata = {
   title: 'Mein Konto',

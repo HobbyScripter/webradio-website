@@ -59,6 +59,9 @@ type OwnedEntry = {
   description: string;
   status: CatalogStatus;
   isPublished: boolean;
+  downloads: number;
+  createdAt: Temporal.Instant;
+  updatedAt: Temporal.Instant;
 };
 
 async function requireDeveloperProfile(
@@ -576,6 +579,132 @@ export async function addCatalogVersion(input: {
       requiresReReview: outcome.requiresReReview,
     };
   });
+}
+
+export type OwnedEntryDetail = {
+  entry: {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    status: string;
+    isPublished: boolean;
+    downloads: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  versions: {
+    id: string;
+    version: string;
+    description: string | null;
+    fileUrl: string;
+    fileSize: number;
+    checksum: string;
+    releasedAt: string;
+    isLatest: boolean;
+  }[];
+  screenshots: { id: string; url: string; caption: string | null; order: number }[];
+  tags: string[];
+  reviews: ModerationFeedback[];
+};
+
+/** List the caller's own entries. The developerId filter is mandatory. */
+export async function listOwnedEntries(
+  actorId: string,
+  kind: CatalogKind,
+): Promise<OwnedEntryDetail[]> {
+  const profile = await requireDeveloperProfile(actorId);
+
+  const entries =
+    kind === 'PLUGIN'
+      ? await db.orm.public.Plugin.where({ developerId: profile.id }).all()
+      : await db.orm.public.Theme.where({ developerId: profile.id }).all();
+
+  return Promise.all(
+    entries.map((entry) => buildOwnedEntryDetail(actorId, kind, entry.id)),
+  );
+}
+
+/** Read one entry; a foreign or unknown id returns the same 404. */
+export async function getOwnedEntry(
+  actorId: string,
+  kind: CatalogKind,
+  entryId: string,
+): Promise<OwnedEntryDetail> {
+  return buildOwnedEntryDetail(actorId, kind, entryId);
+}
+
+async function buildOwnedEntryDetail(
+  actorId: string,
+  kind: CatalogKind,
+  entryId: string,
+): Promise<OwnedEntryDetail> {
+  const profile = await requireDeveloperProfile(actorId);
+  const entry = await loadOwnedEntry(kind, entryId, profile.id);
+
+  const [versions, screenshots, tags, reviews] =
+    kind === 'PLUGIN'
+      ? await Promise.all([
+          db.orm.public.PluginVersion.where({ pluginId: entry.id })
+            .orderBy((version) => version.releasedAt.desc())
+            .all(),
+          db.orm.public.PluginScreenshot.where({ pluginId: entry.id })
+            .orderBy((screenshot) => screenshot.order.asc())
+            .all(),
+          db.orm.public.PluginTag.where({ pluginId: entry.id }).all(),
+          db.orm.public.PublicationReview.where({ targetType: 'PLUGIN', targetId: entry.id })
+            .orderBy((review) => review.createdAt.desc())
+            .all(),
+        ])
+      : await Promise.all([
+          db.orm.public.ThemeVersion.where({ themeId: entry.id })
+            .orderBy((version) => version.releasedAt.desc())
+            .all(),
+          db.orm.public.ThemeScreenshot.where({ themeId: entry.id })
+            .orderBy((screenshot) => screenshot.order.asc())
+            .all(),
+          db.orm.public.ThemeTag.where({ themeId: entry.id }).all(),
+          db.orm.public.PublicationReview.where({ targetType: 'THEME', targetId: entry.id })
+            .orderBy((review) => review.createdAt.desc())
+            .all(),
+        ]);
+
+  return {
+    entry: {
+      id: entry.id,
+      slug: entry.slug,
+      name: entry.name,
+      description: entry.description,
+      status: entry.status,
+      isPublished: entry.isPublished,
+      downloads: entry.downloads,
+      createdAt: entry.createdAt.toString(),
+      updatedAt: entry.updatedAt.toString(),
+    },
+    versions: versions.map((version) => ({
+      id: version.id,
+      version: version.version,
+      description: version.description,
+      fileUrl: version.fileUrl,
+      fileSize: version.fileSize,
+      checksum: version.checksum,
+      releasedAt: version.releasedAt.toString(),
+      isLatest: version.isLatest,
+    })),
+    screenshots: screenshots.map((screenshot) => ({
+      id: screenshot.id,
+      url: screenshot.url,
+      caption: screenshot.caption,
+      order: screenshot.order,
+    })),
+    tags: tags.map((tag) => tag.tag),
+    reviews: reviews.map((review) => ({
+      id: review.id,
+      status: review.status,
+      notes: review.notes,
+      createdAt: review.createdAt.toString(),
+    })),
+  };
 }
 
 export type ModerationFeedback = {

@@ -17,6 +17,7 @@ import { changeUserRole } from '@/lib/auth-service';
 import { assignableRoleSchema } from '@/lib/validations';
 import { errorResponse, isSameOriginRequest } from '@/lib/api-response';
 import { getClientIp } from '@/lib/rate-limit';
+import { enforceRateLimits } from '@/lib/rate-limit-http';
 
 const bodySchema = z.object({
   userId: z.string().min(1),
@@ -35,6 +36,13 @@ export async function POST(request: Request) {
     }
 
     const admin = await requireAdminSession();
+
+    const limited = await enforceRateLimits([
+      { scope: 'adminUserWrite', identifier: admin.id },
+    ]);
+    if (limited) {
+      return limited;
+    }
 
     const json = await request.json();
     const parsed = bodySchema.safeParse(json);

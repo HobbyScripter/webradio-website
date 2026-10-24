@@ -39,6 +39,11 @@ export const RATE_LIMITS = {
   passwordResetRequestAccount: { limit: 3, windowSeconds: 15 * 60 },
   authTokenIp: { limit: 20, windowSeconds: 15 * 60 },
   emailVerificationResend: { limit: 3, windowSeconds: 15 * 60 },
+  // Authenticated content mutations. The identifier is the user id, so these
+  // buckets are per account rather than per IP.
+  contentWrite: { limit: 60, windowSeconds: 10 * 60 },
+  moderationDecision: { limit: 60, windowSeconds: 10 * 60 },
+  adminUserWrite: { limit: 30, windowSeconds: 10 * 60 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 export type RateLimitScope = keyof typeof RATE_LIMITS;

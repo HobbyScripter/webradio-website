@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { and, not } from '@prisma/orm-postgres/orm-client';
-import { hashSessionToken, logServerError } from '@/lib/auth-service';
+import { logServerError } from '@/lib/auth-service';
 
 // GET all sessions for current user
 export async function GET() {

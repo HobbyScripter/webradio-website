@@ -11,13 +11,12 @@ import {
   ClockIcon,
   CheckIcon,
   AlertIcon,
-  ArchiveIcon,
   EyeIcon,
   PencilIcon,
-  ArrowUpIcon,
 } from '@/components/ui/icons';
 
 const SUBMISSION_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Entwurf',
   PENDING_REVIEW: 'In Prüfung',
   APPROVED: 'Genehmigt',
   REJECTED: 'Abgelehnt',
@@ -26,6 +25,7 @@ const SUBMISSION_STATUS_LABELS: Record<string, string> = {
 };
 
 const SUBMISSION_STATUS_COLORS: Record<string, string> = {
+  DRAFT: 'text-zinc-400',
   PENDING_REVIEW: 'text-amber-400',
   APPROVED: 'text-emerald-400',
   REJECTED: 'text-rose-400',
@@ -34,6 +34,7 @@ const SUBMISSION_STATUS_COLORS: Record<string, string> = {
 };
 
 const SUBMISSION_STATUS_BG: Record<string, string> = {
+  DRAFT: 'bg-zinc-800 border border-zinc-700',
   PENDING_REVIEW: 'bg-amber-500/10 border border-amber-500/20',
   APPROVED: 'bg-emerald-500/10 border border-emerald-500/20',
   REJECTED: 'bg-rose-500/10 border border-rose-500/20',
@@ -110,6 +111,7 @@ async function SubmissionsContent() {
       name: plugin.name,
       slug: plugin.slug,
       status: plugin.status,
+      isPublished: plugin.isPublished,
       createdAt: plugin.createdAt,
       updatedAt: plugin.updatedAt,
     })),
@@ -119,6 +121,7 @@ async function SubmissionsContent() {
       name: theme.name,
       slug: theme.slug,
       status: theme.status,
+      isPublished: theme.isPublished,
       createdAt: theme.createdAt,
       updatedAt: theme.updatedAt,
     })),
@@ -189,9 +192,13 @@ async function SubmissionsContent() {
             </div>
           </div>
           <div className="mt-4">
-            <div className="text-sm text-zinc-400 font-medium">Abgelehnt</div>
+            <div className="text-sm text-zinc-400 font-medium">Überarbeitung nötig</div>
             <div className="text-2xl font-bold text-rose-400 mt-1">
-              {latestSubmissions.filter((s) => s.status === 'REJECTED').length}
+              {
+                latestSubmissions.filter(
+                  (s) => s.status === 'REJECTED' || s.status === 'CHANGES_REQUESTED',
+                ).length
+              }
             </div>
           </div>
         </div>
@@ -279,13 +286,23 @@ async function SubmissionsContent() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Link
-                          href={`/${submission.type.toLowerCase()}s/${submission.slug}`}
-                          className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                          title="Ansehen"
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                        </Link>
+                        {submission.status === 'APPROVED' && submission.isPublished ? (
+                          <Link
+                            href={`/${submission.type.toLowerCase()}s/${submission.slug}`}
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                            title="Öffentliche Seite ansehen"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/developer/${submission.type.toLowerCase()}s/${submission.slug}`}
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                            title="Details ansehen"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </Link>
+                        )}
                         <Link
                           href={`/developer/${submission.type.toLowerCase()}s/${submission.slug}/edit`}
                           className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"

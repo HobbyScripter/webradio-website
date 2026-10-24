@@ -31,7 +31,19 @@ export const slugSchema = z
   .max(64)
   .regex(/^[a-z0-9-]+$/, 'Slug may only contain lowercase letters, numbers, and hyphens');
 
-export const urlSchema = z.url();
+// Only web URLs. `z.url()` alone also accepts schemes such as `javascript:` or
+// `data:`, which must never end up in an href rendered by the site.
+export const urlSchema = z.url().refine(
+  (value) => {
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch {
+      return false;
+    }
+  },
+  { message: 'Nur HTTP(S)-URLs sind erlaubt.' },
+);
 
 // ---------------------------------------------------------------------------
 // Auth schemas

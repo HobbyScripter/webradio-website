@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { getSession, signOut } from 'next-auth/react';
 import { Container, SectionHeading } from '@/components/ui/layout';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -26,7 +25,6 @@ export default function AccountSecurityPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [sessions, setSessions] = useState<Array<{ id: string; ipAddress: string | null; userAgent: string | null; createdAt: string; isCurrent: boolean }>>([]);
-  const [userEmail, setUserEmail] = useState<string>('');
 
   // Load session data
   useEffect(() => {
@@ -34,7 +32,6 @@ export default function AccountSecurityPage() {
       try {
         const session = await getSession();
         if (session?.user) {
-          setUserEmail(session.user.email ?? '');
           
           // Load sessions
           const sessionsResponse = await fetch('/api/account/sessions');

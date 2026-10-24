@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getServerAuthSession } from '@/lib/server-auth';
 import { requireDeveloperSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { developerProfileSchema } from '@/lib/validations';
-import { AuthError, NotFoundError, logServerError } from '@/lib/auth-service';
+import { AuthError, logServerError } from '@/lib/auth-service';
 
 // GET developer profile
 export async function GET() {

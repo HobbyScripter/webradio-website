@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getServerAuthSession } from '@/lib/server-auth';
 import { requireDeveloperSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { developerProfileSchema } from '@/lib/validations';

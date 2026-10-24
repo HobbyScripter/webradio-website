@@ -2,13 +2,54 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
-import { hashPassword, verifyPassword, AuthError, logServerError } from '@/lib/auth-service';
+import { verifyPassword } from '@/lib/auth-service';
+import { errorResponse } from '@/lib/api-response';
 
 const profileSchema = z.object({
   name: z.string().max(100).nullable().optional(),
   email: z.string().email().optional(),
   currentPassword: z.string().min(1),
 });
+
+/**
+ * GET /api/account/profile
+ *
+ * Reads the current values from PostgreSQL instead of trusting the JWT, so a
+ * freshly changed e-mail address and its verification state are accurate.
+ */
+export async function GET() {
+  try {
+    const session = await getServerAuthSession();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'UNAUTHORIZED', message: 'Authentication required' },
+        { status: 401, headers: { 'Cache-Control': 'no-store' } },
+      );
+    }
+
+    const user = await db.orm.public.User.first({ id: session.user.id });
+    if (!user) {
+      return NextResponse.json(
+        { error: 'NOT_FOUND', message: 'User not found' },
+        { status: 404, headers: { 'Cache-Control': 'no-store' } },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        profile: {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          emailVerified: user.emailVerified !== null,
+        },
+      },
+      { status: 200, headers: { 'Cache-Control': 'no-store' } },
+    );
+  } catch (error) {
+    return errorResponse('api:account:profile:GET', error);
+  }
+}
 
 export async function PUT(request: Request) {
   try {
@@ -98,19 +139,9 @@ export async function PUT(request: Request) {
         emailChanged,
         emailVerified: !emailChanged && user.emailVerified !== null,
       },
-      { status: 200 },
+      { status: 200, headers: { 'Cache-Control': 'no-store' } },
     );
   } catch (error) {
-    if (error instanceof AuthError) {
-      return NextResponse.json(
-        { error: error.code, message: error.message },
-        { status: error.statusCode },
-      );
-    }
-    logServerError('api:account:profile', error);
-    return NextResponse.json(
-      { error: 'INTERNAL_ERROR', message: 'An unexpected error occurred' },
-      { status: 500 },
-    );
+    return errorResponse('api:account:profile', error);
   }
 }

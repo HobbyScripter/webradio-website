@@ -7,7 +7,6 @@ import { ButtonLink, Button } from '@/components/ui/button';
 import {
   CodeIcon,
   UserIcon,
-  GlobeIcon,
   PencilIcon,
   ArrowLeftIcon,
   ExternalLinkIcon,

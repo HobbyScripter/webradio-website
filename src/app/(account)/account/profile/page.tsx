@@ -7,7 +7,6 @@ import { getSession } from 'next-auth/react';
 import { Container, SectionHeading } from '@/components/ui/layout';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { UserIcon, CheckIcon, AlertIcon, ArrowLeftIcon } from '@/components/ui/icons';
-import { SITE_NAME } from '@/lib/site';
 
 type ProfileFormData = {
   name: string;
@@ -28,21 +27,32 @@ export default function AccountProfilePage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
 
-  // Load session data
+  // Load the current values from the server. The session JWT may be stale after
+  // an e-mail change, so the verification state is read from the database.
   useEffect(() => {
     const loadSession = async () => {
       try {
         const session = await getSession();
-        if (session?.user) {
-          setFormData({
-            name: session.user.name ?? '',
-            email: session.user.email ?? '',
-            currentPassword: '',
-          });
-          setEmailVerified(!!session.user.emailVerified);
-        } else {
+        if (!session?.user) {
           router.push('/auth/login?callbackUrl=/account/profile');
+          return;
         }
+
+        const response = await fetch('/api/account/profile', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('Profil konnte nicht geladen werden');
+        }
+
+        const data = (await response.json()) as {
+          profile: { name: string | null; email: string; emailVerified: boolean };
+        };
+
+        setFormData({
+          name: data.profile.name ?? '',
+          email: data.profile.email,
+          currentPassword: '',
+        });
+        setEmailVerified(data.profile.emailVerified);
       } catch {
         router.push('/auth/login?callbackUrl=/account/profile');
       } finally {
@@ -82,16 +92,23 @@ export default function AccountProfilePage() {
         throw new Error(result.error || result.message || 'Fehler beim Speichern des Profils');
       }
 
-      setSuccess('Profil erfolgreich aktualisiert!');
-      
-      // Refresh session
-      const newSession = await getSession();
-      if (newSession?.user) {
+      setSuccess(
+        result.emailChanged
+          ? 'Profil gespeichert. Die neue E-Mail-Adresse muss erneut bestätigt werden.'
+          : 'Profil erfolgreich aktualisiert!',
+      );
+
+      const refreshed = await fetch('/api/account/profile', { cache: 'no-store' });
+      if (refreshed.ok) {
+        const data = (await refreshed.json()) as {
+          profile: { name: string | null; email: string; emailVerified: boolean };
+        };
         setFormData({
-          name: newSession.user.name ?? '',
-          email: newSession.user.email ?? '',
+          name: data.profile.name ?? '',
+          email: data.profile.email,
           currentPassword: '',
         });
+        setEmailVerified(data.profile.emailVerified);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
@@ -265,7 +282,11 @@ export default function AccountProfilePage() {
           </li>
           <li className="flex items-start gap-2">
             <CheckIcon className="h-4 w-4 text-zinc-500 mt-0.5 flex-shrink-0" />
-            <span>Nach dem Ändern der E-Mail-Adresse erhältst du eine Bestätigungsmail an die neue Adresse.</span>
+            <span>
+              Nach dem Ändern der E-Mail-Adresse wird die Bestätigung zurückgesetzt. Fordere
+              anschließend einen neuen Bestätigungslink an; ohne konfigurierten SMTP-Versand ist
+              keine Zustellung möglich.
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <ShieldIcon className="h-4 w-4 text-zinc-500 mt-0.5 flex-shrink-0" />

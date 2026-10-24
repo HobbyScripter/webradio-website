@@ -1,23 +1,21 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { getServerAuthSession } from '@/lib/server-auth';
 import { requireAdminSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { formatDateTime } from '@/lib/format';
 import { ButtonLink } from '@/components/ui/button';
 import {
-  ShieldIcon,
   UserIcon,
-  PlugIcon,
-  PaletteIcon,
   NewsIcon,
   ClockIcon,
   BookIcon,
   ArrowRightIcon,
+  AlertIcon,
 } from '@/components/ui/icons';
 
 async function AdminContent() {
   const user = await requireAdminSession();
+  const emailConfigured = Boolean(process.env['EMAIL_SERVER_HOST']);
 
   // Get statistics
   const [
@@ -175,6 +173,19 @@ async function AdminContent() {
         </ButtonLink>
       </div>
 
+      {!emailConfigured ? (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-4 text-sm text-amber-200">
+          <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-semibold">E-Mail-Versand nicht konfiguriert</p>
+            <p className="mt-0.5 text-amber-300/80">
+              SMTP ist nicht eingerichtet. E-Mail-Verifizierung und Passwort-Zurücksetzen sind
+              deshalb nicht betriebsbereit; die Oberfläche weist darauf hin.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Audit Logs */}
@@ -270,7 +281,7 @@ async function AdminContent() {
                   {recentPlugins.map((plugin) => (
                     <Link
                       key={plugin.id}
-                      href={`/admin/moderation/${plugin.id}`}
+                      href={`/admin/moderation/PLUGIN/${plugin.id}`}
                       className="block p-3 rounded-lg bg-zinc-900/40 border border-zinc-800 hover:bg-zinc-800/40 transition-colors"
                     >
                       <div className="flex items-center justify-between">
@@ -298,7 +309,7 @@ async function AdminContent() {
                   {recentThemes.map((theme) => (
                     <Link
                       key={theme.id}
-                      href={`/admin/moderation/${theme.id}`}
+                      href={`/admin/moderation/THEME/${theme.id}`}
                       className="block p-3 rounded-lg bg-zinc-900/40 border border-zinc-800 hover:bg-zinc-800/40 transition-colors"
                     >
                       <div className="flex items-center justify-between">

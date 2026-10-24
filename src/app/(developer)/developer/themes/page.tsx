@@ -1,60 +1,45 @@
-import Link from 'next/link';
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { requireDeveloperSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
+import { themeStatusSchema } from '@/lib/validations';
+import { formatDate } from '@/lib/format';
 import { ButtonLink } from '@/components/ui/button';
+import CatalogStatusBadge from '@/components/dashboard/CatalogStatusBadge';
 import {
   PaletteIcon,
   PlusIcon,
-  ClockIcon,
-  CheckIcon,
-  AlertIcon,
-  ArchiveIcon,
-  PencilIcon,
-  EyeIcon,
   SearchIcon,
+  EyeIcon,
+  PencilIcon,
 } from '@/components/ui/icons';
 
-const THEME_STATUS_LABELS: Record<string, string> = {
-  PENDING_REVIEW: 'In Prüfung',
-  APPROVED: 'Genehmigt',
-  REJECTED: 'Abgelehnt',
-  ARCHIVED: 'Archiviert',
-};
-
-const THEME_STATUS_COLORS: Record<string, string> = {
-  PENDING_REVIEW: 'text-amber-400',
-  APPROVED: 'text-emerald-400',
-  REJECTED: 'text-rose-400',
-  ARCHIVED: 'text-zinc-400',
-};
-
-const THEME_STATUS_BG: Record<string, string> = {
-  PENDING_REVIEW: 'bg-amber-500/10 border border-amber-500/20',
-  APPROVED: 'bg-emerald-500/10 border border-emerald-500/20',
-  REJECTED: 'bg-rose-500/10 border border-rose-500/20',
-  ARCHIVED: 'bg-zinc-500/10 border border-zinc-500/20',
-};
+const FILTERS = [
+  { key: '', label: 'Alle' },
+  { key: 'DRAFT', label: 'Entwürfe' },
+  { key: 'PENDING_REVIEW', label: 'In Prüfung' },
+  { key: 'APPROVED', label: 'Genehmigt' },
+  { key: 'CHANGES_REQUESTED', label: 'Änderungen angefordert' },
+  { key: 'REJECTED', label: 'Abgelehnt' },
+  { key: 'ARCHIVED', label: 'Archiviert' },
+] as const;
 
 async function ThemeContent({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{ search?: string; status?: string; deleted?: string; error?: string }>;
 }) {
-  const resolvedSearchParams = await searchParams;
   const user = await requireDeveloperSession();
+  const query = await searchParams;
+  const search = query.search ?? '';
+  const status = query.status ?? '';
 
-  // Get developer profile
-  const profile = await db.orm.public.DeveloperProfile.where({
-    userId: user.id,
-  }).first();
+  const profile = await db.orm.public.DeveloperProfile.where({ userId: user.id }).first();
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <p className="text-zinc-400">
-          Erstelle ein Entwicklerprofil, um Themes zu verwalten
-        </p>
+      <div className="py-12 text-center">
+        <p className="text-zinc-400">Erstelle ein Entwicklerprofil, um Themes zu verwalten</p>
         <ButtonLink href="/developer/profile/create" className="mt-4">
           Entwicklerprofil erstellen
         </ButtonLink>
@@ -62,226 +47,189 @@ async function ThemeContent({
     );
   }
 
-  // Get search and filter parameters
-  const search =
-    typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : '';
-  const statusFilter =
-    typeof resolvedSearchParams.status === 'string' ? resolvedSearchParams.status : '';
+  const allThemes = await db.orm.public.Theme.where({ developerId: profile.id }).all();
+  const statusFilter = themeStatusSchema.safeParse(status);
 
-  // Get all themes by this developer
-  let themes = await db.orm.public.Theme.where({ developerId: profile.id }).all();
-
-  // Filter by search
-  if (search) {
-    themes = themes.filter(
-      (t) => 
-        t.name.toLowerCase().includes(search.toLowerCase()) ||
-        t.slug.toLowerCase().includes(search.toLowerCase()) ||
-        (t.description?.toLowerCase().includes(search.toLowerCase()) ?? false)
+  const themes = allThemes
+    .filter((theme) => (statusFilter.success ? theme.status === statusFilter.data : true))
+    .filter((theme) =>
+      search
+        ? theme.name.toLowerCase().includes(search.toLowerCase()) ||
+          theme.slug.toLowerCase().includes(search.toLowerCase())
+        : true,
+    )
+    .sort(
+      (a, b) =>
+        Number(b.updatedAt.epochMilliseconds) - Number(a.updatedAt.epochMilliseconds),
     );
-  }
 
-  // Filter by status
-  if (statusFilter) {
-    themes = themes.filter((t) => t.status === statusFilter);
-  }
-
-  // Get versions for each theme
   const themesWithVersions = await Promise.all(
-    themes.map(async (theme) => {
-      const versions = await db.orm.public.ThemeVersion.where({
+    themes.map(async (theme) => ({
+      theme,
+      latestVersion: await db.orm.public.ThemeVersion.where({
         themeId: theme.id,
-      }).orderBy((v) => v.releasedAt.desc()).all();
-      
-      const reviews = await db.orm.public.PublicationReview.where({
-        targetType: 'THEME',
-        targetId: theme.id,
-      }).orderBy((r) => r.createdAt.desc()).all();
-
-      return {
-        ...theme,
-        versions,
-        reviews,
-      };
-    })
+        isLatest: true,
+      }).first(),
+    })),
   );
 
-  const totalThemes = themesWithVersions.length;
-  const publishedThemes = themesWithVersions.filter((t) => t.isPublished && t.status === 'APPROVED').length;
+  const countFor = (key: string) =>
+    key === '' ? allThemes.length : allThemes.filter((theme) => theme.status === key).length;
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Meine Themes</h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Verwalte deine Theme-Erweiterungen
-          </p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white">
+            <PaletteIcon className="h-6 w-6" />
+            Meine Themes
+          </h1>
+          <p className="mt-1 text-sm text-zinc-400">Verwalte deine Theme-Erweiterungen</p>
         </div>
-        <div className="flex items-center gap-3">
-          <ButtonLink
-            href="/developer/themes/create"
-            size="sm"
-            className="inline-flex items-center gap-2"
-          >
-            <PlusIcon className="h-4 w-4" />
-            Neues Theme
-          </ButtonLink>
-        </div>
+        <ButtonLink href="/developer/themes/create" size="sm" className="inline-flex items-center gap-2">
+          <PlusIcon className="h-4 w-4" />
+          Neues Theme
+        </ButtonLink>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-palette-500/10 text-palette-400">
-              <PaletteIcon className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="text-sm text-zinc-400 font-medium">Themes gesamt</div>
-            <div className="text-2xl font-bold text-white mt-1">{totalThemes}</div>
-          </div>
-        </div>
+      {query.deleted ? (
+        <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
+          Theme gelöscht.
+        </p>
+      ) : null}
+      {query.error ? (
+        <p role="alert" className="rounded-xl border border-rose-500/20 bg-rose-500/[0.06] px-4 py-3 text-sm text-rose-200">
+          {query.error}
+        </p>
+      ) : null}
 
-        <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <CheckIcon className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="text-sm text-zinc-400 font-medium">Veröffentlicht</div>
-            <div className="text-2xl font-bold text-emerald-400 mt-1">{publishedThemes}</div>
-          </div>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-amber-500/10 text-amber-400">
-              <ClockIcon className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="text-sm text-zinc-400 font-medium">In Prüfung</div>
-            <div className="text-2xl font-bold text-amber-400 mt-1">
-              {themesWithVersions.filter((t) => t.status === 'PENDING_REVIEW').length}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter and Search */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <form method="get" className="flex flex-col gap-4 sm:flex-row sm:items-center" role="search">
         <div className="relative flex-1">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+          <label htmlFor="theme-search" className="sr-only">
+            Themes durchsuchen
+          </label>
           <input
+            id="theme-search"
             type="search"
+            name="search"
             placeholder="Suche nach Theme-Name..."
             defaultValue={search}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-zinc-800 bg-zinc-900/50 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-colors"
+            className="w-full rounded-xl border border-white/10 bg-[#07070a] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
           />
         </div>
-        <select
-          defaultValue={statusFilter}
-          className="px-4 py-2.5 rounded-lg border border-zinc-800 bg-zinc-900/50 text-white focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-colors"
+        {status ? <input type="hidden" name="status" value={status} /> : null}
+        <button
+          type="submit"
+          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800"
         >
-          <option value="">Alle Status</option>
-          <option value="PENDING_REVIEW">In Prüfung</option>
-          <option value="APPROVED">Genehmigt</option>
-          <option value="REJECTED">Abgelehnt</option>
-          <option value="ARCHIVED">Archiviert</option>
-        </select>
+          Suchen
+        </button>
+      </form>
+
+      <div className="flex flex-wrap gap-1">
+        {FILTERS.map((filter) => {
+          const active = status === filter.key;
+          return (
+            <Link
+              key={filter.key || 'all'}
+              href={filter.key ? `/developer/themes?status=${filter.key}` : '/developer/themes'}
+              aria-current={active ? 'page' : undefined}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                active
+                  ? 'border border-violet-500/20 bg-violet-500/10 text-violet-300'
+                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+              }`}
+            >
+              {filter.label} ({countFor(filter.key)})
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Theme List */}
       {themesWithVersions.length === 0 ? (
-        <div className="p-8 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800 text-center">
-          <div className="w-12 h-12 rounded-xl bg-violet-600/10 text-violet-400 flex items-center justify-center mx-auto">
+        <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-violet-600/10 text-violet-400">
             <PaletteIcon className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-bold text-white mt-4">Noch keine Themes</h3>
-          <p className="text-zinc-400 text-sm mt-2">
-            Du hast noch keine Themes erstellt. Beginne mit deinem ersten Theme.
+          <h2 className="mt-4 text-lg font-bold text-white">Noch keine Themes</h2>
+          <p className="mt-2 text-sm text-zinc-400">
+            {search || status
+              ? 'Keine Themes passen zu den aktuellen Filterkriterien.'
+              : 'Du hast noch keine Themes erstellt.'}
           </p>
           <div className="mt-4">
-            <ButtonLink
-              href="/developer/themes/create"
-              size="sm"
-            >
+            <ButtonLink href="/developer/themes/create" size="sm">
               <PlusIcon className="h-4 w-4" />
-              Neues Theme erstellen
+              Erstes Theme erstellen
             </ButtonLink>
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/40">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">Deine Themes mit Status und letzter Version</caption>
             <thead className="border-b border-zinc-800">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Name
                 </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Slug
                 </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Status
                 </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Downloads
+                <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Version
                 </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Versionen
+                <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Aktualisiert
                 </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Aktionen
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {themesWithVersions.map((theme) => (
-                <tr key={theme.id} className="hover:bg-zinc-800/40 transition-colors">
-                  <td className="px-6 py-4">
+              {themesWithVersions.map(({ theme, latestVersion }) => (
+                <tr key={theme.id} className="transition-colors hover:bg-zinc-800/40">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800">
                         <PaletteIcon className="h-4 w-4 text-zinc-400" />
                       </div>
                       <div>
                         <div className="text-sm font-medium text-white">{theme.name}</div>
-                        <div className="text-xs text-zinc-500 truncate max-w-[200px]">
-                          {theme.description || 'Keine Beschreibung'}
+                        <div className="max-w-[200px] truncate text-xs text-zinc-500">
+                          {theme.description}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <code className="text-xs text-zinc-400 font-mono">{theme.slug}</code>
+                  <td className="px-4 py-3">
+                    <code className="font-mono text-xs text-zinc-400">{theme.slug}</code>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${THEME_STATUS_COLORS[theme.status]} ${THEME_STATUS_BG[theme.status]}`}>
-                      {THEME_STATUS_LABELS[theme.status] || theme.status}
-                    </span>
+                  <td className="px-4 py-3">
+                    <CatalogStatusBadge status={theme.status} />
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-zinc-300">{theme.downloads}</span>
+                  <td className="px-4 py-3 text-zinc-300">{latestVersion?.version ?? '—'}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-500">
+                    {formatDate(theme.updatedAt)}
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-zinc-300">{theme.versions?.length || 0}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
                       <Link
                         href={`/developer/themes/${theme.slug}`}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                        title="Ansehen"
+                        className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                        aria-label={`${theme.name} ansehen`}
                       >
                         <EyeIcon className="h-4 w-4" />
                       </Link>
                       <Link
                         href={`/developer/themes/${theme.slug}/edit`}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                        title="Bearbeiten"
+                        className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                        aria-label={`${theme.name} bearbeiten`}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </Link>
@@ -300,15 +248,11 @@ async function ThemeContent({
 export default function ThemesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{ search?: string; status?: string; deleted?: string; error?: string }>;
 }) {
   return (
     <Suspense
-      fallback={
-        <div className="py-12 text-center text-zinc-500 text-sm">
-          Themes werden geladen...
-        </div>
-      }
+      fallback={<div className="py-12 text-center text-sm text-zinc-500">Themes werden geladen...</div>}
     >
       <ThemeContent searchParams={searchParams} />
     </Suspense>

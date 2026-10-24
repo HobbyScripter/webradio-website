@@ -1,304 +1,162 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getServerAuthSession } from '@/lib/server-auth';
-import { hasRole } from '@/lib/auth-service';
+import { requireRoleSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
-import { formatDate } from '@/lib/format';
-import { ButtonLink } from '@/components/ui/button';
+import { formatDateTime } from '@/lib/format';
 import {
+  ShieldIcon,
   UserIcon,
-  DatabaseIcon,
-  SettingsIcon,
-  ArrowLeftIcon,
-  ServerIcon,
-  LockIcon,
   BookIcon,
+  CheckIcon,
+  AlertIcon,
+  ServerIcon,
+  MailIcon,
 } from '@/components/ui/icons';
 
 export default async function SystemAdminDashboardPage() {
-  const session = await getServerAuthSession();
+  await requireRoleSession('SYSTEM_ADMIN');
 
-  if (!session?.user) {
-    redirect('/auth/login?callbackUrl=/system-admin');
-  }
+  const [users, plugins, themes, news, auditLogs, sessions, rateLimitBuckets] =
+    await Promise.all([
+      db.orm.public.User.all(),
+      db.orm.public.Plugin.all(),
+      db.orm.public.Theme.all(),
+      db.orm.public.News.all(),
+      db.orm.public.AuditLog.orderBy((log) => log.createdAt.desc()).limit(10).all(),
+      db.orm.public.Session.all(),
+      db.orm.public.RateLimitBucket.all(),
+    ]);
 
-  if (!hasRole(session.user.role, 'SYSTEM_ADMIN')) {
-    redirect('/');
-  }
+  const admins = users.filter((user) => user.role === 'ADMIN').length;
+  const systemAdmins = users.filter((user) => user.role === 'SYSTEM_ADMIN').length;
+  const verified = users.filter((user) => user.emailVerified !== null).length;
+  const pendingCatalog =
+    plugins.filter((plugin) => plugin.status === 'PENDING_REVIEW').length +
+    themes.filter((theme) => theme.status === 'PENDING_REVIEW').length;
 
-  // Get system statistics
-  const [
-    totalUsers,
-    adminUsers,
-    systemAdminUsers,
-    totalPlugins,
-    totalThemes,
-    totalAuditLogs,
-    totalNews,
-    totalRateLimitBuckets,
-  ] = await Promise.all([
-    db.orm.public.User.all().then((users) => users.length),
-    db.orm.public.User.where({ role: 'ADMIN' }).all().then((admins) => admins.length),
-    db.orm.public.User.where({ role: 'SYSTEM_ADMIN' }).all().then((sysAdmins) => sysAdmins.length),
-    db.orm.public.Plugin.all().then((plugins) => plugins.length),
-    db.orm.public.Theme.all().then((themes) => themes.length),
-    db.orm.public.AuditLog.all().then((logs) => logs.length),
-    db.orm.public.News.all().then((news) => news.length),
-    db.orm.public.RateLimitBucket.all().then((buckets) => buckets.length),
-  ]);
-
-  // Get database info
-  const [latestUser, latestPlugin, latestTheme] = await Promise.all([
-    db.orm.public.User.orderBy((u) => u.createdAt.desc()).first(),
-    db.orm.public.Plugin.orderBy((p) => p.createdAt.desc()).first(),
-    db.orm.public.Theme.orderBy((t) => t.createdAt.desc()).first(),
-  ]);
+  // Operational checks that can be answered without contacting external
+  // systems. Anything that would need a real mail provider is only reported as
+  // configured/not configured, never as "working".
+  const smtpConfigured = Boolean(process.env['EMAIL_SERVER_HOST']);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Header */}
-      <div className="border-b border-rose-950/60 bg-rose-950/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-              Systemverwaltung
-            </span>
-            <span className="text-xs text-rose-300">
-              Nur für Systemadministratoren
-            </span>
+    <div className="space-y-8">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white">
+          <ShieldIcon className="h-6 w-6" />
+          Systemadministration
+        </h1>
+        <p className="mt-1 text-sm text-zinc-400">
+          Höchste Berechtigungsstufe. Änderungen an dieser Rolle sind nur über den auditierten
+          CLI-Bootstrap/Recovery-Weg möglich.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-rose-950/60 bg-rose-950/20 p-5">
+          <UserIcon className="h-5 w-5 text-rose-400" />
+          <div className="mt-3 text-sm text-zinc-400">Benutzerkonten</div>
+          <div className="text-2xl font-bold text-white">{users.length}</div>
+          <div className="mt-1 text-xs text-rose-300">
+            {admins} Admins • {systemAdmins} System-Admins
           </div>
-          <Link
-            href="/admin"
-            className="px-3 py-1.5 rounded-lg text-xs font-medium text-rose-300 hover:text-rose-200 hover:bg-rose-950/30 transition-colors"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
-            Zurück zur Administration
-          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-rose-950/60 bg-rose-950/20 p-5">
+          <ServerIcon className="h-5 w-5 text-rose-400" />
+          <div className="mt-3 text-sm text-zinc-400">Katalog</div>
+          <div className="text-2xl font-bold text-white">{plugins.length + themes.length}</div>
+          <div className="mt-1 text-xs text-rose-300">
+            {plugins.length} Plugins • {themes.length} Themes • {pendingCatalog} offen
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-rose-950/60 bg-rose-950/20 p-5">
+          <BookIcon className="h-5 w-5 text-rose-400" />
+          <div className="mt-3 text-sm text-zinc-400">News</div>
+          <div className="text-2xl font-bold text-white">{news.length}</div>
+          <div className="mt-1 text-xs text-rose-300">
+            {news.filter((article) => article.isPublished).length} veröffentlicht
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-rose-950/60 bg-rose-950/20 p-5">
+          <ShieldIcon className="h-5 w-5 text-rose-400" />
+          <div className="mt-3 text-sm text-zinc-400">Aktive Sitzungen</div>
+          <div className="text-2xl font-bold text-white">{sessions.length}</div>
+          <div className="mt-1 text-xs text-rose-300">
+            {rateLimitBuckets.length} Rate-Limit-Buckets
+          </div>
         </div>
       </div>
 
-      <main id="main-content" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Systemadministration
-            </h1>
-            <p className="text-sm text-zinc-400 mt-1">
-              Willkommen im Systemadministrations-Bereich
-            </p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+          <h2 className="mb-3 text-sm font-semibold text-zinc-300">Betriebsstatus</h2>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-start gap-2">
+              <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+              <span className="text-zinc-300">
+                Datenbank erreichbar; Rollen werden bei jeder Anfrage neu aus PostgreSQL gelesen.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+              <span className="text-zinc-300">
+                {verified} von {users.length} Konten haben eine bestätigte E-Mail-Adresse.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              {smtpConfigured ? (
+                <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+              ) : (
+                <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+              )}
+              <span className="text-zinc-300">
+                {smtpConfigured
+                  ? 'SMTP ist konfiguriert. Der tatsächliche Versand ist damit noch nicht nachgewiesen.'
+                  : 'SMTP ist nicht konfiguriert. E-Mail-Verifizierung und Passwort-Zurücksetzen können keine Nachrichten zustellen.'}
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+              <span className="text-zinc-300">
+                Es muss immer mindestens ein Systemadministrator bestehen bleiben; die
+                Herabstufung des letzten Kontos wird serverseitig abgelehnt.
+              </span>
+            </li>
+          </ul>
+          <p className="mt-4 flex items-center gap-2 text-xs text-zinc-500">
+            <MailIcon className="h-4 w-4" />
+            Bootstrap und Recovery laufen ausschließlich über die auditierte CLI, nie über HTTP.
+          </p>
+        </section>
+
+        <section className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+          <h2 className="mb-3 text-sm font-semibold text-zinc-300">Letzte Audit-Ereignisse</h2>
+          {auditLogs.length === 0 ? (
+            <p className="text-sm text-zinc-400">Keine Audit-Einträge vorhanden.</p>
+          ) : (
+            <ul className="divide-y divide-zinc-800 text-sm">
+              {auditLogs.map((log) => (
+                <li key={log.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <span className="text-zinc-200">{log.action}</span>
+                  <span className="text-xs text-zinc-500">
+                    {formatDateTime(log.createdAt) ?? '—'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-4">
+            <Link
+              href="/admin/audit"
+              className="text-xs font-semibold text-rose-300 hover:text-rose-200"
+            >
+              Vollständiges Audit-Protokoll
+            </Link>
           </div>
-
-          {/* System Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-rose-950/30 border border-rose-950/60">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400">
-                  <UserIcon className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="text-sm text-zinc-400 font-medium">Benutzer gesamt</div>
-                <div className="text-2xl font-bold text-white mt-1">{totalUsers}</div>
-                <div className="text-xs text-rose-400 mt-1">
-                  {adminUsers} Admins • {systemAdminUsers} System-Admins
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-rose-950/30 border border-rose-950/60">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400">
-                  <ServerIcon className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="text-sm text-zinc-400 font-medium">Katalog-Inhalte</div>
-                <div className="text-2xl font-bold text-rose-400 mt-1">
-                  {totalPlugins + totalThemes}
-                </div>
-                <div className="text-xs text-rose-400/60 mt-1">
-                  {totalPlugins} Plugins • {totalThemes} Themes
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-rose-950/30 border border-rose-950/60">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400">
-                  <BookIcon className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="text-sm text-zinc-400 font-medium">Audit-Logs</div>
-                <div className="text-2xl font-bold text-rose-400 mt-1">{totalAuditLogs}</div>
-                <div className="text-xs text-rose-400/60 mt-1">Einträge</div>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-rose-950/30 border border-rose-950/60">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400">
-                  <DatabaseIcon className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="text-sm text-zinc-400 font-medium">Rate-Limit Buckets</div>
-                <div className="text-2xl font-bold text-rose-400 mt-1">{totalRateLimitBuckets}</div>
-                <div className="text-xs text-rose-400/60 mt-1">Aktive Buckets</div>
-              </div>
-            </div>
-          </div>
-
-          {/* System Status */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4">
-                System-Status
-              </h2>
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-white">Datenbank</div>
-                      <div className="text-xs text-rose-400/60">PostgreSQL</div>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Verbunden
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-white">Authentifizierung</div>
-                      <div className="text-xs text-rose-400/60">NextAuth.js v4</div>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Aktiv
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-white">Sicherheit</div>
-                      <div className="text-xs text-rose-400/60">RBAC & Rate-Limiting</div>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Aktiv
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4">
-                Letzte Aktivitäten
-              </h2>
-              <div className="space-y-3">
-                {latestUser && (
-                  <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-white">
-                          Neuer Benutzer
-                        </div>
-                        <div className="text-xs text-rose-400/60">
-                          {latestUser.email}
-                        </div>
-                      </div>
-                      <span className="text-xs text-rose-400/60">
-                        {formatDate(latestUser.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {latestPlugin && (
-                  <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-white">
-                          Neues Plugin
-                        </div>
-                        <div className="text-xs text-rose-400/60">
-                          {latestPlugin.name}
-                        </div>
-                      </div>
-                      <span className="text-xs text-rose-400/60">
-                        {formatDate(latestPlugin.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {latestTheme && (
-                  <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-white">
-                          Neues Theme
-                        </div>
-                        <div className="text-xs text-rose-400/60">
-                          {latestTheme.name}
-                        </div>
-                      </div>
-                      <span className="text-xs text-rose-400/60">
-                        {formatDate(latestTheme.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Security Section */}
-          <div>
-            <h2 className="text-lg font-semibold text-white mb-4">
-              Sicherheitsverwaltung
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-6 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <LockIcon className="h-5 w-5 text-rose-400" />
-                    <div className="text-sm font-medium text-white mt-2">
-                      Sicherheits-Einstellungen
-                    </div>
-                    <div className="text-xs text-rose-400/60 mt-0.5">
-                      Sessions, Rate-Limits & mehr
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 rounded-xl bg-rose-950/20 border border-rose-950/40">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <SettingsIcon className="h-5 w-5 text-rose-400" />
-                    <div className="text-sm font-medium text-white mt-2">
-                      Bootstrap & Recovery
-                    </div>
-                    <div className="text-xs text-rose-400/60 mt-0.5">
-                      SYSTEM_ADMIN Tools
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-rose-950/40">
-            <p className="text-xs text-rose-400/60">
-              Hinweis: Systemadministrations-Aktionen werden komplett im Audit-Log protokolliert.
-            </p>
-          </div>
-        </div>
-      </main>
+        </section>
+      </div>
     </div>
   );
 }

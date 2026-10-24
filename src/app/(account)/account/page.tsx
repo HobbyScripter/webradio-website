@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
-import { Container, SectionHeading } from '@/components/ui/layout';
-import { ButtonLink } from '@/components/ui/button';
+import { SectionHeading } from '@/components/ui/layout';
 import { UserIcon, SettingsIcon, ShieldIcon, CalendarIcon, CheckIcon, AlertIcon } from '@/components/ui/icons';
 
 // Authenticated dashboard: session and profile lookups are request data.

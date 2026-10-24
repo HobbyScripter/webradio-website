@@ -1,14 +1,10 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getServerAuthSession } from '@/lib/server-auth';
 import { requireDeveloperSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { ButtonLink } from '@/components/ui/button';
 import {
   CodeIcon,
-  CheckIcon,
-  AlertIcon,
   PlusIcon,
   ClockIcon,
   DownloadIcon,
@@ -16,13 +12,6 @@ import {
   PlugIcon,
   ArrowRightIcon,
 } from '@/components/ui/icons';
-
-const ROLE_RANK: Record<string, number> = {
-  USER: 0,
-  DEVELOPER: 1,
-  ADMIN: 2,
-  SYSTEM_ADMIN: 3,
-};
 
 async function DeveloperContent() {
   const user = await requireDeveloperSession();
@@ -43,23 +32,25 @@ async function DeveloperContent() {
   // Count by status
   const pluginStats = {
     total: plugins.length,
+    draft: plugins.filter((p) => p.status === 'DRAFT').length,
     pending: plugins.filter((p) => p.status === 'PENDING_REVIEW').length,
+    changesRequested: plugins.filter((p) => p.status === 'CHANGES_REQUESTED').length,
     approved: plugins.filter((p) => p.status === 'APPROVED').length,
     published: plugins.filter((p) => p.isPublished && p.status === 'APPROVED').length,
   };
 
   const themeStats = {
     total: themes.length,
+    draft: themes.filter((t) => t.status === 'DRAFT').length,
     pending: themes.filter((t) => t.status === 'PENDING_REVIEW').length,
+    changesRequested: themes.filter((t) => t.status === 'CHANGES_REQUESTED').length,
     approved: themes.filter((t) => t.status === 'APPROVED').length,
     published: themes.filter((t) => t.isPublished && t.status === 'APPROVED').length,
   };
 
   const totalDownloads = [...plugins, ...themes].reduce((sum, entry) => sum + entry.downloads, 0);
 
-  // Get session for email
-  const session = await getServerAuthSession();
-  const userEmail = session?.user.email || user.email;
+  const userEmail = user.email;
 
   return (
     <div className="space-y-8">
@@ -75,7 +66,7 @@ async function DeveloperContent() {
         </span>
       </div>
 
-      {session?.user.emailVerified === null ? (
+      {user.emailVerified === null ? (
         <div className="rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-4 text-sm text-amber-200">
           Deine E-Mail-Adresse ist noch nicht bestätigt. Für eine privilegierte Rolle ist
           eine bestätigte Adresse erforderlich.{' '}
@@ -98,7 +89,8 @@ async function DeveloperContent() {
               <div className="text-sm text-zinc-400 font-medium">Plugins gesamt</div>
               <div className="text-2xl font-bold text-white mt-1">{pluginStats.total}</div>
               <div className="text-xs text-zinc-500 mt-1">
-                {pluginStats.published} veröffentlicht • {pluginStats.pending} in Prüfung
+                {pluginStats.published} veröffentlicht • {pluginStats.pending} in Prüfung •{' '}
+                {pluginStats.draft} Entwürfe
               </div>
             </div>
           </Link>
@@ -115,7 +107,8 @@ async function DeveloperContent() {
               <div className="text-sm text-zinc-400 font-medium">Themes gesamt</div>
               <div className="text-2xl font-bold text-white mt-1">{themeStats.total}</div>
               <div className="text-xs text-zinc-500 mt-1">
-                {themeStats.published} veröffentlicht • {themeStats.pending} in Prüfung
+                {themeStats.published} veröffentlicht • {themeStats.pending} in Prüfung •{' '}
+                {themeStats.draft} Entwürfe
               </div>
             </div>
           </Link>
@@ -146,7 +139,8 @@ async function DeveloperContent() {
               {pluginStats.pending + themeStats.pending}
             </div>
             <div className="text-xs text-zinc-500 mt-1">
-              {pluginStats.pending} Plugins • {themeStats.pending} Themes
+              {pluginStats.pending} Plugins • {themeStats.pending} Themes •{' '}
+              {pluginStats.changesRequested + themeStats.changesRequested} mit Änderungswunsch
             </div>
           </div>
         </div>

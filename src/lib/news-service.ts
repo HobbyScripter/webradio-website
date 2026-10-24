@@ -134,6 +134,11 @@ export async function getAdminNewsBySlug(slug: string): Promise<AdminNewsItem | 
   return row ? toAdminNewsItem(row) : null;
 }
 
+export async function getAdminNewsById(id: string): Promise<AdminNewsItem | null> {
+  const row = await db.orm.public.News.first({ id });
+  return row ? toAdminNewsItem(row) : null;
+}
+
 export async function createNews(input: {
   actorId: string;
   raw: unknown;
