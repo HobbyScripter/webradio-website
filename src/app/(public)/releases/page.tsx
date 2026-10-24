@@ -5,126 +5,234 @@ import { Badge } from '@/components/ui/badge';
 import { ButtonLink } from '@/components/ui/button';
 import { Container, PageHeader, SectionHeading } from '@/components/ui/layout';
 import {
-  DownloadIcon,
+  AlertIcon,
+  ArrowRightIcon,
   ExternalLinkIcon,
   GitHubIcon,
   PackageIcon,
+  ShieldIcon,
 } from '@/components/ui/icons';
 import { EmptyState, ErrorState } from '@/components/ui/states';
-import { listReleases, type ReleaseEntry } from '@/lib/catalog';
-import { formatDate, formatFileSize, releaseChannel } from '@/lib/format';
-import { REPOSITORY_URL, absoluteUrl, safeHttpUrl } from '@/lib/site';
+import ReleaseAssets from '@/components/public/ReleaseAssets';
+import ReleaseNotes from '@/components/public/ReleaseNotes';
+import { getGitHubSnapshot, type GitHubRelease, type GitHubSnapshot } from '@/lib/github';
+import { formatDate, formatDateTime } from '@/lib/format';
+import {
+  PRODUCT_DOCS_URL,
+  PRODUCT_LATEST_RELEASE_URL,
+  PRODUCT_RELEASES_URL,
+  absoluteUrl,
+} from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Releases & Downloads',
   description:
-    'Offizielle WebRadio-Releases aus der Projektdatenbank: stabile Versionen und Beta-Builds mit Release Notes, Prüfsummen und hinterlegten Download-Links.',
+    'Offizielle WebRadio-Releases direkt von GitHub: neueste stabile Version, Beta-Builds, Release Notes sowie echte Windows- und Linux-Downloads mit Größe und SHA-256-Digest.',
   ...(absoluteUrl('/releases') ? { alternates: { canonical: absoluteUrl('/releases') } } : {}),
 };
 
-function ReleaseNotes({ release }: { release: ReleaseEntry }) {
-  if (release.changelogs.length === 0) {
-    return null;
+function ChannelBadge({ channel }: { channel: GitHubRelease['channel'] }) {
+  if (channel === 'stable') {
+    return <Badge tone="success">Stabil</Badge>;
   }
-
-  return (
-    <ul className="mt-4 space-y-2">
-      {release.changelogs.map((entry, index) => (
-        <li key={`${entry.category}-${index}`} className="flex gap-2.5 text-sm text-zinc-300">
-          <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-violet-400" aria-hidden="true" />
-          <span>
-            {entry.category ? (
-              <span className="mr-2 rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-zinc-400">
-                {entry.category}
-              </span>
-            ) : null}
-            {entry.text}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
+  if (channel === 'alpha') {
+    return <Badge tone="warning">Alpha</Badge>;
+  }
+  return <Badge tone="beta">Beta</Badge>;
 }
 
-function ReleaseCard({ release }: { release: ReleaseEntry }) {
-  const downloadUrl = safeHttpUrl(release.downloadUrl);
-  const isBeta = releaseChannel(release.version) === 'beta';
-  const date = formatDate(release.releaseDate);
+function ReleaseItem({
+  release,
+  featured = false,
+}: {
+  release: GitHubRelease;
+  featured?: boolean;
+}) {
+  const date = formatDate(release.publishedAt);
 
   return (
     <article className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-mono text-lg font-semibold text-white">v{release.version}</h3>
-            <Badge tone={isBeta ? 'beta' : 'success'}>{isBeta ? 'Beta' : 'Stabil'}</Badge>
-            {release.isLatest ? <Badge tone="accent">Aktuelles Release</Badge> : null}
+            <h3 className="font-mono text-lg font-semibold text-white">{release.tagName}</h3>
+            <ChannelBadge channel={release.channel} />
+            {featured ? <Badge tone="accent">Aktuelle Version</Badge> : null}
           </div>
-          <p className="mt-1 text-sm font-medium text-zinc-300">{release.title}</p>
-          {date ? <p className="mt-1 text-xs text-zinc-500">Veröffentlicht am {date}</p> : null}
+          <p className="mt-1 text-sm font-medium text-zinc-300">{release.name}</p>
+          {date ? (
+            <p className="mt-1 text-xs text-zinc-500">
+              Veröffentlicht am {date}
+              {release.assets.length > 0
+                ? ` · ${release.assets.length} ${release.assets.length === 1 ? 'Artefakt' : 'Artefakte'}`
+                : ' · keine Installationsdateien'}
+            </p>
+          ) : null}
         </div>
 
-        {downloadUrl ? (
-          <ButtonLink href={downloadUrl} variant="secondary" size="sm" className="shrink-0">
-            <DownloadIcon className="h-4 w-4" /> Download
-          </ButtonLink>
-        ) : (
-          <span className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-500">
-            Kein Download-Link hinterlegt
-          </span>
-        )}
+        <ButtonLink
+          href={release.htmlUrl}
+          variant="secondary"
+          size="sm"
+          className="shrink-0"
+        >
+          <GitHubIcon className="h-4 w-4" /> Auf GitHub
+          <ExternalLinkIcon className="h-3 w-3" />
+        </ButtonLink>
       </div>
 
-      <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-zinc-400">
-        {release.description}
-      </p>
-
-      <ReleaseNotes release={release} />
-
-      <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/[0.06] pt-4 text-xs text-zinc-500">
-        {formatFileSize(release.fileSize) ? (
-          <div className="flex gap-2">
-            <dt>Dateigröße</dt>
-            <dd className="text-zinc-300">{formatFileSize(release.fileSize)}</dd>
+      {featured ? (
+        <div className="mt-5 space-y-5">
+          <div>
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+              Release Notes
+            </h4>
+            <ReleaseNotes notes={release.notes} />
           </div>
-        ) : null}
-        {release.checksum ? (
-          <div className="flex min-w-0 gap-2">
-            <dt>SHA-256</dt>
-            <dd className="break-all font-mono text-[10px] leading-5 text-zinc-400">
-              {release.checksum}
-            </dd>
+          <div>
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+              Downloads
+            </h4>
+            <ReleaseAssets assets={release.assets} releaseUrl={release.htmlUrl} />
           </div>
-        ) : null}
-      </dl>
+        </div>
+      ) : (
+        <details className="group mt-4 border-t border-white/[0.06] pt-4">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg text-xs font-semibold text-zinc-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400">
+            <span>Release Notes &amp; Downloads anzeigen</span>
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="mt-4 space-y-5">
+            <ReleaseNotes notes={release.notes} maxChars={5_000} />
+            <ReleaseAssets assets={release.assets} releaseUrl={release.htmlUrl} />
+          </div>
+        </details>
+      )}
     </article>
+  );
+}
+
+function ReleaseSection({
+  id,
+  eyebrow,
+  title,
+  description,
+  releases,
+  emptyText,
+}: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  releases: GitHubRelease[];
+  emptyText: string;
+}) {
+  return (
+    <section aria-labelledby={id} className="scroll-mt-24">
+      <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+      <h2 id={id} className="sr-only">
+        {title}
+      </h2>
+      {releases.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-white/10 p-6 text-sm text-zinc-500">
+          {emptyText}
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {releases.map((release, index) => (
+            <ReleaseItem key={release.id} release={release} featured={index === 0} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LatestSummary({ snapshot }: { snapshot: GitHubSnapshot }) {
+  const cards = [
+    {
+      label: 'Neueste stabile Version',
+      release: snapshot.latestStable,
+      tone: 'success' as const,
+    },
+    {
+      label: 'Neueste Beta',
+      release: snapshot.latestBeta,
+      tone: 'beta' as const,
+    },
+  ];
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {cards.map((card) => (
+        <div
+          key={card.label}
+          className="rounded-2xl border border-white/[0.08] bg-[#0b0b10] p-5"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+            {card.label}
+          </p>
+          {card.release ? (
+            <>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <p className="font-mono text-xl font-semibold text-white">
+                  {card.release.tagName}
+                </p>
+                <Badge tone={card.tone}>
+                  {card.release.channel === 'stable' ? 'Stabil' : 'Beta'}
+                </Badge>
+              </div>
+              <p className="mt-1 text-xs text-zinc-500">
+                {formatDate(card.release.publishedAt)
+                  ? `Veröffentlicht am ${formatDate(card.release.publishedAt)}`
+                  : 'Veröffentlichungsdatum nicht verfügbar'}
+              </p>
+              <p className="mt-3 text-xs leading-relaxed text-zinc-400">
+                {card.release.assets.length > 0
+                  ? card.release.assets
+                      .map((asset) => asset.platformLabel)
+                      .filter((label, index, all) => all.indexOf(label) === index)
+                      .join(' · ')
+                  : 'Keine Installationsdateien hinterlegt'}
+              </p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-zinc-400">
+              {card.label === 'Neueste Beta'
+                ? 'Derzeit ist keine Beta veröffentlicht.'
+                : 'Derzeit ist keine stabile Version veröffentlicht.'}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
 async function ReleasesContent() {
   await io();
 
-  let releases;
+  let snapshot: GitHubSnapshot;
   try {
-    releases = await listReleases(50);
+    snapshot = await getGitHubSnapshot();
   } catch {
     return (
       <ErrorState
-        title="Releases konnten nicht geladen werden"
-        description="Die Release-Datenbank ist momentan nicht erreichbar. Es werden keine Ersatzversionen oder erfundenen Download-Links angezeigt."
+        title="GitHub-Daten konnten nicht geladen werden"
+        description="Die offiziellen Release-Daten von GitHub sind momentan nicht erreichbar. Es werden keine Ersatzversionen, erfundenen Versionsnummern oder geschätzten Download-Links angezeigt."
         retryHref="/releases"
       />
     );
   }
 
-  if (releases.length === 0) {
+  if (snapshot.releases.length === 0) {
     return (
       <EmptyState
         icon={<PackageIcon className="h-5 w-5" />}
-        title="Noch kein Release veröffentlicht"
-        description="Es sind keine Release-Einträge hinterlegt. Sobald ein Release in der Datenbank erfasst ist, erscheint es hier mit Datum, Kanal und – falls vorhanden – Download-Link."
+        title="Keine öffentlichen Releases gefunden"
+        description="GitHub meldet für dieses Repository derzeit keine veröffentlichten Releases. Drafts und nicht öffentliche Artefakte werden grundsätzlich nicht angezeigt."
         action={
-          <ButtonLink href={`${REPOSITORY_URL}/releases`} variant="secondary" size="sm">
+          <ButtonLink href={PRODUCT_RELEASES_URL} variant="secondary" size="sm">
             <GitHubIcon className="h-4 w-4" /> GitHub-Releases
           </ButtonLink>
         }
@@ -132,54 +240,109 @@ async function ReleasesContent() {
     );
   }
 
-  const stable = releases.filter((release) => releaseChannel(release.version) === 'stable');
-  const beta = releases.filter((release) => releaseChannel(release.version) === 'beta');
+  const stable = snapshot.releases
+    .filter((release) => release.channel === 'stable')
+    .slice(0, 5);
+  const beta = snapshot.releases
+    .filter((release) => release.channel === 'beta')
+    .slice(0, 6);
+  const alpha = snapshot.releases
+    .filter((release) => release.channel === 'alpha')
+    .slice(0, 6);
+
+  const updatedAt = formatDateTime(snapshot.fetchedAt);
 
   return (
     <div className="space-y-12">
-      <section aria-labelledby="stable-heading">
-        <SectionHeading
-          eyebrow="Empfohlen"
-          title="Stabile Releases"
-          description="Versionen ohne SemVer-Vorabkennzeichnung (kein Bindestrich in der Versionsnummer)."
-        />
-        <h2 id="stable-heading" className="sr-only">
-          Stabile Releases
-        </h2>
-        {stable.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/10 p-6 text-sm text-zinc-500">
-            Noch kein stabiles Release veröffentlicht.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {stable.map((release) => (
-              <ReleaseCard key={release.id} release={release} />
-            ))}
-          </div>
-        )}
-      </section>
+      <LatestSummary snapshot={snapshot} />
 
-      <section aria-labelledby="beta-heading">
-        <SectionHeading
-          eyebrow="Vorabversionen"
-          title="Beta-Builds"
-          description="SemVer-Vorabversionen (mit Bindestrich, z. B. -beta.1). Nicht für den produktiven Einsatz empfohlen."
-        />
-        <h2 id="beta-heading" className="sr-only">
-          Beta-Builds
-        </h2>
-        {beta.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/10 p-6 text-sm text-zinc-500">
-            Aktuell sind keine Beta-Builds veröffentlicht.
+      {snapshot.stale ? (
+        <div
+          role="status"
+          className="flex gap-3 rounded-2xl border border-amber-400/20 bg-amber-500/[0.06] p-4 text-xs leading-relaxed text-amber-100"
+        >
+          <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            GitHub ist derzeit nicht erreichbar. Angezeigt werden die zuletzt erfolgreich geladenen
+            öffentlichen Release-Daten
+            {updatedAt ? ` vom ${updatedAt}` : ''}. Es werden keine neuen Versionen oder Downloads
+            angenommen; für die vollständige Historie gilt die GitHub-Release-Seite.
           </p>
-        ) : (
-          <div className="space-y-4">
-            {beta.map((release) => (
-              <ReleaseCard key={release.id} release={release} />
+        </div>
+      ) : null}
+
+      <ReleaseSection
+        id="stable-heading"
+        eyebrow="Empfohlen"
+        title="Stabile Releases"
+        description="Offiziell als stabil veröffentlichte Versionen. Die Kanalzuordnung stammt aus dem GitHub-Release-Status, nicht aus einem Dateinamen."
+        releases={stable}
+        emptyText="Derzeit ist keine stabile Version veröffentlicht. Beta- und Alpha-Builds stehen weiter unten."
+      />
+
+      <ReleaseSection
+        id="beta-heading"
+        eyebrow="Vorabversionen"
+        title="Beta-Builds"
+        description="Als Prerelease markierte Beta-Versionen. Sie können Fehler enthalten; vor der Installation die Release Notes und Dateinamen prüfen."
+        releases={beta}
+        emptyText="Derzeit sind keine Beta-Builds veröffentlicht."
+      />
+
+      {alpha.length > 0 ? (
+        <details className="rounded-2xl border border-white/[0.07] bg-white/[0.015] p-5">
+          <summary className="cursor-pointer text-sm font-semibold text-zinc-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400">
+            Weitere Vorabversionen (Alpha) anzeigen
+          </summary>
+          <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+            Alpha-Builds sind frühe Entwicklungsstände. Sie werden hier nur aufgeführt, weil sie
+            öffentlich auf GitHub veröffentlicht sind – nicht als Empfehlung.
+          </p>
+          <div className="mt-4 space-y-3">
+            {alpha.map((release) => (
+              <ReleaseItem key={release.id} release={release} />
             ))}
           </div>
-        )}
-      </section>
+        </details>
+      ) : null}
+
+      <div className="space-y-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 text-xs leading-relaxed text-zinc-500">
+        <p className="flex items-start gap-2">
+          <ShieldIcon className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
+          <span>
+            Quelle ist ausschließlich{' '}
+            <a
+              href={PRODUCT_RELEASES_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-300 underline underline-offset-4 hover:text-white"
+            >
+              github.com/{snapshot.repository.fullName}/releases
+            </a>
+            . Download-URLs werden nur übernommen, wenn GitHub sie für ein Release dieses
+            Repositories liefert. Dateigrößen und SHA-256-Digests stammen aus den GitHub-Asset-Daten.
+            Eine Signaturprüfung findet im Browser nicht statt.
+          </span>
+        </p>
+        <p>
+          Release Notes werden als Text aus dem GitHub-Release übernommen und nicht als HTML
+          gerendert. Drafts, unvollständige Uploads und reine Update-Metadaten (etwa{' '}
+          <code className="font-mono text-[11px]">latest.yml</code> oder Blockmaps) erscheinen nicht
+          als Download.
+          {updatedAt ? ` Datenstand: ${updatedAt}.` : ''}
+        </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <ButtonLink href={PRODUCT_RELEASES_URL} variant="secondary" size="sm">
+            <GitHubIcon className="h-4 w-4" /> Alle Releases auf GitHub
+          </ButtonLink>
+          <ButtonLink href={PRODUCT_LATEST_RELEASE_URL} variant="ghost" size="sm">
+            Neueste Version <ExternalLinkIcon className="h-3.5 w-3.5" />
+          </ButtonLink>
+          <ButtonLink href={PRODUCT_DOCS_URL} variant="ghost" size="sm">
+            Dokumentation <ExternalLinkIcon className="h-3.5 w-3.5" />
+          </ButtonLink>
+        </div>
+      </div>
     </div>
   );
 }
@@ -189,12 +352,17 @@ export default function ReleasesPage() {
     <>
       <PageHeader
         eyebrow="Downloads"
-        title="Releases & Downloads"
-        description="Alle Einträge stammen aus der Release-Tabelle von PostgreSQL. Der Kanal wird aus der SemVer-Version abgeleitet; Download-Links werden nur eingebunden, wenn sie als sichere HTTP(S)-URL hinterlegt sind."
+        title="WebRadio herunterladen"
+        description="Offizielle Releases des WebRadio-Desktop-Programms für Windows und Linux. Versionen, Release Notes und Installationsdateien werden direkt von GitHub geladen – ohne erfundene Versionen oder konstruierte Download-Links."
         actions={
-          <ButtonLink href={`${REPOSITORY_URL}/releases`} variant="secondary">
-            <GitHubIcon className="h-4 w-4" /> GitHub-Releases
-          </ButtonLink>
+          <>
+            <ButtonLink href={PRODUCT_RELEASES_URL} variant="secondary">
+              <GitHubIcon className="h-4 w-4" /> GitHub-Releases
+            </ButtonLink>
+            <ButtonLink href={PRODUCT_DOCS_URL} variant="ghost">
+              Installation <ArrowRightIcon className="h-3.5 w-3.5" />
+            </ButtonLink>
+          </>
         }
       />
 
@@ -202,37 +370,16 @@ export default function ReleasesPage() {
         <Suspense
           fallback={
             <div className="space-y-4" aria-hidden="true">
-              {[0, 1].map((index) => (
-                <div
-                  key={index}
-                  className="h-48 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.03]"
-                />
-              ))}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="h-32 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.03]" />
+                <div className="h-32 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.03]" />
+              </div>
+              <div className="h-64 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.03]" />
             </div>
           }
         >
           <ReleasesContent />
         </Suspense>
-
-        <div className="mt-12 space-y-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 text-xs leading-relaxed text-zinc-500">
-          <p>
-            Alle Einträge sind offizielle Releases des WebRadio-Desktop-Programms. Das
-            Release-Datenmodell enthält keine Plattformangaben; deshalb werden hier keine
-            unterstützten Betriebssysteme oder Architekturen behauptet.
-          </p>
-          <p>
-            Prüfsummen werden angezeigt, wenn sie hinterlegt sind. Eine automatische
-            Signaturprüfung im Browser findet nicht statt.{' '}
-            <a
-              href={`${REPOSITORY_URL}/blob/master/docs/ARCHITECTURE.md`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-zinc-400 underline-offset-4 hover:underline"
-            >
-              Architekturhinweise <ExternalLinkIcon className="h-3 w-3" />
-            </a>
-          </p>
-        </div>
       </Container>
     </>
   );

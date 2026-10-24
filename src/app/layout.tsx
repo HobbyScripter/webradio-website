@@ -14,11 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = getSiteUrl();
+const socialImage = absoluteUrl('/brand/webradio-logo.png');
 
 export const metadata: Metadata = {
   ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
   title: {
-    default: `${SITE_NAME} — Open-Source-Webradio mit Plugins und Themes`,
+    default: `${SITE_NAME} — Internetradio für Windows und Linux`,
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -30,21 +31,37 @@ export const metadata: Metadata = {
     "Audio-Streaming",
     "Plugins",
     "Themes",
-    "Entwickler",
+    "Electron",
+    "FFmpeg",
+    "Windows",
+    "Linux",
   ],
   category: "technology",
   openGraph: {
     type: "website",
     locale: "de_DE",
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Open-Source-Webradio`,
+    title: `${SITE_NAME} — Internetradio für Windows und Linux`,
     description: SITE_DESCRIPTION,
     ...(absoluteUrl("/") ? { url: absoluteUrl("/") } : {}),
+    ...(socialImage
+      ? {
+          images: [
+            {
+              url: socialImage,
+              width: 256,
+              height: 256,
+              alt: "WebRadio Logo",
+            },
+          ],
+        }
+      : {}),
   },
   twitter: {
     card: "summary",
-    title: `${SITE_NAME} — Open-Source-Webradio`,
+    title: `${SITE_NAME} — Internetradio für Windows und Linux`,
     description: SITE_DESCRIPTION,
+    ...(socialImage ? { images: [socialImage] } : {}),
   },
   robots: {
     index: true,

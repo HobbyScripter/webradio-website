@@ -21,6 +21,27 @@ export function formatDate(value: string | null | undefined): string | null {
   return dateFormatter.format(date);
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Berlin',
+});
+
+/** Format an ISO timestamp as a German date and time (Europe/Berlin). */
+export function formatDateTime(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return dateTimeFormatter.format(date);
+}
+
 /** 1536 -> "1,5 KB"; null/undefined -> null. */
 export function formatFileSize(bytes: number | null | undefined): string | null {
   if (bytes === null || bytes === undefined || !Number.isFinite(bytes) || bytes < 0) {

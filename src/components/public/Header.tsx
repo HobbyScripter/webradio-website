@@ -3,7 +3,7 @@ import Brand from './Brand';
 import MobileMenu from './MobileMenu';
 import { ButtonLink } from '@/components/ui/button';
 import { GitHubIcon } from '@/components/ui/icons';
-import { REPOSITORY_URL } from '@/lib/site';
+import { PRODUCT_REPOSITORY_URL } from '@/lib/site';
 
 const NAV_ITEMS = [
   { label: 'Plugins', href: '/plugins' },
@@ -34,7 +34,7 @@ export default function Header() {
 
         <div className="hidden items-center gap-2 md:flex">
           <a
-            href={REPOSITORY_URL}
+            href={PRODUCT_REPOSITORY_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Quellcode auf GitHub (öffnet in einem neuen Tab)"

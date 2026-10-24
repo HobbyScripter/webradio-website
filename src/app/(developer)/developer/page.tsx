@@ -123,10 +123,10 @@ async function DeveloperContent() {
         </p>
         <div className="pt-2">
           <Link
-            href="/docs#entwickler"
+            href="/docs#website-katalog"
             className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-500 transition-colors"
           >
-            Einreichungsprozess dokumentieren
+            Katalogregeln ansehen
           </Link>
         </div>
       </div>

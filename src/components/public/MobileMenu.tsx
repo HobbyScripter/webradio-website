@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { CloseIcon, GitHubIcon, MenuIcon } from '@/components/ui/icons';
-import { REPOSITORY_URL } from '@/lib/site';
+import { PRODUCT_REPOSITORY_URL } from '@/lib/site';
 
 type NavItem = { label: string; href: string };
 
@@ -65,7 +65,7 @@ export default function MobileMenu({ items }: { items: readonly NavItem[] }) {
               Entwicklerbereich
             </Link>
             <a
-              href={REPOSITORY_URL}
+              href={PRODUCT_REPOSITORY_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white"

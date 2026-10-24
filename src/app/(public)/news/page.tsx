@@ -40,7 +40,7 @@ async function NewsContent() {
         title="Noch keine veröffentlichten Neuigkeiten"
         description="Es sind derzeit keine veröffentlichten und datierten Beiträge hinterlegt. Projektberichte findest du bis dahin in der Dokumentation im Repository."
         action={
-          <ButtonLink href="/docs#weiterfuehrend" variant="secondary" size="sm">
+          <ButtonLink href="/docs#dokumente" variant="secondary" size="sm">
             Zur Dokumentation
           </ButtonLink>
         }

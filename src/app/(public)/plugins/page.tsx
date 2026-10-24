@@ -90,8 +90,8 @@ async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalo
                   Filter zurücksetzen
                 </ButtonLink>
               ) : (
-                <ButtonLink href="/docs#entwickler" variant="secondary" size="sm">
-                  Einreichung dokumentieren
+                <ButtonLink href="/docs#website-katalog" variant="secondary" size="sm">
+                  Katalogregeln ansehen
                 </ButtonLink>
               )
             }
@@ -126,11 +126,11 @@ export default function PluginsPage({
       <PageHeader
         eyebrow="Katalog"
         title="Plugins für dein WebRadio"
-        description="Freigegebene Erweiterungen mit Versionen, Tags und Download-Paketen. Private Entwürfe, ausstehende Einreichungen und abgelehnte Einträge bleiben unsichtbar."
+        description="Freigegebene Plugins für das WebRadio-Desktop-Programm – mit Versionen, Tags und Download-Paketen. Private Entwürfe, ausstehende Einreichungen und abgelehnte Einträge bleiben unsichtbar."
         actions={
           <>
-            <ButtonLink href="/docs#entwickler" variant="secondary">
-              Einreichung
+            <ButtonLink href="/docs#erweiterungen" variant="secondary">
+              Plugin SDK
             </ButtonLink>
             <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
           </>
@@ -144,11 +144,11 @@ export default function PluginsPage({
 
         <p className="mt-10 text-xs leading-relaxed text-zinc-500">
           Hinweis: Alle Einträge sind ausschließlich für das WebRadio-Desktop-Programm bestimmt.
-          Die Installation von Plugins im WebRadio-Client ist noch nicht Teil dieses Stands. Der
-          Katalog zeigt ausschließlich Daten, die in PostgreSQL als veröffentlicht und freigegeben
-          markiert sind.{' '}
-          <Link href="/docs#plugins" className="text-zinc-400 underline-offset-4 hover:underline">
-            Mehr zur Architektur
+          Der Katalog zeigt nur Daten, die in PostgreSQL als veröffentlicht und freigegeben markiert
+          sind. Die Installation im Programm erfolgt über das Plugin-System von WebRadio; diese
+          Website ist nicht die Downloadquelle der Desktop-Anwendung.{' '}
+          <Link href="/docs#website-katalog" className="text-zinc-400 underline-offset-4 hover:underline">
+            Mehr zum Katalog
           </Link>
           .
         </p>

@@ -89,8 +89,8 @@ async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalog
                   Filter zurücksetzen
                 </ButtonLink>
               ) : (
-                <ButtonLink href="/docs#themes" variant="secondary" size="sm">
-                  Theme-Datenmodell ansehen
+                <ButtonLink href="/docs#erweiterungen" variant="secondary" size="sm">
+                  Theme SDK ansehen
                 </ButtonLink>
               )
             }
@@ -125,11 +125,11 @@ export default function ThemesPage({
       <PageHeader
         eyebrow="Katalog"
         title="Themes für deine Oberfläche"
-        description="Freigegebene Themes mit Versionen, Tags und optionalen Vorschaubildern. Externe Vorschauen werden nur als absolute HTTP(S)-URLs eingebunden."
+        description="Freigegebene Themes für das WebRadio-Desktop-Programm – mit Versionen, Tags und optionalen Vorschaubildern. Externe Vorschauen werden nur als absolute HTTP(S)-URLs eingebunden."
         actions={
           <>
-            <ButtonLink href="/docs#themes" variant="secondary">
-              Datenmodell
+            <ButtonLink href="/docs#erweiterungen" variant="secondary">
+              Theme SDK
             </ButtonLink>
             <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
           </>
@@ -143,8 +143,8 @@ export default function ThemesPage({
 
         <p className="mt-10 text-xs leading-relaxed text-zinc-500">
           Hinweis: Alle Einträge sind ausschließlich für das WebRadio-Desktop-Programm bestimmt.
-          Das Anwenden von Themes im WebRadio-Client ist noch nicht Teil dieses Stands. Vorschauen
-          erscheinen nur, wenn für einen freigegebenen Eintrag tatsächlich Bild-URLs hinterlegt sind.
+          Themes werden im Programm über das Theme-System angewendet. Vorschauen erscheinen nur,
+          wenn für einen freigegebenen Eintrag tatsächlich Bild-URLs hinterlegt sind.
         </p>
       </Container>
     </>

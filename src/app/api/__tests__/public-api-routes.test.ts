@@ -6,8 +6,12 @@ import { NextRequest } from 'next/server';
 jest.mock('@/lib/catalog', () => ({
   listPublishedPlugins: jest.fn(),
   listPublishedThemes: jest.fn(),
-  listReleases: jest.fn(),
   listPublishedNews: jest.fn(),
+}));
+
+jest.mock('@/lib/github', () => ({
+  GitHubError: class GitHubError extends Error {},
+  getGitHubSnapshot: jest.fn(),
 }));
 
 import { GET as getPlugins } from '@/app/api/plugins/route';
@@ -18,12 +22,12 @@ import {
   listPublishedNews,
   listPublishedPlugins,
   listPublishedThemes,
-  listReleases,
 } from '@/lib/catalog';
+import { getGitHubSnapshot } from '@/lib/github';
 
 const mockPlugins = jest.mocked(listPublishedPlugins);
 const mockThemes = jest.mocked(listPublishedThemes);
-const mockReleases = jest.mocked(listReleases);
+const mockSnapshot = jest.mocked(getGitHubSnapshot);
 const mockNews = jest.mocked(listPublishedNews);
 
 const plugin = {
@@ -136,54 +140,105 @@ describe('GET /api/themes', () => {
 });
 
 describe('GET /api/releases', () => {
-  it('sanitizes unsafe download URLs and exposes the derived channel', async () => {
-    mockReleases.mockResolvedValue([
-      {
-        id: 'release-1',
-        version: '1.0.0-beta.1',
-        title: 'Beta',
-        description: 'Test',
-        releaseDate: '2026-10-24T12:00:00.000Z',
-        isLatest: true,
-        downloadUrl: 'javascript:alert(1)',
-        fileSize: 100,
-        checksum: 'abc',
-        changelogs: [],
-      },
-      {
-        id: 'release-2',
-        version: '1.0.0',
-        title: 'Stable',
-        description: 'Test',
-        releaseDate: '2026-10-23T12:00:00.000Z',
-        isLatest: false,
-        downloadUrl: 'https://example.com/webradio.zip',
-        fileSize: 200,
-        checksum: 'def',
-        changelogs: [{ category: 'Added', text: 'First release' }],
-      },
-    ]);
+  const stableAsset = {
+    name: 'WebRadio-1.0.6-win-x64.exe',
+    size: 136641014,
+    digest: 'sha256:' + 'a'.repeat(64),
+    downloadUrl:
+      'https://github.com/YourEliteSystems/WebRadio/releases/download/v1.0.6/WebRadio-1.0.6-win-x64.exe',
+    platform: 'windows' as const,
+    platformLabel: 'Windows (x64)',
+    format: 'Installer (EXE)',
+  };
 
+  const snapshot = {
+    repository: {
+      fullName: 'YourEliteSystems/WebRadio',
+      htmlUrl: 'https://github.com/YourEliteSystems/WebRadio',
+      description: 'Desktop radio player',
+      defaultBranch: 'main',
+      license: {
+        name: 'Apache License 2.0',
+        spdxId: 'Apache-2.0',
+        url: 'https://api.github.com/licenses/apache-2.0',
+      },
+      homepage: null,
+      topics: ['internet-radio'],
+      archived: false,
+      pushedAt: '2026-10-17T18:00:00Z',
+    },
+    releases: [
+      {
+        id: 1,
+        tagName: 'v1.0.6',
+        name: 'WebRadio 1.0.6',
+        htmlUrl:
+          'https://github.com/YourEliteSystems/WebRadio/releases/tag/v1.0.6',
+        publishedAt: '2026-09-18T18:49:43Z',
+        channel: 'stable' as const,
+        isPrerelease: false,
+        notes: '## Änderungen\n\n- Stabiler Build',
+        assets: [stableAsset],
+      },
+    ],
+    latestStable: null,
+    latestBeta: null,
+    latestAlpha: null,
+    fetchedAt: '2026-10-24T19:00:00.000Z',
+    stale: false,
+  };
+
+  beforeEach(() => {
+    mockSnapshot.mockResolvedValue({
+      ...snapshot,
+      latestStable: snapshot.releases[0]!,
+    });
+  });
+
+  it('returns validated GitHub releases, exact asset URLs and source metadata', async () => {
     const response = await getReleases();
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.data[0].downloadUrl).toBeNull();
-    expect(body.data[0].channel).toBe('beta');
-    expect(body.data[1].downloadUrl).toBe('https://example.com/webradio.zip');
-    expect(body.data[1].channel).toBe('stable');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0]).toMatchObject({
+      tagName: 'v1.0.6',
+      channel: 'stable',
+      assets: [{ downloadUrl: stableAsset.downloadUrl, digest: stableAsset.digest }],
+    });
+    expect(body.latest).toEqual({
+      stable: 'v1.0.6',
+      beta: null,
+      alpha: null,
+    });
+    expect(body.repository).toMatchObject({
+      fullName: 'YourEliteSystems/WebRadio',
+      license: { spdxId: 'Apache-2.0' },
+    });
+    expect(body.source).toEqual({
+      provider: 'github',
+      fetchedAt: snapshot.fetchedAt,
+      stale: false,
+    });
+    expect(JSON.stringify(body)).not.toMatch(/email|password|token|secret/i);
   });
 
-  it('returns a generic error when releases cannot be read', async () => {
+  it('returns 503 with generic data when GitHub is unavailable', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockReleases.mockRejectedValue(new Error('connection refused at 127.0.0.1:5433'));
+    mockSnapshot.mockRejectedValue(
+      new Error('connect ECONNREFUSED 127.0.0.1:443 token=ghp_secret'),
+    );
 
     const response = await getReleases();
     const text = await response.text();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(503);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(text).toContain('RELEASES_UNAVAILABLE');
     expect(text).not.toContain('127.0.0.1');
-    expect(text).not.toContain('connection refused');
+    expect(text).not.toContain('ghp_secret');
+    expect(text).not.toContain('ECONNREFUSED');
   });
 });
 

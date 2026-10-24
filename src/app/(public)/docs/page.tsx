@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
+import { Suspense } from 'react';
+import { io } from 'next/cache';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/layout';
 import {
@@ -8,74 +10,120 @@ import {
   ArrowRightIcon,
   BookIcon,
   CodeIcon,
+  DownloadIcon,
   ExternalLinkIcon,
   GitHubIcon,
   ShieldIcon,
 } from '@/components/ui/icons';
+import { getReadme } from '@/lib/github';
+import { formatDateTime } from '@/lib/format';
 import {
-  REPOSITORY_DOCS_URL,
-  REPOSITORY_ISSUES_URL,
-  REPOSITORY_URL,
+  PRODUCT_API_REFERENCE_URL,
+  PRODUCT_ARCHITECTURE_URL,
+  PRODUCT_CODE_OF_CONDUCT_URL,
+  PRODUCT_CONTRIBUTING_URL,
+  PRODUCT_DISCUSSIONS_URL,
+  PRODUCT_DOCS_URL,
+  PRODUCT_ISSUES_URL,
+  PRODUCT_LATEST_RELEASE_URL,
+  PRODUCT_LICENSE_URL,
+  PRODUCT_PLUGIN_SDK_URL,
+  PRODUCT_PRIVACY_URL,
+  PRODUCT_RELEASES_URL,
+  PRODUCT_REPOSITORY_URL,
+  PRODUCT_SECURITY_URL,
+  PRODUCT_THEME_SDK_URL,
+  WEBSITE_REPOSITORY_URL,
   absoluteUrl,
 } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Dokumentation & Projekt',
   description:
-    'Projektinformationen zu WebRadio: Architektur, Installation, öffentliche API, Sicherheitsmodell, bekannte Einschränkungen und Mitarbeit.',
+    'Projektinformationen zu WebRadio: Funktionen, Downloads für Windows und Linux, Plugin- und Theme-System, öffentliche Website-API, Sicherheitsmodell und bekannte Einschränkungen.',
   ...(absoluteUrl('/docs') ? { alternates: { canonical: absoluteUrl('/docs') } } : {}),
 };
 
 const NAV_SECTIONS = [
   { id: 'ueberblick', label: 'Überblick' },
   { id: 'funktionen', label: 'Funktionen & Stand' },
+  { id: 'downloads', label: 'Downloads & Installation' },
   { id: 'technik', label: 'Technik' },
-  { id: 'installation', label: 'Installation' },
-  { id: 'plugins', label: 'Plugins' },
-  { id: 'themes', label: 'Themes' },
-  { id: 'entwickler', label: 'Entwickler' },
-  { id: 'api', label: 'Öffentliche API' },
+  { id: 'erweiterungen', label: 'Plugins & Themes' },
+  { id: 'website-katalog', label: 'Website-Katalog' },
+  { id: 'api', label: 'Website-API' },
   { id: 'sicherheit', label: 'Sicherheit' },
   { id: 'einschraenkungen', label: 'Einschränkungen' },
-  { id: 'beitragen', label: 'Mitarbeit' },
-  { id: 'weiterfuehrend', label: 'Weiterführende Dokumente' },
+  { id: 'mitmachen', label: 'Mitmachen' },
+  { id: 'dokumente', label: 'Offizielle Dokumente' },
 ] as const;
 
-const STATUS = [
-  { area: 'Öffentlicher Plugin- und Theme-Katalog', status: 'Umgesetzt', tone: 'success' as const },
-  { area: 'Suche, Sortierung und Pagination', status: 'Umgesetzt', tone: 'success' as const },
-  { area: 'Entwickler- und Adminbereich mit RBAC', status: 'Umgesetzt', tone: 'success' as const },
-  { area: 'Datenbankgestützte Sessions und Audit-Log', status: 'Umgesetzt', tone: 'success' as const },
-  { area: 'Release-Übersicht aus PostgreSQL', status: 'Umgesetzt', tone: 'success' as const },
-  { area: 'Radio-Wiedergabe im Browser', status: 'Nicht implementiert', tone: 'warning' as const },
-  { area: 'Installation von Plugins/Themes im Client', status: 'Nicht implementiert', tone: 'warning' as const },
-  { area: 'Einreichungs-Workflow im Entwicklerportal', status: 'Nicht implementiert', tone: 'warning' as const },
-  { area: 'Rate-Limiting und Passwort-Reset', status: 'Offen', tone: 'warning' as const },
+const STATUS: { area: string; status: string; tone: BadgeTone }[] = [
+  { area: 'Desktop-App für Windows und Linux', status: 'Veröffentlicht', tone: 'success' },
+  { area: 'Weltweite Sendersuche (Radio Browser API)', status: 'Im Programm', tone: 'success' },
+  { area: 'FFmpeg- + AudioWorklet-Audiopipeline', status: 'Im Programm', tone: 'success' },
+  { area: 'Plugin-System mit Capabilities', status: 'Im Programm', tone: 'success' },
+  { area: 'Theme-System und Theme-Pakete', status: 'Im Programm', tone: 'success' },
+  {
+    area: 'Website-Katalog für Plugins und Themes',
+    status: 'Implementiert, nur freigegebene Einträge',
+    tone: 'accent',
+  },
+  { area: 'Rollen, datenbankgestützte Sessions, Audit-Log', status: 'Implementiert', tone: 'success' },
+  { area: 'Rate-Limiting, Passwort-Reset, E-Mail-Verifizierung', status: 'Implementiert', tone: 'success' },
+  {
+    area: 'GitHub-Release-Daten und Downloads',
+    status: 'Live aus GitHub',
+    tone: 'accent',
+  },
+  {
+    area: 'CI mit PostgreSQL-Integrationstests',
+    status: 'Vorhanden, extern unbestätigt',
+    tone: 'warning',
+  },
+  { area: 'macOS-Build', status: 'Nicht verfügbar', tone: 'warning' },
+  {
+    area: 'Produktiver E-Mail-Versand (SMTP)',
+    status: 'Nicht konfiguriert',
+    tone: 'warning',
+  },
+  {
+    area: 'Datenschutz und Impressum dieser Website',
+    status: 'Offen',
+    tone: 'warning',
+  },
 ];
 
 const API_ENDPOINTS = [
   {
     method: 'GET',
+    path: '/api/releases',
+    description:
+      'Öffentliche GitHub-Releases mit tagName, Kanal, Release Notes und validierten Assets.',
+    params: 'keine',
+  },
+  {
+    method: 'GET',
     path: '/api/plugins',
-    description: 'Freigegebene Plugins mit Suche, Sortierung und Pagination.',
+    description: 'Freigegebene WebRadio-Plugins aus der Website-Datenbank.',
     params: 'q (max. 80 Zeichen), sort=newest|name|downloads, page=1…500',
   },
   {
     method: 'GET',
     path: '/api/themes',
-    description: 'Freigegebene Themes mit denselben Filtern.',
+    description: 'Freigegebene WebRadio-Themes aus der Website-Datenbank.',
     params: 'q, sort, page',
   },
   {
     method: 'GET',
-    path: '/api/releases',
-    description: 'Alle Release-Einträge, neueste zuerst.',
+    path: '/api/news',
+    description: 'Veröffentlichte und bereits datierte Website-Neuigkeiten.',
     params: 'keine',
   },
   {
     method: 'GET',
-    path: '/api/news',
-    description: 'Veröffentlichte und bereits datierte Neuigkeiten.',
+    path: '/api/health',
+    description: 'Einfacher Health-Check ohne vertrauliche Daten.',
     params: 'keine',
   },
 ] as const;
@@ -98,10 +146,59 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 border-t border-white/[0.07] pt-10 first:border-0 first:pt-0">
+    <section
+      id={id}
+      className="scroll-mt-24 border-t border-white/[0.07] pt-10 first:border-0 first:pt-0"
+    >
       <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{title}</h2>
       <div className="mt-4 space-y-4 text-sm leading-relaxed text-zinc-400">{children}</div>
     </section>
+  );
+}
+
+async function ReadmeExcerpt() {
+  await io();
+  const readme = await getReadme();
+
+  if (!readme) {
+    return (
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 text-sm text-zinc-400">
+        Das offizielle README ist momentan nicht abrufbar. Der Inhalt dieser Seite bleibt davon
+        unabhängig nutzbar; die aktuelle Fassung steht im{' '}
+        <a
+          href={PRODUCT_REPOSITORY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-violet-300 underline-offset-4 hover:underline"
+        >
+          GitHub-Repository
+        </a>
+        .
+      </div>
+    );
+  }
+
+  const updated = formatDateTime(readme.fetchedAt);
+
+  return (
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+      <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-300">
+        {readme.excerpt}
+      </p>
+      <p className="mt-4 border-t border-white/[0.06] pt-3 text-xs text-zinc-500">
+        Gekürzter Text aus dem offiziellen README
+        {updated ? `, geladen am ${updated}` : ''}.{' '}
+        <a
+          href={readme.htmlUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-zinc-400 underline-offset-4 hover:text-white hover:underline"
+        >
+          Original öffnen
+        </a>
+        .
+      </p>
+    </div>
   );
 }
 
@@ -114,19 +211,23 @@ export default function DocsPage() {
             Dokumentation
           </p>
           <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Projektinformationen zu WebRadio
+            WebRadio: Projekt, Downloads und Erweiterungen
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-zinc-400">
-            Diese Seite fasst Architektur, Installation, öffentliche Schnittstellen und den
-            tatsächlichen Funktionsstand zusammen. Die Markdown-Dokumente im Repository bleiben die
-            maßgebliche Quelle.
+            Diese Seite fasst das Desktop-Programm, die offiziellen Downloads, das Plugin- und
+            Theme-System sowie die öffentliche Website zusammen. Für Entwicklung und SDK-Details
+            bleibt die offizielle Dokumentation maßgeblich.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <ButtonLink href={REPOSITORY_DOCS_URL} variant="secondary" size="sm">
-              <GitHubIcon className="h-4 w-4" /> docs/ im Repository
+            <ButtonLink href={PRODUCT_DOCS_URL} variant="secondary" size="sm">
+              <BookIcon className="h-4 w-4" /> Offizielle Docs
+              <ExternalLinkIcon className="h-3 w-3" />
             </ButtonLink>
             <ButtonLink href="/releases" variant="ghost" size="sm">
-              Releases <ArrowRightIcon className="h-3.5 w-3.5" />
+              <DownloadIcon className="h-4 w-4" /> Downloads
+            </ButtonLink>
+            <ButtonLink href={PRODUCT_REPOSITORY_URL} variant="ghost" size="sm">
+              <GitHubIcon className="h-4 w-4" /> Repository
             </ButtonLink>
           </div>
         </Container>
@@ -135,7 +236,10 @@ export default function DocsPage() {
       <Container className="py-10">
         <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <nav aria-label="Inhaltsverzeichnis" className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+            <nav
+              aria-label="Inhaltsverzeichnis"
+              className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4"
+            >
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                 Auf dieser Seite
               </p>
@@ -157,33 +261,49 @@ export default function DocsPage() {
           <div className="max-w-3xl space-y-10">
             <Section id="ueberblick" title="Überblick">
               <p>
-                WebRadio ist ein Open-Source-Projekt für ein erweiterbares Webradio-Ökosystem. Diese
-                Website ist der öffentliche Einstieg: Sie stellt das Projekt vor, veröffentlicht
-                freigegebene Plugins und Themes und dokumentiert Releases.
+                WebRadio ist ein quelloffener Internetradio-Player für den Desktop. Die Anwendung
+                verbindet die Suche nach Sendern aus aller Welt mit Favoriten, einer eigenen
+                Audiopipeline und einer erweiterbaren Oberfläche. Sie ist für Windows und Linux
+                verfügbar; macOS ist derzeit nicht verfügbar.
               </p>
               <p>
-                Das Projekt befindet sich in einer frühen Entwicklungsphase. Die Website, das
-                Datenmodell und die Authentifizierung sind implementiert; der eigentliche
-                Radio-Client und die Installation von Erweiterungen sind noch nicht Teil dieses
-                Repositorys.
+                Dieses Repository ist die <strong className="text-zinc-200">Website</strong> zum
+                Projekt. Sie stellt das Programm vor, veröffentlicht freigegebene Plugins und
+                Themes aus der Website-Datenbank und zeigt offizielle Releases direkt aus dem
+                GitHub-Repository. Die Desktop-Anwendung selbst liegt unter{' '}
+                <a
+                  href={PRODUCT_REPOSITORY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-300 underline-offset-4 hover:underline"
+                >
+                  YourEliteSystems/WebRadio
+                </a>
+                .
               </p>
-              <div className="rounded-xl border border-amber-400/15 bg-amber-500/[0.05] p-4 text-xs leading-relaxed text-amber-200/90">
-                <p className="flex gap-2">
-                  <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>
-                    Es gibt derzeit keine veröffentlichte Produktionsdatenbank und keinen initialen
-                    ADMIN. Die lokale PostgreSQL-Instanz ist ausschließlich für die Entwicklung
-                    vorgesehen.
-                  </span>
-                </p>
-              </div>
+              <Suspense
+                fallback={
+                  <div
+                    className="h-32 animate-pulse rounded-xl border border-white/[0.06] bg-white/[0.03]"
+                    aria-hidden="true"
+                  />
+                }
+              >
+                <ReadmeExcerpt />
+              </Suspense>
+              <p className="rounded-xl border border-emerald-400/15 bg-emerald-500/[0.05] p-4 text-xs leading-relaxed text-emerald-100/90">
+                Lizenz: WebRadio steht unter der Apache License 2.0. Eingebundene Bibliotheken und
+                mitgelieferte Programme können abweichende Bedingungen haben; die
+                Drittanbieter-Hinweise im Repository sind dafür die Referenz.
+              </p>
             </Section>
 
             <Section id="funktionen" title="Funktionen & Stand">
               <p>
-                Die folgende Übersicht unterscheidet zwischen implementierten Funktionen und
-                Punkten, die noch offen sind. Ein grüner Status bedeutet, dass die Funktion im
-                Repository implementiert und durch Tests abgedeckt ist.
+                Die Übersicht unterscheidet zwischen Funktionen des Desktop-Programms und
+                Fähigkeiten dieser Website. Ein Status „Im Programm“ bedeutet, dass die Funktion
+                zur veröffentlichten Anwendung gehört – nicht, dass sie auf dieser Website
+                ausgeführt wird.
               </p>
               <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-xl border border-white/[0.08]">
                 {STATUS.map((row) => (
@@ -198,130 +318,144 @@ export default function DocsPage() {
               </ul>
             </Section>
 
-            <Section id="technik" title="Technik">
+            <Section id="downloads" title="Downloads & Installation">
               <p>
-                Die Anwendung nutzt den Next.js App Router (Version 16) mit React 19 und TypeScript.
-                Das Styling basiert auf Tailwind CSS 4. Daten werden über Prisma 8 (Release
-                Candidate) mit einem contract-basierten Schema in PostgreSQL gespeichert.
+                Offizielle Downloads stehen ausschließlich in den{' '}
+                <a
+                  href={PRODUCT_RELEASES_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-300 underline-offset-4 hover:underline"
+                >
+                  GitHub-Releases
+                </a>{' '}
+                bereit. Die Website liest Versionen, Dateinamen, Größen und SHA-256-Digests direkt
+                aus denselben Release-Daten und konstruiert keine Download-URLs.
               </p>
               <ul className="list-disc space-y-2 pl-5">
                 <li>
-                  <strong className="text-zinc-200">Datenzugriff:</strong> serverseitige
-                  Route Handler und Server Components; keine direkten Datenbankzugriffe aus dem
-                  Browser.
+                  <strong className="text-zinc-200">Windows x64:</strong> Installer (EXE), sofern im
+                  jeweiligen Release angehängt.
                 </li>
                 <li>
-                  <strong className="text-zinc-200">Authentifizierung:</strong> NextAuth.js 4 mit
-                  Credentials-Provider; die eigentliche Session liegt in PostgreSQL.
+                  <strong className="text-zinc-200">Linux x86_64:</strong> AppImage; auf dem
+                  Zielsystem sind dafür kein Node.js, npm, Electron oder FFmpeg erforderlich.
                 </li>
                 <li>
-                  <strong className="text-zinc-200">Validierung:</strong> Zod-Schemata für
-                  Registrierung, Rollenänderungen und Katalog-Parameter.
+                  <strong className="text-zinc-200">Arch Linux:</strong> Paket im Format{' '}
+                  <Code>.pkg.tar.zst</Code>.
                 </li>
                 <li>
-                  <strong className="text-zinc-200">Berechtigungen:</strong> Rollen USER, DEVELOPER
-                  und ADMIN; Prüfung bei jedem geschützten Zugriff gegen die Datenbank.
+                  <strong className="text-zinc-200">Debian/Ubuntu:</strong> Ein{' '}
+                  <Code>.deb</Code>-Build-Skript existiert, das Paket ist aber nicht in jedem
+                  Release enthalten.
+                </li>
+                <li>
+                  <strong className="text-zinc-200">macOS:</strong> derzeit nicht verfügbar.
                 </li>
               </ul>
-              <p>
-                Da Prisma 8 noch ein Release Candidate ist, können sich CLI und API zwischen
-                Versionen ändern. Die eingesetzten Versionen sind im{' '}
-                <Code>package.json</Code> festgeschrieben.
-              </p>
-            </Section>
-
-            <Section id="installation" title="Installation">
-              <p>
-                Voraussetzungen: Node.js 22 oder neuer, npm und eine eigene PostgreSQL-Datenbank.
-                Verwende niemals die Datenbank eines bestehenden oder alten WebRadio-Projekts.
-              </p>
               <pre className="overflow-x-auto rounded-xl border border-white/[0.08] bg-[#0b0b10] p-4 font-mono text-xs leading-6 text-zinc-300">
-{`git clone ${REPOSITORY_URL}.git
-cd webradio-website
-npm install
-cp .env.example .env
-# DATABASE_URL, TEST_DATABASE_URL und NEXTAUTH_SECRET eintragen
+{`# AppImage
+chmod +x WebRadio-*-linux-x86_64.AppImage
+./WebRadio-*-linux-x86_64.AppImage
 
-npm run prisma:contract:emit
-npm run db:migrate
-npm run db:verify
-npm run dev`}
+# Arch Linux
+sudo pacman -U webradio-*-x86_64.pkg.tar.zst`}
               </pre>
+              <p className="text-xs text-zinc-500">
+                Befehle aus dem offiziellen README. Maßgeblich sind immer die Dateien des
+                tatsächlich veröffentlichten Releases.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <ButtonLink href={PRODUCT_LATEST_RELEASE_URL} variant="secondary" size="sm">
+                  Neuestes Release <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </ButtonLink>
+                <ButtonLink href="/releases" variant="ghost" size="sm">
+                  Auf dieser Website <ArrowRightIcon className="h-3.5 w-3.5" />
+                </ButtonLink>
+              </div>
+            </Section>
+
+            <Section id="technik" title="Technik">
               <p>
-                Prisma 8 verwendet kein <Code>prisma migrate deploy</Code>. Der dokumentierte
-                Ablauf ist <Code>contract emit</Code> → <Code>db migrate</Code> →{' '}
-                <Code>db verify</Code>. Weitere Befehle stehen im README.
+                Das Desktop-Programm basiert auf Electron und React 19. Der Renderer wird mit
+                esbuild gebaut, die Paketierung erfolgt über electron-builder. Streams werden über
+                FFmpeg verarbeitet und als PCM über eine AudioWorklet-Pipeline wiedergegeben.
+                Sender stammen aus der Radio Browser API; Updates laufen über electron-updater.
               </p>
               <p>
-                Für einen späteren Produktivbetrieb müssen <Code>DATABASE_URL</Code>,{' '}
-                <Code>NEXTAUTH_SECRET</Code> und <Code>NEXTAUTH_URL</Code> als Server-Umgebungsvariablen
-                gesetzt werden. Optional kann <Code>NEXT_PUBLIC_SITE_URL</Code> eine öffentliche
-                Basis-URL für Canonical-URLs, Open Graph und die Sitemap liefern.
+                Plugins sind Vanilla JavaScript beziehungsweise ES Modules. Themes basieren auf CSS
+                und Theme-Paketen. Beide Erweiterungstypen sind ausdrücklich für WebRadio
+                vorgesehen.
+              </p>
+              <p className="border-t border-white/[0.07] pt-4">
+                Diese Website nutzt den Next.js App Router (Version 16) mit React 19, TypeScript,
+                Tailwind CSS 4 und PostgreSQL. Der Datenzugriff läuft serverseitig über Prisma 8
+                (Release Candidate). Die Website-Datenbank speichert Benutzer, Rollen, Sessions,
+                Website-Katalog und Audit-Logs – nicht die offiziellen Releases.
               </p>
             </Section>
 
-            <Section id="plugins" title="Plugins">
+            <Section id="erweiterungen" title="Plugins & Themes">
               <p>
-                Ein Plugin gehört zu einem Entwicklerprofil und besitzt Versionen, Screenshots und
-                Tags. Öffentlich sichtbar ist ein Plugin nur, wenn sowohl{' '}
-                <Code>isPublished = true</Code> als auch <Code>status = APPROVED</Code> gesetzt ist.
-                Diese Bedingung wird in jeder öffentlichen Abfrage serverseitig angewendet.
+                Das Plugin-System von WebRadio unterstützt Manifeste, Permissions, Capabilities,
+                Lifecycle-Hooks, Storage, Navigation und UI-Erweiterungen. Plugins können
+                Fähigkeiten anfordern, aber nicht selbst gewähren; unbekannte Capabilities werden
+                abgelehnt.
               </p>
               <p>
-                Der Katalog unterstützt Suche über Name und Beschreibung, Sortierung nach
-                Aktualität, Name oder Downloads sowie Pagination mit neun Einträgen pro Seite.
-                Detailseiten zeigen ausschließlich hinterlegte Versionen und validierte
-                HTTP(S)-Download-Links.
+                Themes passen die Oberfläche über CSS-Variablen und Theme-Pakete an. Im Projekt
+                vorhanden sind unter anderem <Code>default</Code>, <Code>dark</Code> und{' '}
+                <Code>neon</Code>; eigene Theme-Pakete sind möglich.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <ButtonLink href={PRODUCT_PLUGIN_SDK_URL} variant="secondary" size="sm">
+                  Plugin SDK <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </ButtonLink>
+                <ButtonLink href={PRODUCT_THEME_SDK_URL} variant="ghost" size="sm">
+                  Theme SDK <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </ButtonLink>
+                <ButtonLink href={PRODUCT_API_REFERENCE_URL} variant="ghost" size="sm">
+                  API Reference <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </ButtonLink>
+              </div>
+            </Section>
+
+            <Section id="website-katalog" title="Website-Katalog">
+              <p>
+                Der öffentliche Katalog unter <Link href="/plugins" className="text-violet-300 underline-offset-4 hover:underline">/plugins</Link>{' '}
+                und <Link href="/themes" className="text-violet-300 underline-offset-4 hover:underline">/themes</Link>{' '}
+                wird von dieser Website verwaltet. Ein Eintrag erscheint nur, wenn er sowohl als
+                veröffentlicht markiert als auch freigegeben ist. Entwürfe, ausstehende
+                Einreichungen und abgelehnte Einträge sind über keine öffentliche Seite oder API
+                erreichbar.
               </p>
               <p>
-                Ein Formular zur Einreichung neuer Plugins existiert noch nicht. Bis dahin werden
-                Einträge nicht über die öffentliche Website angelegt. Private Entwürfe und
-                abgelehnte Einträge sind über keine öffentliche API erreichbar.
+                Jeder Eintrag ist serverseitig dem Produkt WebRadio zugeordnet. Der Katalog ist
+                kein allgemeiner Marktplatz für andere Programme. Solange kein Eintrag freigegeben
+                ist, bleibt der jeweilige Katalog leer; es werden keine Beispieldaten erzeugt.
               </p>
             </Section>
 
-            <Section id="themes" title="Themes">
+            <Section id="api" title="Website-API">
               <p>
-                Themes folgen demselben Veröffentlichungsmodell wie Plugins: Entwicklerprofil,
-                Versionen, Screenshots, Tags und die Kombination aus Veröffentlichungsflag und
-                Freigabestatus. Vorschaubilder werden nur eingebunden, wenn die gespeicherte URL
-                eine absolute HTTP(S)-URL ohne eingebettete Zugangsdaten ist.
-              </p>
-              <p>
-                Das Anwenden eines Themes im Radio-Client ist noch nicht implementiert. Die
-                Website zeigt daher nur Katalogdaten und keine erfundenen Vorschauen.
-              </p>
-            </Section>
-
-            <Section id="entwickler" title="Entwickler">
-              <p>
-                Der Entwicklerbereich unter <Link href="/developer" className="text-violet-300 underline-offset-4 hover:underline">/developer</Link>{' '}
-                erfordert eine gültige Datenbank-Session mit der Rolle DEVELOPER oder ADMIN. Die
-                Rolle wird bei jedem Zugriff aus PostgreSQL gelesen, nicht aus dem Cookie oder
-                einem Client-Feld.
-              </p>
-              <p>
-                Der erste Administrator wird ausschließlich über ein CLI-Skript angelegt
-                (<Code>npm run admin:bootstrap</Code>). Es verlangt eine explizite Bestätigung,
-                verweigert die Ausführung, sobald bereits ein ADMIN existiert, und schreibt einen
-                Audit-Eintrag. Ein festes Standardpasswort oder eine Selbstbeförderung über die
-                Registrierung existiert nicht.
-              </p>
-            </Section>
-
-            <Section id="api" title="Öffentliche API">
-              <p>
-                Die öffentlichen Endpunkte liefern ausschließlich freigegebene Daten. Sie geben
-                keine E-Mail-Adressen, Session-Tokens, Audit-Logs oder privaten Entwürfe zurück.
-                Fehlerantworten enthalten keine internen Details.
+                Die öffentlichen Endpunkte liefern ausschließlich freigegebene beziehungsweise
+                öffentliche Daten. Sie geben keine E-Mail-Adressen, Session-Tokens, Audit-Logs oder
+                privaten Entwürfe zurück. Fehlerantworten enthalten keine internen Details.
               </p>
               <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
-                <table className="w-full min-w-[560px] border-collapse text-left text-xs">
+                <table className="w-full min-w-[600px] border-collapse text-left text-xs">
                   <thead className="bg-white/[0.03] text-zinc-400">
                     <tr>
-                      <th scope="col" className="px-4 py-3 font-semibold">Endpunkt</th>
-                      <th scope="col" className="px-4 py-3 font-semibold">Beschreibung</th>
-                      <th scope="col" className="px-4 py-3 font-semibold">Parameter</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        Endpunkt
+                      </th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        Beschreibung
+                      </th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        Parameter
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.06]">
@@ -342,10 +476,18 @@ npm run dev`}
               </div>
               <p>
                 Katalogantworten haben die Form{' '}
-                <Code>{'{ data: [...], pagination: { page, pageSize, hasNext } }'}</Code>. Bei
-                ungültigen Parametern antwortet die API mit <Code>400</Code>, bei serverseitigen
-                Fehlern mit einer generischen <Code>500</Code>-Meldung. Die Antworten dürfen für
-                kurze Zeit öffentlich zwischengespeichert werden.
+                <Code>{'{ data: [...], pagination: { page, pageSize, hasNext } }'}</Code>.{' '}
+                <Code>/api/releases</Code> liefert zusätzlich <Code>latest</Code>,{' '}
+                <Code>repository</Code> und <Code>source</Code> mit GitHub-Herkunft, Datenstand und
+                Stale-Kennzeichnung. Bei ungültigen Parametern antwortet die API mit{' '}
+                <Code>400</Code>; bei einem GitHub-Ausfall mit <Code>503</Code> statt erfundener
+                Releases.
+              </p>
+              <p>
+                Öffentliche Antworten sind <Code>no-store</Code>. Ein zurückgezogener Katalogeintrag
+                darf nicht aus einem Shared Cache weitergelebt werden. GitHub-Antworten werden
+                serverseitig höchstens fünf Minuten zwischengespeichert; ein veralteter Bestand
+                wird nur als Fallback und ausdrücklich gekennzeichnet verwendet.
               </p>
             </Section>
 
@@ -353,68 +495,97 @@ npm run dev`}
               <p className="flex gap-2">
                 <ShieldIcon className="mt-0.5 h-4 w-4 shrink-0 text-violet-300" />
                 <span>
-                  Passwörter werden mit bcrypt gehasht. Session-Tokens entstehen aus 32 zufälligen
-                  Bytes und werden in der Datenbank nur als SHA-256-Hash gespeichert. Cookies sind
-                  HttpOnly und SameSite=Lax; bei HTTPS erhalten sie das Secure-Flag und das
-                  <Code>__Secure-</Code>-Präfix.
+                  Passwörter werden mit bcrypt gehasht. Session-Tokens entstehen aus zufälligen
+                  Bytes und werden in der Datenbank nur als Hash gespeichert. Cookies sind
+                  HttpOnly und SameSite=Lax; unter HTTPS erhalten sie das Secure-Flag. Rollen
+                  werden bei jedem geschützten Zugriff aus PostgreSQL gelesen, nicht aus dem Cookie
+                  oder einer Client-Angabe.
                 </span>
               </p>
               <p>
-                Ablauf und Widerruf werden bei jedem geschützten Zugriff geprüft. Die Middleware
-                beziehungsweise der Next-16-Proxy dient nur als optimistischer Cookie-Check und
-                ersetzt keine serverseitige Autorisierung.
+                Login, Registrierung, Passwort-Reset und E-Mail-Verifizierung sind rate-limitiert.
+                Reset- und Verifizierungs-Tokens sind zeitlich begrenzt, nur einmal verwendbar und
+                werden niemals geloggt. Privilegierte Rollenänderungen setzen eine bestätigte
+                E-Mail-Adresse voraus und werden auditiert.
               </p>
               <p>
-                <strong className="text-amber-200">Noch offen:</strong> Rate-Limiting für Login und
-                Registrierung sowie ein Passwort-Reset-Verfahren sind nicht implementiert. Es gibt
-                keine Zwei-Faktor-Authentifizierung und keine E-Mail-Verifizierung.
+                <strong className="text-amber-200">Noch offen:</strong> Ohne SMTP-Konfiguration
+                versendet die Anwendung keine echten E-Mails; im Entwicklungsbetrieb landen sie im
+                lokalen Outbox-Verzeichnis. Der erste <Code>SYSTEM_ADMIN</Code> muss über den
+                dokumentierten CLI-Weg vom Betreiber angelegt werden. Datenschutzerklärung und
+                Impressum dieser Website sind noch nicht veröffentlicht.
               </p>
             </Section>
 
             <Section id="einschraenkungen" title="Bekannte Einschränkungen">
               <ul className="list-disc space-y-2 pl-5">
-                <li>Prisma 8 ist ein Release Candidate; Werkzeuge und APIs können sich ändern.</li>
-                <li>Rate-Limiting, Passwort-Reset und E-Mail-Verifizierung fehlen.</li>
-                <li>Die Integrationstests sind noch nicht in CI eingebunden.</li>
-                <li>Die lokale PostgreSQL-Instanz ist keine Produktionsdatenbank.</li>
-                <li>Es existiert noch kein initialer ADMIN; ältere JWTs können ungültig sein.</li>
-                <li>Ein Web-Player, Plugin-Installation und Theme-Anwendung fehlen.</li>
-                <li>Das Release-Modell enthält keine Plattformangaben.</li>
-                <li>Datenschutzerklärung und Impressum sind noch nicht veröffentlicht.</li>
-                <li>Eine Lizenzdatei ist im Repository derzeit nicht vorhanden.</li>
+                <li>macOS wird derzeit nicht unterstützt; ein Build ist in Vorbereitung.</li>
+                <li>
+                  Ein <Code>.deb</Code>-Paket ist nicht in jedem Release enthalten. Maßgeblich sind
+                  die tatsächlich angehängten Dateien.
+                </li>
+                <li>
+                  Die vollständige transitive Lizenzinventur und die Prüfung der mitgelieferten
+                  FFmpeg-Binärdateien sind im Upstream-Projekt noch offen.
+                </li>
+                <li>
+                  Prisma 8 ist ein Release Candidate; Werkzeuge und APIs können sich ändern.
+                </li>
+                <li>
+                  Der GitHub-Zugriff läuft ohne Token gegen das öffentliche API-Limit. Ein
+                  serverseitiger Token ist optional und wird nie an den Browser ausgeliefert.
+                </li>
+                <li>
+                  Die Website wurde noch nicht auf Vercel betrieben; CI und CDN-Verhalten sind
+                  extern noch nicht bestätigt.
+                </li>
+                <li>
+                  Der Website-Katalog ist unabhängig von den GitHub-Releases und enthält nur
+                  Einträge, die tatsächlich freigegeben wurden.
+                </li>
               </ul>
             </Section>
 
-            <Section id="beitragen" title="Mitarbeit">
+            <Section id="mitmachen" title="Mitmachen">
               <p>
-                Der Quellcode ist auf GitHub öffentlich. Fehlerberichte und Vorschläge gehören in
-                die Issues des Repositories. Größere Änderungen sollten vor der Umsetzung
-                abgestimmt werden, damit sie zur bestehenden Architektur und den Sicherheitsregeln
-                passen.
+                WebRadio ist ein Open-Source-Projekt und lebt von Menschen, die es ausprobieren,
+                testen, verbessern und erweitern. Beiträge zum Desktop-Programm folgen den Regeln
+                im offiziellen Repository; dazu gehören Contributing-Leitfaden, Code of Conduct und
+                die Security Policy.
               </p>
               <p>
-                Beiträge müssen die vorhandenen Tests erhalten. Sicherheitsprüfungen und
-                Berechtigungsregeln dürfen nicht abgeschwächt werden. Für Änderungen am
-                Datenmodell ist der dokumentierte Contract- und Migrationsablauf zu verwenden.
+                Für diese Website gelten dieselben Grundsätze: bestehende Tests und
+                Berechtigungsprüfungen dürfen nicht abgeschwächt werden. Änderungen am
+                Datenmodell benötigen den dokumentierten Contract- und Migrationsablauf.
               </p>
               <div className="flex flex-wrap gap-2">
-                <ButtonLink href={REPOSITORY_ISSUES_URL} variant="secondary" size="sm">
-                  Issues öffnen
+                <ButtonLink href={PRODUCT_CONTRIBUTING_URL} variant="secondary" size="sm">
+                  Contributing <ExternalLinkIcon className="h-3.5 w-3.5" />
                 </ButtonLink>
-                <ButtonLink href={REPOSITORY_URL} variant="ghost" size="sm">
-                  <GitHubIcon className="h-4 w-4" /> Repository
+                <ButtonLink href={PRODUCT_ISSUES_URL} variant="ghost" size="sm">
+                  Issues <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </ButtonLink>
+                <ButtonLink href={PRODUCT_DISCUSSIONS_URL} variant="ghost" size="sm">
+                  Discussions <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </ButtonLink>
+                <ButtonLink href={PRODUCT_SECURITY_URL} variant="ghost" size="sm">
+                  Security Policy <ExternalLinkIcon className="h-3.5 w-3.5" />
                 </ButtonLink>
               </div>
             </Section>
 
-            <Section id="weiterfuehrend" title="Weiterführende Dokumente">
+            <Section id="dokumente" title="Offizielle Dokumente">
               <ul className="space-y-2">
                 {[
-                  ['README', 'Installation, Befehle und Projektstruktur', `${REPOSITORY_URL}/blob/master/README.md`],
-                  ['Architektur', 'Technische Entscheidungen und Datenmodell', `${REPOSITORY_URL}/blob/master/docs/ARCHITECTURE.md`],
-                  ['Sicherheit', 'Authentifizierung, Sessions und Bedrohungsmodell', `${REPOSITORY_URL}/blob/master/docs/SECURITY.md`],
-                  ['Testing', 'Teststrategie und Integrationstests', `${REPOSITORY_URL}/blob/master/docs/TESTING.md`],
-                  ['Phase 3.5', 'Datenbankintegration und Sessionmodell', `${REPOSITORY_URL}/blob/master/docs/PHASE3_5_REPORT.md`],
+                  ['Offizielle Dokumentation', 'Einstieg, Architektur und Anleitungen', PRODUCT_DOCS_URL],
+                  ['Plugin SDK', 'Plugins, Manifeste und Capabilities', PRODUCT_PLUGIN_SDK_URL],
+                  ['Theme SDK', 'Themes und Theme-Pakete', PRODUCT_THEME_SDK_URL],
+                  ['API Reference', 'Öffentliche APIs des Programms', PRODUCT_API_REFERENCE_URL],
+                  ['Architektur', 'Core, Lifecycle und Subsysteme', PRODUCT_ARCHITECTURE_URL],
+                  ['Datenschutz des Programms', 'Externe Datenflüsse', PRODUCT_PRIVACY_URL],
+                  ['Lizenz', 'Apache License 2.0', PRODUCT_LICENSE_URL],
+                  ['Code of Conduct', 'Community-Regeln', PRODUCT_CODE_OF_CONDUCT_URL],
+                  ['Website-Quellcode', 'Dieses Next.js-Projekt', WEBSITE_REPOSITORY_URL],
                 ].map(([title, description, href]) => (
                   <li key={title}>
                     <a
@@ -435,10 +606,19 @@ npm run dev`}
                 ))}
               </ul>
               <p className="flex items-center gap-2 text-xs text-zinc-500">
-                <CodeIcon className="h-3.5 w-3.5" /> Externe Dokumente öffnen auf GitHub in einem
-                neuen Tab.
+                <CodeIcon className="h-3.5 w-3.5" /> Externe Dokumente öffnen auf GitHub
+                beziehungsweise Read the Docs in einem neuen Tab.
               </p>
             </Section>
+
+            <div className="flex gap-3 rounded-xl border border-amber-400/15 bg-amber-500/[0.05] p-4 text-xs leading-relaxed text-amber-200/90">
+              <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+              <p>
+                Diese Website ist kein Ersatz für die offizielle Dokumentation und keine
+                Downloadquelle aus zweiter Hand: Release-Daten und Dateien stammen direkt von
+                GitHub. Datenschutz und Impressum dieser Website sind noch nicht veröffentlicht.
+              </p>
+            </div>
           </div>
         </div>
       </Container>

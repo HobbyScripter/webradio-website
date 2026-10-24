@@ -32,10 +32,10 @@ export default function DeveloperLayout({
               Übersicht
             </Link>
             <Link
-              href="/docs#entwickler"
+              href="/docs#website-katalog"
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-600 hover:bg-violet-500 text-white transition-colors"
             >
-              Einreichung dokumentieren
+              Katalogregeln ansehen
             </Link>
           </div>
         </div>
