@@ -59,6 +59,12 @@ npm run db:verify
 `npm run prisma:db:init` baseline-t eine bereits existierende Datenbank und
 ist für eine leere Datenbank mit Migrationspaket **nicht** nötig.
 
+`prisma db migrate` setzt den Live-Marker, aber nicht den `db`-Ref in
+`migrations/app/refs/db.json`. Nach einer neu angewendeten Migration lokal
+entweder mit `npx prisma db migrate --advance-ref db` arbeiten oder den Ref
+explizit auf die neue Spitze setzen, damit der nächste `migration plan` nicht
+von einem älteren Stand aus plant.
+
 ### Ersten Administrator anlegen
 
 Es gibt bewusst keinen HTTP-Endpunkt dafür. Der CLI-Bootstrap verweigert die

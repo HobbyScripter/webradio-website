@@ -69,9 +69,27 @@ function assertStrongPassword(password: string, email: string): void {
   }
 }
 
-async function lockPrivilegedUsers(tx: {
-  orm: typeof db.orm;
-}): Promise<
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Serialises every SYSTEM_ADMIN provisioning attempt.
+ *
+ * Locking privileged rows is not enough when the table has none yet: an empty
+ * result locks nothing and two concurrent bootstraps could both create a
+ * SYSTEM_ADMIN. This transaction-scoped advisory lock closes that gap; it is
+ * released automatically on commit or rollback.
+ */
+const SYSTEM_ADMIN_BOOTSTRAP_LOCK_KEY = 864201501;
+
+async function lockBootstrap(tx: Transaction): Promise<void> {
+  await tx.execute(
+    tx.raw.sql`SELECT pg_advisory_xact_lock(${SYSTEM_ADMIN_BOOTSTRAP_LOCK_KEY})`
+      .affectedCount()
+      .build(),
+  );
+}
+
+async function lockPrivilegedUsers(tx: Transaction): Promise<
   Awaited<ReturnType<typeof db.orm.public.User.all>>
 > {
   return tx.orm.public.User.where((user) =>
@@ -105,6 +123,7 @@ export async function bootstrapNewSystemAdmin(input: {
   return db.transaction(async (tx) => {
     // Serialises concurrent bootstrap attempts and reads the current state in
     // the same transaction as the write.
+    await lockBootstrap(tx);
     const privileged = await lockPrivilegedUsers(tx);
     const existingSystemAdmin = privileged.find(
       (user) => user.role === 'SYSTEM_ADMIN',
@@ -159,6 +178,7 @@ export async function promoteExistingSystemAdmin(input: {
   const email = normalizeEmail(input.targetEmail);
 
   return db.transaction(async (tx) => {
+    await lockBootstrap(tx);
     const privileged = await lockPrivilegedUsers(tx);
     if (privileged.some((user) => user.role === 'SYSTEM_ADMIN')) {
       throw new SystemAdminBootstrapError(
@@ -237,6 +257,7 @@ export async function recoverSystemAdmin(input: {
   const email = normalizeEmail(input.targetEmail);
 
   return db.transaction(async (tx) => {
+    await lockBootstrap(tx);
     await lockPrivilegedUsers(tx);
 
     const target = await tx.orm.public.User.first({ id: input.targetUserId });

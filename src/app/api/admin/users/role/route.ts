@@ -4,8 +4,8 @@
  * Changes a user's role. Two independent server-side checks apply:
  *   1. `requireAdminSession()` validates the caller's live database session.
  *   2. `changeUserRole()` re-reads the caller's role from PostgreSQL and
- *      refuses anything but ADMIN, then writes the change and its audit log
- *      entry in one transaction.
+ *      refuses anything below ADMIN (SYSTEM_ADMIN also satisfies the check),
+ *      then writes the change and its audit log entry in one transaction.
  *
  * The requested role comes from a validated server-side payload; it is never
  * taken from a registration field or a client-supplied "isAdmin" flag.

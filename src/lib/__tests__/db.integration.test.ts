@@ -792,6 +792,19 @@ describe('5b. SYSTEM_ADMIN bootstrap, recovery and protection', () => {
     expect(await countSystemAdmins()).toBe(1);
   });
 
+  it('authenticates a SYSTEM_ADMIN and resolves the role from the database session', async () => {
+    const user = await authenticateUser(SYSTEM_ADMIN_EMAIL, SYSTEM_ADMIN_PASSWORD);
+    expect(user.role).toBe('SYSTEM_ADMIN');
+
+    const session = await createDatabaseSession(user.id, '127.0.0.1', 'jest');
+    const validated = await validateDatabaseSession(session.token);
+    expect(validated?.user.role).toBe('SYSTEM_ADMIN');
+    expect(hasRole(validated!.user.role, 'ADMIN')).toBe(true);
+
+    await revokeDatabaseSession(session.token);
+    expect(await validateDatabaseSession(session.token)).toBeNull();
+  });
+
   it('requires the recovery confirmation and only adds an account', async () => {
     const second = await registerUser({
       email: `recovery_${RUN}@webradio.test`,
@@ -885,6 +898,34 @@ describe('5b. SYSTEM_ADMIN bootstrap, recovery and protection', () => {
 
     expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
     expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    expect(await countSystemAdmins()).toBe(1);
+  });
+
+  it('serialises two concurrent bootstraps so only one SYSTEM_ADMIN is created', async () => {
+    // Test-fixture reset on the disposable database: remove the highest role
+    // directly so the next bootstrap starts from zero SYSTEM_ADMINs. This is
+    // not an application operation and never runs outside `_test`.
+    await db.orm.public.User.where({ id: systemAdminId }).update({ role: 'ADMIN' });
+    await db.orm.public.User.where({ id: secondSystemAdminId }).update({ role: 'ADMIN' });
+    expect(await countSystemAdmins()).toBe(0);
+
+    const results = await Promise.all([
+      runSystemAdminBootstrap({
+        SYSTEM_ADMIN_BOOTSTRAP_CONFIRM,
+        SYSTEM_ADMIN_EMAIL: `concurrent_a_${RUN}@webradio.test`,
+        SYSTEM_ADMIN_PASSWORD: SYSTEM_ADMIN_PASSWORD,
+      }),
+      runSystemAdminBootstrap({
+        SYSTEM_ADMIN_BOOTSTRAP_CONFIRM,
+        SYSTEM_ADMIN_EMAIL: `concurrent_b_${RUN}@webradio.test`,
+        SYSTEM_ADMIN_PASSWORD: SYSTEM_ADMIN_PASSWORD,
+      }),
+    ]);
+
+    const succeeded = results.filter((result) => result.code === 0);
+    const refused = results.filter((result) => result.code !== 0);
+    expect(succeeded).toHaveLength(1);
+    expect(refused).toHaveLength(1);
     expect(await countSystemAdmins()).toBe(1);
   });
 

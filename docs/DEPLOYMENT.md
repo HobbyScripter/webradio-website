@@ -56,8 +56,15 @@ Seiten werden als statische Shell mit dynamischen Datenlücken gerendert.
 | `EMAIL_SERVER_USER` | optional | meist Pflicht | meist Pflicht | SMTP |
 | `EMAIL_SERVER_PASSWORD` | optional | geheim | geheim | SMTP |
 
-`ADMIN_BOOTSTRAP_*` gehört **nicht** in Vercel. Der Bootstrap ist ein einmaliger,
-lokaler CLI-Vorgang mit Datenbankzugriff.
+`ADMIN_BOOTSTRAP_*` und `SYSTEM_ADMIN_*` gehören **nicht** in Vercel. Beide
+Bootstraps sind einmalige, lokale CLI-Vorgänge mit Datenbankzugriff auf die
+jeweilige Umgebung. Die höchste Rolle `SYSTEM_ADMIN` ist über keinen
+HTTP-Endpunkt erreichbar; sie wird nach dem ersten Deployment bewusst vom
+Betreiber mit `npm run system-admin:bootstrap` angelegt (siehe README). Ein
+Recovery (`npm run system-admin:recover`) fügt nur ein weiteres verifiziertes
+Konto hinzu und entfernt den bestehenden Zugang nicht. Für Production muss
+dieser Schritt ausdrücklich freigegeben und auditiert werden; das Deployment
+selbst führt ihn nicht aus.
 
 ### NEXTAUTH_URL
 
@@ -87,7 +94,11 @@ npm run db:verify
 
 Für Produktion muss dieser Ablauf als kontrollierter Deploy-Schritt laufen,
 bevor die neue Anwendung Instanzen erhält. Ein automatisches Migrieren beim
-ersten Request ist nicht implementiert.
+ersten Request ist nicht implementiert. Die Migration
+`20261024T1815_system_admin_role` ist rein erweiternd (Check-Constraint für
+den Rollenwert); sie wurde lokal auf einer leeren Datenbank sowie auf der
+Entwicklungs- und Testdatenbank angewendet, aber **nicht** auf einer
+produktiven Datenbank.
 
 ### Connection Pooling
 

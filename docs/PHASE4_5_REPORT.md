@@ -23,11 +23,14 @@ Phase 4.5 hat die in Phase 4 offenen Sicherheits- und Betriebsthemen bearbeitet:
 | CI | PostgreSQL-Service, Contract-Emit, Migration, `db:verify` und Integrationstests sind im Workflow verdrahtet; lokal mit einer frischen Datenbank simuliert, auf GitHub nicht ausgeführt |
 | Vercel | Laufzeit-, Pooling-, Env- und Cookie-Fragen dokumentiert; **kein Deployment** und keine produktive Ressource verändert |
 | Produktgrenze | `Product`-Enum mit ausschließlich `WEBRADIO`, DB-Check-Constraints, serverseitige Filter in Katalog und Proxy, Integrationstest gegen ein anderes Produkt |
+| SYSTEM_ADMIN | Höchste reguläre Stufe; ausschließlich per CLI, kein HTTP-Weg, Schutz des letzten Systemadministrators, Audit-Log; lokal gegen echtes PostgreSQL getestet |
 | Datenschutz/Impressum/Lizenz | Lücken und benötigte Angaben dokumentiert; keine Rechts- oder Lizenzangaben erfunden |
 
-Am Ende dieser Phase existiert weiterhin **kein initialer ADMIN** in der
-Entwicklungsdatenbank, es gibt **kein E2E-Testpaket**, und die Anwendung wurde
-**nicht auf Vercel bereitgestellt**.
+Am Ende dieser Phase existiert weiterhin **kein initialer ADMIN und kein
+SYSTEM_ADMIN** in der Entwicklungsdatenbank, es gibt **kein E2E-Testpaket**,
+und die Anwendung wurde **nicht auf Vercel bereitgestellt**. Der
+SYSTEM_ADMIN-Bootstrap wurde bewusst **nicht** mit echten Zugangsdaten
+automatisch ausgeführt; er ist vorbereitet und über die CLI dokumentiert.
 
 ---
 
@@ -263,18 +266,38 @@ Auf einer **neu erzeugten, leeren** PostgreSQL-Datenbank
 | `20261024T1651_phase45_auth_security` | 8 | angewendet |
 | `20261024T1700_phase45_product_scope_v2` | 9 | angewendet |
 
+Nach der SYSTEM_ADMIN-Erweiterung wurde dieselbe Prüfung auf einer weiteren
+**neu erzeugten, leeren** Datenbank `webradio_sysadmin_fresh_<timestamp>_test`
+wiederholt, diesmal mit der vollständigen Kette:
+
+| Migration | Ops | Ergebnis |
+|---|---|---|
+| `20261024T1407_init_schema` | 75 | angewendet |
+| `20261024T1651_phase45_auth_security` | 8 | angewendet |
+| `20261024T1700_phase45_product_scope_v2` | 9 | angewendet |
+| `20261024T1815_system_admin_role` | 2 | angewendet |
+
 `prisma db verify` meldete danach:
 
 ```
 ✔ Database marker and schema match contract
-storageHash: 4f1f3b35ecebf6085467867e10775c4f42dd696568daa675b041276d619eed90
+storageHash: 2eaf80b7361587d3661b4d4e4f329dc8ce6242623010563378fe4871023dacab
 profileHash: 3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2
-public tables: 20
 ```
 
-Die Wegwerf-Datenbank wurde anschließend gezielt gelöscht. Die
-Entwicklungsdatenbank `webradio_dev` und die Testdatenbank wurden dabei nicht
-verändert.
+Gegen genau diese frische Datenbank liefen anschließend **alle 54**
+Integrationstests erfolgreich (1 Suite, 0 Fehler). Danach wurde die
+Wegwerf-Datenbank gezielt gelöscht. Die Entwicklungsdatenbank `webradio_dev`
+und die Testdatenbank wurden dabei nicht verändert; auf beide wurde die neue
+Migration zuvor separat und nicht destruktiv angewendet.
+
+Wichtig für den Workflow: `prisma db migrate` setzt den Live-Marker, aber
+nicht den `db`-Ref in `migrations/app/refs/db.json`. Der Ref wurde deshalb
+nach dem Anwenden explizit auf die neue Spitze
+`2eaf80b7361587d3661b4d4e4f329dc8ce6242623010563378fe4871023dacab` gesetzt;
+sonst würde der nächste `migration plan` wieder von `4f1f3b3` ausgehen und die
+Constraint-Änderung doppelt planen. `npm run db:status` meldet danach
+„Up to date“.
 
 ### Nicht verifiziert
 
@@ -329,6 +352,92 @@ eine bewusste Contract-/Migrationsänderung erfordern.
 
 ---
 
+## 9.1 SYSTEM_ADMIN als höchste reguläre Stufe
+
+### Modell und Hierarchie
+
+- `Role` im Contract enthält jetzt `USER`, `DEVELOPER`, `ADMIN` und
+  `SYSTEM_ADMIN`. Die Datenbank-Check-Constraint wurde in der Migration
+  `20261024T1815_system_admin_role` rein erweiternd ersetzt (alte Constraint
+  gelöscht, neue mit vier Werten hinzugefügt; keine Datenänderung).
+- `ROLE_RANK` in `src/lib/auth-service.ts` ist die einzige Hierarchiequelle:
+  `USER=0`, `DEVELOPER=1`, `ADMIN=2`, `SYSTEM_ADMIN=3`. Damit erfüllt
+  `SYSTEM_ADMIN` jede bestehende ADMIN-Prüfung, ohne dass Admin-Routen
+  umgeschrieben werden mussten.
+- `roleSchema` liest alle vier Werte; `assignableRoleSchema` enthält bewusst
+  nur `USER`, `DEVELOPER`, `ADMIN`.
+
+### Kein HTTP-Weg zur höchsten Rolle
+
+- `registerSchema` entfernt jede vom Client gesendete Rollenangabe;
+  `registerUser` legt Konten immer als `USER` an.
+- `POST /api/admin/users/role` validiert gegen `assignableRoleSchema`; ein
+  Body mit `role: "SYSTEM_ADMIN"` endet mit HTTP 400, bevor eine Datenbank-
+  oder Rollenoperation stattfindet.
+- Ein normaler Administrator kann ein SYSTEM_ADMIN-Konto weder herabstufen
+  noch dessen Rolle ändern (`changeUserRole` prüft die Rolle des Akteurs aus
+  der Datenbank). Es existiert kein Lösch-Endpunkt.
+- UI und Login-Weiterleitung behandeln `SYSTEM_ADMIN` wie einen
+  Administrator; die Admin-Seite liest die Rolle weiterhin aus der
+  Datenbank-Session, nicht aus dem JWT-Claim.
+
+### Bootstrap und Recovery (CLI)
+
+`src/lib/system-admin.ts` und `scripts/system-admin-bootstrap.mts`:
+
+- **Create** (`npm run system-admin:bootstrap`): legt ein neues Konto mit
+  operatorgewähltem Passwort (mindestens 16 Zeichen, bcrypt Kosten 12) direkt
+  als SYSTEM_ADMIN an. Verweigert, sobald irgendein SYSTEM_ADMIN existiert.
+- **Promote** (gleicher Befehl mit `SYSTEM_ADMIN_TARGET_ID` und
+  `SYSTEM_ADMIN_TARGET_EMAIL`): befördert ein bestehendes Konto nur, wenn
+  User-ID und E-Mail-Adresse übereinstimmen und die Adresse bereits bestätigt
+  ist. Verweigert ebenfalls, sobald ein SYSTEM_ADMIN existiert.
+- **Recovery** (`npm run system-admin:recover`): verlangt
+  `SYSTEM_ADMIN_RECOVERY=1` **und** die Bestätigungsphrase
+  `RECOVER_SYSTEM_ADMIN_CONTROL`. Fügt ausschließlich ein weiteres,
+  verifiziertes Konto als SYSTEM_ADMIN hinzu; stuft niemanden herab und
+  löscht niemanden. Damit kann ein gesperrter Betreiber die Kontrolle
+  wiedererlangen, ohne den bestehenden Zugang zu entfernen.
+- Beide Wege verlangen zusätzlich eine explizite Bestätigungsphrase
+  (`BOOTSTRAP_SYSTEM_ADMIN`) und laufen nur mit Shell- und Datenbankzugriff.
+  Es gibt kein festes Passwort, kein Secret im Repository und keinen
+  HTTP-Endpunkt.
+- Jeder erfolgreiche Vorgang schreibt `SYSTEM_ADMIN_BOOTSTRAPPED` bzw.
+  `SYSTEM_ADMIN_RECOVERED` mit Methode und vorheriger Rolle ins Audit-Log —
+  ohne Passwort, Hash oder Token.
+
+### Nebenläufigkeit und Schutz des letzten Systemadministrators
+
+- Jede Rollenänderung und jeder Bootstrap/Recovery-Vorgang sperrt zuerst alle
+  ADMIN- und SYSTEM_ADMIN-Zeilen mit `FOR NO KEY UPDATE`. Damit sind
+  Rollenänderungen serialisiert.
+- Zusätzlich serialisiert ein transaktionsgebundener Advisory Lock
+  (`pg_advisory_xact_lock`) die Bootstrap-Vorgänge. Das schließt den Fall ab,
+  dass zwei gleichzeitige Bootstraps auf einer Datenbank **ohne** privilegierte
+  Zeilen starten und beide ein SYSTEM_ADMIN-Konto anlegen würden.
+- Die Zählung des letzten SYSTEM_ADMIN erfolgt innerhalb derselben
+  Transaktion wie die Änderung. Ein einzelner SYSTEM_ADMIN kann sich nicht
+  selbst herabstufen; zwei Systemadministratoren können sich auch bei
+  parallelen, reziproken Anfragen nicht gegenseitig entfernen.
+- Die Prüfung und das Audit-Log werden in derselben Transaktion geschrieben.
+
+### Grenzen
+
+- Es wurde **kein** SYSTEM_ADMIN in der Entwicklungsdatenbank angelegt; der
+  Betreiber muss den Befehl bewusst selbst ausführen.
+- Die Identitätsprüfung stützt sich auf Shell-/Datenbankzugriff und (beim
+  Befördern) auf eine bestätigte E-Mail-Adresse. Wer bereits Datenbank-Admin
+  ist, kann die Rolle ohnehin per SQL setzen; der CLI-Weg ist der auditierte,
+  dokumentierte und reproduzierbare Weg.
+- Es gibt weiterhin keinen Lösch-Endpunkt für Konten. Sollte einer entstehen,
+  muss er dieselbe SYSTEM_ADMIN-Schutzprüfung erhalten.
+- Ein Recovery für ein Konto ohne bestätigte E-Mail-Adresse ist nicht möglich;
+  der Betreiber muss dann über die normale Registrierung und den
+  E-Mail-Verifizierungslink ein verifiziertes Konto schaffen. Ohne SMTP ist
+  dieser Schritt in Produktion nicht möglich.
+
+---
+
 ## 10. Datenschutz, Impressum und Lizenz
 
 Siehe [`LEGAL_LAUNCH_CHECKLIST.md`](LEGAL_LAUNCH_CHECKLIST.md). Kurzfassung:
@@ -357,6 +466,8 @@ Siehe [`LEGAL_LAUNCH_CHECKLIST.md`](LEGAL_LAUNCH_CHECKLIST.md). Kurzfassung:
   `src/lib/auth-rate-limit.ts`
 - `src/lib/auth-tokens.ts`, `src/lib/account-service.ts`, `src/lib/email.ts`
 - `src/lib/product.ts`
+- `src/lib/system-admin.ts` (SYSTEM_ADMIN-Bootstrap/Recovery, Audit, Sperren)
+- `scripts/system-admin-bootstrap.mts`
 - `src/app/api/auth/password-reset/request/route.ts`,
   `src/app/api/auth/password-reset/confirm/route.ts`
 - `src/app/api/auth/verify-email/route.ts`,
@@ -368,7 +479,8 @@ Siehe [`LEGAL_LAUNCH_CHECKLIST.md`](LEGAL_LAUNCH_CHECKLIST.md). Kurzfassung:
 - `src/lib/__tests__/auth-rate-limit.test.ts`,
   `src/lib/__tests__/email.test.ts`
 - `migrations/app/20261024T1651_phase45_auth_security/`,
-  `migrations/app/20261024T1700_phase45_product_scope_v2/` und zugehörige
+  `migrations/app/20261024T1700_phase45_product_scope_v2/`,
+  `migrations/app/20261024T1815_system_admin_role/` und zugehörige
   Snapshots
 - `docs/DEPLOYMENT.md`, `docs/LEGAL_LAUNCH_CHECKLIST.md`,
   `docs/PHASE4_5_REPORT.md`
@@ -376,22 +488,32 @@ Siehe [`LEGAL_LAUNCH_CHECKLIST.md`](LEGAL_LAUNCH_CHECKLIST.md). Kurzfassung:
 ### Geändert
 
 - `prisma/contract.prisma` (+ generierte `contract.json`/`contract.d.ts`):
-  `AuthToken`, `RateLimitBucket`, `Product`, `product`-Spalten
-- `src/lib/auth.ts`, `src/lib/auth-service.ts`, `src/lib/db.ts`,
-  `src/lib/server-auth.ts`, `src/lib/validations.ts`,
+  `AuthToken`, `RateLimitBucket`, `Product`, `product`-Spalten,
+  `Role.SYSTEM_ADMIN`
+- `src/lib/auth.ts`, `src/lib/auth-service.ts` (Rollenrang, Schutz des letzten
+  Systemadministrators), `src/lib/db.ts`,
+  `src/lib/server-auth.ts`, `src/lib/validations.ts`
+  (`roleSchema`/`assignableRoleSchema`),
   `src/lib/api-response.ts`, `src/lib/public-api.ts`, `src/lib/catalog.ts`
 - `src/proxy.ts` (Produktfilter, 404-Verhalten)
 - `src/app/api/auth/register/route.ts`,
   `src/app/api/auth/[...nextauth]/route.ts`,
   `src/app/api/admin/users/role/route.ts`
-- Auth-Seiten, öffentliche Kataloge/Detailseiten/404-Seite
+- Auth-Seiten (u. a. Login-Weiterleitung für `SYSTEM_ADMIN`), Admin-Seite,
+  öffentliche Kataloge/Detailseiten/404-Seite
+- `package.json` (`system-admin:bootstrap`, `system-admin:recover`),
+  `.env.example`
 - `.github/workflows/ci.yml`, `.env.example`, `vercel.json`, `README.md`,
   `docs/SECURITY.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`,
   `docs/env.example`, `scripts/bootstrap-admin.mts`
-- `src/lib/__tests__/db.integration.test.ts`,
+- `src/lib/__tests__/db.integration.test.ts` (neuer Abschnitt 5b für
+  SYSTEM_ADMIN-Bootstrap, Recovery und Schutz),
   `src/app/api/__tests__/public-api-routes.test.ts`,
+  `src/app/api/__tests__/auth-security-routes.test.ts` (Rollenroute),
   `src/lib/__tests__/server-auth.test.ts`,
-  `src/lib/__tests__/validations.test.ts`
+  `src/lib/__tests__/validations.test.ts`,
+  `src/lib/__tests__/auth-service.test.ts` (`@jest-environment node` und
+  SYSTEM_ADMIN-Rang)
 
 Es wurden **keine** Dateien committet, gestasht oder gepusht. Bestehende
 Benutzeränderungen im Arbeitsbaum wurden nicht zurückgesetzt.
@@ -402,8 +524,14 @@ Benutzeränderungen im Arbeitsbaum wurden nicht zurückgesetzt.
 
 | Prüfung | Ergebnis |
 |---|---|
-| `npm test` | **12 Suites, 99 Tests — alle bestanden** |
-| `npm run test:integration` | **1 Suite, 44 Tests — alle bestanden** (echtes PostgreSQL) |
+| `npm test` | **12 Suites, 104 Tests — alle bestanden** |
+| `npm run test:integration` | **1 Suite, 54 Tests — alle bestanden** (echtes PostgreSQL) |
+| Frische Datenbank mit allen 4 Migrationen | angewendet, `db:verify` erfolgreich, anschließend 54/54 Integrationstests gegen genau diese DB, danach gelöscht |
+| SYSTEM_ADMIN-CLI | Create, Promote, zweiter Bootstrap verweigert, Recovery-Phrase erzwungen, Audit-Einträge geprüft |
+| SYSTEM_ADMIN-Schutz | normaler ADMIN darf nicht ändern, letzter SYSTEM_ADMIN geschützt, reziproke Paralleländerung hinterlässt genau einen SYSTEM_ADMIN |
+| Zwei gleichzeitige SYSTEM_ADMIN-Bootstraps | genau ein Erfolg, ein abgelehnter Lauf, anschließend genau ein SYSTEM_ADMIN |
+| SYSTEM_ADMIN-Session | Login liefert die Rolle aus der DB; Session-Validierung liefert `SYSTEM_ADMIN`; Widerruf macht sie ungültig |
+| Rollenroute | `SYSTEM_ADMIN` im Body → 400; Akteur aus Session, nicht Body; fremde Origin → 403 |
 | `npm run type-check` | bestanden (Exit 0) |
 | `npm run lint` | bestanden (Exit 0) |
 | `npm run build` | bestanden (Exit 0) |
@@ -435,8 +563,10 @@ Benutzeränderungen im Arbeitsbaum wurden nicht zurückgesetzt.
    Veröffentlichung überlagern. CDN-Regel oder Next.js-Update nötig.
 2. **Prisma 8 RC.** CLI 8.0.0-rc.27, Runtime 8.0.0-rc.20; APIs können sich
    bis GA ändern.
-3. **Kein initialer ADMIN.** Der CLI-Bootstrap wurde nicht gegen die
-   Entwicklungsdatenbank ausgeführt; es existiert kein ADMIN-Konto.
+3. **Kein initialer ADMIN und kein SYSTEM_ADMIN.** Die CLI-Bootstraps wurden
+   nicht mit echten Zugangsdaten gegen die Entwicklungsdatenbank ausgeführt;
+   es existiert kein ADMIN- und kein SYSTEM_ADMIN-Konto. Der Betreiber muss
+   den dokumentierten Befehl bewusst selbst ausführen.
 4. **SMTP nicht konfiguriert.** Reset- und Verifizierungsmails werden
    produktiv nicht zugestellt, bis ein Anbieter konfiguriert ist.
 5. **Rate-Limit-Cleanup nicht geplant.** Tabelle wächst ohne periodischen Job.
@@ -470,8 +600,11 @@ Benutzeränderungen im Arbeitsbaum wurden nicht zurückgesetzt.
    PostgreSQL-Service sowie `db:migrate`/`db:verify` dort bestätigen.
 3. Vercel-Preview mit eigener Datenbank, HTTPS-`NEXTAUTH_URL`, SMTP und
    gepoolter Verbindung testen; danach Production separat freigeben.
-4. Initialen ADMIN über den CLI-Bootstrap in der Zielumgebung anlegen und den
-   Vorgang auditieren.
+4. In der Zielumgebung zuerst den initialen ADMIN über `npm run admin:bootstrap`
+   und danach den SYSTEM_ADMIN über `npm run system-admin:bootstrap` anlegen
+   (jeweils mit selbst erzeugten Zugangsdaten) und die Audit-Einträge prüfen.
+   Recovery nur im tatsächlichen Sperrfall und mit der expliziten Phrase
+   verwenden.
 5. Periodischen Cleanup für `RateLimitBucket` und abgelaufene `AuthToken`
    einplanen.
 6. Datenschutz, Impressum und Projektlizenz anhand der Checkliste vervollständigen.

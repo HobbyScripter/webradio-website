@@ -5,7 +5,7 @@
  *   - Cryptographic password hashing (bcryptjs, cost factor 12)
  *   - User registration with duplicate email detection
  *   - Server-side database session creation, validation & revocation
- *   - Role-Based Access Control (RBAC: USER, DEVELOPER, ADMIN)
+ *   - Role-Based Access Control (RBAC: USER, DEVELOPER, ADMIN, SYSTEM_ADMIN)
  *   - Audit logging for security-relevant events
  *
  * Timestamps use Temporal.Instant because the Prisma 8 contract maps
