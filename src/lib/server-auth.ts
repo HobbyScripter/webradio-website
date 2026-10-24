@@ -26,6 +26,7 @@ export type ServerAuthUser = {
   name: string | null;
   role: Role;
   sessionId: string;
+  emailVerified: Temporal.Instant | null;
 };
 
 export type ServerAuthSession = {
@@ -61,6 +62,7 @@ export async function getServerAuthSession(): Promise<ServerAuthSession | null> 
       name: validated.user.name,
       role: validated.user.role,
       sessionId: validated.session.id,
+      emailVerified: validated.user.emailVerified,
     },
     session: validated.session,
   };

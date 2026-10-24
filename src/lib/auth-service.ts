@@ -17,14 +17,16 @@
  */
 import crypto from 'crypto';
 import bcryptjs from 'bcryptjs';
+import { or } from '@prisma/orm-postgres/orm-client';
 import { db } from './db';
-import type { Role, RegisterInput } from './validations';
+import type { AssignableRole, Role, RegisterInput } from './validations';
 
 const BCRYPT_ROUNDS = 12;
 const SESSION_MAX_AGE_DAYS = 30;
 
 export const SELF_DEMOTION_CODE = 'SELF_DEMOTION_FORBIDDEN';
 export const LAST_ADMIN_CODE = 'LAST_ADMIN';
+export const LAST_SYSTEM_ADMIN_CODE = 'LAST_SYSTEM_ADMIN';
 
 /**
  * A valid bcrypt hash used only to equalise timing when an email does not
@@ -251,6 +253,7 @@ export async function registerUser(
     email: user.email,
     name: user.name,
     role: user.role as Role,
+    emailVerified: user.emailVerified,
   };
 }
 
@@ -297,6 +300,7 @@ export async function authenticateUser(
     email: user.email,
     name: user.name,
     role: user.role as Role,
+    emailVerified: user.emailVerified,
   };
 }
 
@@ -368,6 +372,7 @@ async function resolveSession(session: SessionRow | null) {
       email: user.email,
       name: user.name,
       role: user.role as Role,
+      emailVerified: user.emailVerified,
     },
   };
 }
@@ -415,13 +420,21 @@ export async function revokeDatabaseSessionById(sessionId: string) {
 }
 
 /**
- * Role-Based Access Control helper functions
+ * Role-Based Access Control helper functions.
+ *
+ * SYSTEM_ADMIN is the highest regular level and satisfies every check that
+ * ADMIN satisfies. The rank is the single source of truth for hierarchy, so a
+ * new role cannot accidentally become an admin-level role by string equality.
  */
+const ROLE_RANK: Record<Role, number> = {
+  USER: 0,
+  DEVELOPER: 1,
+  ADMIN: 2,
+  SYSTEM_ADMIN: 3,
+};
+
 export function hasRole(userRole: Role, requiredRole: Role): boolean {
-  if (userRole === 'ADMIN') return true;
-  if (requiredRole === 'DEVELOPER') return userRole === 'DEVELOPER';
-  if (requiredRole === 'USER') return true;
-  return false;
+  return ROLE_RANK[userRole] >= ROLE_RANK[requiredRole];
 }
 
 export function assertRole(userRole: Role, requiredRole: Role): void {
@@ -442,32 +455,71 @@ export function assertRole(userRole: Role, requiredRole: Role): void {
 export async function changeUserRole(input: {
   actorId: string;
   targetUserId: string;
-  newRole: Role;
+  newRole: AssignableRole;
   ipAddress?: string;
   userAgent?: string;
 }): Promise<{ id: string; email: string; role: Role; previousRole: Role }> {
   return db.transaction(async (tx) => {
-    // Resolve the actor inside the same transaction as the write, so a
-    // concurrent demotion cannot be bypassed between check and update.
-    const actor = await tx.orm.public.User.first({ id: input.actorId });
+    // Every role change first locks all privileged accounts. This serialises
+    // concurrent changes (including two administrators demoting each other)
+    // and makes the last-SYSTEM_ADMIN count decision race-free. The actor is
+    // always part of this set because no other role may change roles.
+    const privileged = await tx.orm.public.User.where((user) =>
+      or(user.role.eq('ADMIN'), user.role.eq('SYSTEM_ADMIN')),
+    )
+      .forNoKeyUpdate()
+      .all();
+
+    const actor = privileged.find((user) => user.id === input.actorId);
     if (!actor) {
-      throw new UnauthorizedError();
-    }
-    if (!hasRole(actor.role as Role, 'ADMIN')) {
+      const exists = await tx.orm.public.User.first({ id: input.actorId });
+      if (!exists) {
+        throw new UnauthorizedError();
+      }
       throw new ForbiddenError('Administrator privileges are required.');
     }
 
-    if (input.actorId === input.targetUserId && input.newRole !== 'ADMIN') {
+    if (actor.emailVerified === null) {
+      throw new ForbiddenError(
+        'Administrator actions require a verified e-mail address.',
+      );
+    }
+
+    const target =
+      privileged.find((user) => user.id === input.targetUserId) ??
+      (await tx.orm.public.User.first({ id: input.targetUserId }));
+    if (!target) {
+      throw new NotFoundError('User not found.');
+    }
+
+    if (input.actorId === input.targetUserId && input.newRole !== actor.role) {
       throw new AuthError(
-        'Administrators cannot demote their own account. Ask another administrator.',
+        actor.role === 'SYSTEM_ADMIN'
+          ? 'Systemadministratoren können sich nicht selbst herabstufen. Ein anderer Systemadministrator muss die Änderung vornehmen.'
+          : 'Administratoren können sich nicht selbst herabstufen. Ein anderer Administrator muss die Änderung vornehmen.',
         409,
         SELF_DEMOTION_CODE,
       );
     }
 
-    const target = await tx.orm.public.User.first({ id: input.targetUserId });
-    if (!target) {
-      throw new NotFoundError('User not found.');
+    // A normal ADMIN must never be able to touch a SYSTEM_ADMIN account.
+    // There is no delete endpoint; this also blocks every role-based removal
+    // of the highest privilege level.
+    if (target.role === 'SYSTEM_ADMIN' && actor.role !== 'SYSTEM_ADMIN') {
+      throw new ForbiddenError(
+        'Nur ein Systemadministrator darf ein Systemadministrator-Konto ändern.',
+      );
+    }
+
+    // Privileged roles are only granted to accounts that proved control of
+    // their address. Without this, a mistyped address could receive admin
+    // access, and a throw-away registration would be enough for DEVELOPER.
+    if (input.newRole !== 'USER' && target.emailVerified === null) {
+      throw new AuthError(
+        'The target account must verify its e-mail address before receiving a privileged role.',
+        409,
+        'EMAIL_NOT_VERIFIED',
+      );
     }
 
     const previousRole = target.role as Role;
@@ -480,8 +532,21 @@ export async function changeUserRole(input: {
       };
     }
 
+    if (previousRole === 'SYSTEM_ADMIN') {
+      const systemAdmins = privileged.filter(
+        (user) => user.role === 'SYSTEM_ADMIN',
+      );
+      if (systemAdmins.length <= 1) {
+        throw new AuthError(
+          'Der letzte Systemadministrator kann nicht herabgestuft werden.',
+          409,
+          LAST_SYSTEM_ADMIN_CODE,
+        );
+      }
+    }
+
     if (previousRole === 'ADMIN' && input.newRole !== 'ADMIN') {
-      const admins = await tx.orm.public.User.where({ role: 'ADMIN' }).all();
+      const admins = privileged.filter((user) => user.role === 'ADMIN');
       if (admins.length <= 1) {
         throw new AuthError(
           'The last administrator cannot be demoted.',
@@ -498,6 +563,7 @@ export async function changeUserRole(input: {
       action: 'ADMIN_ROLE_CHANGED',
       details: JSON.stringify({
         targetUserId: target.id,
+        actorRole: actor.role,
         previousRole,
         newRole: input.newRole,
       }),
@@ -519,5 +585,13 @@ export async function changeUserRole(input: {
  */
 export async function countAdmins(): Promise<number> {
   const admins = await db.orm.public.User.where({ role: 'ADMIN' }).all();
+  return admins.length;
+}
+
+/**
+ * Number of SYSTEM_ADMIN accounts. Used by the bootstrap guard and tests.
+ */
+export async function countSystemAdmins(): Promise<number> {
+  const admins = await db.orm.public.User.where({ role: 'SYSTEM_ADMIN' }).all();
   return admins.length;
 }

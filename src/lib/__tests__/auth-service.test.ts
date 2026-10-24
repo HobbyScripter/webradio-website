@@ -1,4 +1,6 @@
 /**
+ * @jest-environment node
+ *
  * Authentication & Authorization Service — UNIT tests
  *
  * These tests mock the database on purpose: they pin down hashing, token
@@ -236,12 +238,19 @@ describe('Auth Service — Role hierarchy and forbidden actions', () => {
     expect(hasRole('ADMIN', 'USER')).toBe(true);
     expect(hasRole('ADMIN', 'DEVELOPER')).toBe(true);
     expect(hasRole('ADMIN', 'ADMIN')).toBe(true);
+    expect(hasRole('ADMIN', 'SYSTEM_ADMIN')).toBe(false);
+    expect(hasRole('SYSTEM_ADMIN', 'USER')).toBe(true);
+    expect(hasRole('SYSTEM_ADMIN', 'DEVELOPER')).toBe(true);
+    expect(hasRole('SYSTEM_ADMIN', 'ADMIN')).toBe(true);
+    expect(hasRole('SYSTEM_ADMIN', 'SYSTEM_ADMIN')).toBe(true);
   });
 
   it('prevents USER and DEVELOPER from executing ADMIN actions', () => {
     expect(() => assertRole('USER', 'ADMIN')).toThrow(ForbiddenError);
     expect(() => assertRole('DEVELOPER', 'ADMIN')).toThrow(ForbiddenError);
     expect(() => assertRole('ADMIN', 'ADMIN')).not.toThrow();
+    expect(() => assertRole('ADMIN', 'SYSTEM_ADMIN')).toThrow(ForbiddenError);
+    expect(() => assertRole('SYSTEM_ADMIN', 'ADMIN')).not.toThrow();
   });
 });
 

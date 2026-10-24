@@ -7,6 +7,9 @@ enum Role {
   USER
   DEVELOPER
   ADMIN
+  // Highest regular level. Only the audited CLI bootstrap/recovery path may
+  // assign it; no HTTP endpoint or registration field can request it.
+  SYSTEM_ADMIN
 }
 
 // User model - Core authentication entity
@@ -21,6 +24,7 @@ model User {
   updatedAt        DateTime           @onCreate(now()) @onUpdate(now())
 
   sessions         Session[]
+  authTokens       AuthToken[]
   developerProfile DeveloperProfile?
   auditLogs        AuditLog[]
   reviews          PublicationReview[]
@@ -46,6 +50,42 @@ model Session {
   @@index([expiresAt])
 }
 
+// One-time, hashed tokens for e-mail verification and password resets.
+// Only the SHA-256 hash is stored; the raw token is returned to the caller once
+// and never persisted. `usedAt` makes every token single-use.
+enum AuthTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model AuthToken {
+  id        String        @id @onCreate(uuid(7))
+  userId    String
+  tokenHash String        @unique
+  type      AuthTokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @onCreate(now())
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([expiresAt])
+}
+
+// Server-side rate limiting. Every instance shares this table, so the limit
+// also holds on Vercel's serverless functions. `key` is a SHA-256 digest of
+// scope + normalized identifier + fixed window; no e-mail address or IP is
+// stored in clear text. Expired rows can be removed by a periodic job.
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+  expiresAt   DateTime
+
+  @@index([expiresAt])
+}
+
 // Developer profile for plugin/theme authors
 model DeveloperProfile {
   id          String   @id @onCreate(uuid(7))
@@ -64,12 +104,20 @@ model DeveloperProfile {
   @@index([userId])
 }
 
+// Every catalogue entry is bound to the WebRadio desktop program. The enum
+// deliberately has one value: offering arbitrary software would require a
+// reviewed contract migration, not just a different request body.
+enum Product {
+  WEBRADIO
+}
+
 // Plugin model
 model Plugin {
   id          String       @id @onCreate(uuid(7))
   slug        String       @unique
   name        String
   description String
+  product     Product      @default(WEBRADIO)
   developerId String
   status      PluginStatus @default(PENDING_REVIEW)
   isPublished Boolean      @default(false)
@@ -86,6 +134,7 @@ model Plugin {
   @@index([developerId])
   @@index([status])
   @@index([isPublished])
+  @@index([product])
 }
 
 enum PluginStatus {
@@ -148,6 +197,7 @@ model Theme {
   slug        String      @unique
   name        String
   description String
+  product     Product     @default(WEBRADIO)
   developerId String
   status      ThemeStatus @default(PENDING_REVIEW)
   isPublished Boolean     @default(false)
@@ -164,6 +214,7 @@ model Theme {
   @@index([developerId])
   @@index([status])
   @@index([isPublished])
+  @@index([product])
 }
 
 enum ThemeStatus {
@@ -254,6 +305,7 @@ model Release {
   version     String      @unique
   title       String
   description String
+  product     Product     @default(WEBRADIO)
   releaseDate DateTime    @onCreate(now())
   isLatest    Boolean     @default(false)
   downloadUrl String?
@@ -264,6 +316,7 @@ model Release {
 
   @@index([version])
   @@index([releaseDate])
+  @@index([product])
 }
 
 // Changelog entry

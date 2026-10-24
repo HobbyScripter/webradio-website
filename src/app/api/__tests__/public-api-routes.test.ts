@@ -61,7 +61,8 @@ describe('GET /api/plugins', () => {
       page: 2,
       pageSize: 9,
     });
-    expect(response.headers.get('Cache-Control')).toContain('s-maxage=60');
+    // Withdrawn content must never be served from a shared cache.
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
 
     const body = await response.json();

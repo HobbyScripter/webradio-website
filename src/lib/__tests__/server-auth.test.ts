@@ -47,6 +47,7 @@ const dbUser = {
   email: 'user@webradio.local',
   name: 'User One',
   role: 'USER' as const,
+  emailVerified: Temporal.Now.instant(),
 };
 
 function jwtSession(role: 'USER' | 'DEVELOPER' | 'ADMIN' = 'USER') {

@@ -10,6 +10,8 @@ import {
   registerSchema,
   slugSchema,
   pluginCreateSchema,
+  roleSchema,
+  assignableRoleSchema,
 } from '../validations';
 
 describe('emailSchema', () => {
@@ -99,12 +101,25 @@ describe('registerSchema', () => {
   });
 
   it('strips a client-supplied role so registration cannot self-assign privileges', () => {
-    const result = registerSchema.safeParse({ ...validInput, role: 'ADMIN' });
+    for (const role of ['ADMIN', 'SYSTEM_ADMIN']) {
+      const result = registerSchema.safeParse({ ...validInput, role });
 
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).not.toHaveProperty('role');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).not.toHaveProperty('role');
+      }
     }
+  });
+});
+
+describe('role schemas', () => {
+  it('reads SYSTEM_ADMIN from the database', () => {
+    expect(roleSchema.safeParse('SYSTEM_ADMIN').success).toBe(true);
+  });
+
+  it('never exposes SYSTEM_ADMIN as an assignable role', () => {
+    expect(assignableRoleSchema.safeParse('SYSTEM_ADMIN').success).toBe(false);
+    expect(assignableRoleSchema.safeParse('ADMIN').success).toBe(true);
   });
 });
 
@@ -127,13 +142,26 @@ describe('slugSchema', () => {
 });
 
 describe('pluginCreateSchema', () => {
-  it('accepts valid plugin data', () => {
+  it('accepts valid plugin data and defaults the product to WEBRADIO', () => {
     const result = pluginCreateSchema.safeParse({
       slug: 'my-plugin',
       name: 'My Plugin',
       description: 'A plugin that does something useful and interesting.',
     });
     expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.product).toBe('WEBRADIO');
+    }
+  });
+
+  it('rejects a product other than WebRadio', () => {
+    const result = pluginCreateSchema.safeParse({
+      slug: 'my-plugin',
+      name: 'My Plugin',
+      description: 'A plugin that does something useful and interesting.',
+      product: 'SOME_OTHER_APP',
+    });
+    expect(result.success).toBe(false);
   });
 
   it('rejects a description shorter than 10 characters', () => {

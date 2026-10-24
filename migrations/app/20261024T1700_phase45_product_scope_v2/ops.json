@@ -1,0 +1,497 @@
+[
+  {
+    "id": "column.public.Plugin.product",
+    "label": "Add column \"product\" to \"Plugin\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "product",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"product\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Plugin",
+          "product"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"product\" on \"Plugin\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"product\"",
+        "sql": "ALTER TABLE \"public\".\"Plugin\" ADD COLUMN \"product\" text DEFAULT 'WEBRADIO' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"product\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Plugin",
+          "product"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"product\" on \"Plugin\""
+        }
+      },
+      {
+        "description": "verify column \"product\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Plugin",
+          "product",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"product\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Plugin",
+          "product",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Release.product",
+    "label": "Add column \"product\" to \"Release\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "product",
+        "table": "Release"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"product\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Release",
+          "product"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"product\" on \"Release\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"product\"",
+        "sql": "ALTER TABLE \"public\".\"Release\" ADD COLUMN \"product\" text DEFAULT 'WEBRADIO' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"product\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Release",
+          "product"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"product\" on \"Release\""
+        }
+      },
+      {
+        "description": "verify column \"product\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Release",
+          "product",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"product\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Release",
+          "product",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Theme.product",
+    "label": "Add column \"product\" to \"Theme\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "product",
+        "table": "Theme"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"product\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Theme",
+          "product"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"product\" on \"Theme\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"product\"",
+        "sql": "ALTER TABLE \"public\".\"Theme\" ADD COLUMN \"product\" text DEFAULT 'WEBRADIO' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"product\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Theme",
+          "product"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"product\" on \"Theme\""
+        }
+      },
+      {
+        "description": "verify column \"product\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Theme",
+          "product",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"product\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Theme",
+          "product",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Plugin.Plugin_product_check_04056a18",
+    "label": "Add check constraint \"Plugin_product_check_04056a18\" on \"Plugin\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Plugin_product_check_04056a18",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Plugin_product_check_04056a18\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Plugin_product_check_04056a18",
+          "public",
+          "\"public\".\"Plugin\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Plugin_product_check_04056a18\" on \"Plugin\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Plugin_product_check_04056a18\"",
+        "sql": "ALTER TABLE \"public\".\"Plugin\" ADD CONSTRAINT \"Plugin_product_check_04056a18\" CHECK (\"product\" IN ('WEBRADIO'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Plugin_product_check_04056a18\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Plugin_product_check_04056a18",
+          "public",
+          "\"public\".\"Plugin\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Release.Release_product_check_04056a18",
+    "label": "Add check constraint \"Release_product_check_04056a18\" on \"Release\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Release_product_check_04056a18",
+        "table": "Release"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Release_product_check_04056a18\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Release_product_check_04056a18",
+          "public",
+          "\"public\".\"Release\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Release_product_check_04056a18\" on \"Release\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Release_product_check_04056a18\"",
+        "sql": "ALTER TABLE \"public\".\"Release\" ADD CONSTRAINT \"Release_product_check_04056a18\" CHECK (\"product\" IN ('WEBRADIO'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Release_product_check_04056a18\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Release_product_check_04056a18",
+          "public",
+          "\"public\".\"Release\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Theme.Theme_product_check_04056a18",
+    "label": "Add check constraint \"Theme_product_check_04056a18\" on \"Theme\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Theme_product_check_04056a18",
+        "table": "Theme"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Theme_product_check_04056a18\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Theme_product_check_04056a18",
+          "public",
+          "\"public\".\"Theme\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Theme_product_check_04056a18\" on \"Theme\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Theme_product_check_04056a18\"",
+        "sql": "ALTER TABLE \"public\".\"Theme\" ADD CONSTRAINT \"Theme_product_check_04056a18\" CHECK (\"product\" IN ('WEBRADIO'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Theme_product_check_04056a18\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Theme_product_check_04056a18",
+          "public",
+          "\"public\".\"Theme\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Plugin.Plugin_product_idx_934f369b",
+    "label": "Create index \"Plugin_product_idx_934f369b\" on \"Plugin\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Plugin_product_idx_934f369b",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Plugin_product_idx_934f369b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Plugin_product_idx_934f369b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Plugin_product_idx_934f369b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Plugin_product_idx_934f369b\"",
+        "sql": "CREATE INDEX \"Plugin_product_idx_934f369b\" ON \"public\".\"Plugin\" (\"product\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Plugin_product_idx_934f369b\" exists on \"Plugin\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Plugin_product_idx_934f369b\"",
+          "i",
+          "I",
+          "\"public\".\"Plugin\"",
+          "btree",
+          "[\"product\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Release.Release_product_idx_934f369b",
+    "label": "Create index \"Release_product_idx_934f369b\" on \"Release\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Release_product_idx_934f369b",
+        "table": "Release"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Release_product_idx_934f369b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Release_product_idx_934f369b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Release_product_idx_934f369b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Release_product_idx_934f369b\"",
+        "sql": "CREATE INDEX \"Release_product_idx_934f369b\" ON \"public\".\"Release\" (\"product\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Release_product_idx_934f369b\" exists on \"Release\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Release_product_idx_934f369b\"",
+          "i",
+          "I",
+          "\"public\".\"Release\"",
+          "btree",
+          "[\"product\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Theme.Theme_product_idx_934f369b",
+    "label": "Create index \"Theme_product_idx_934f369b\" on \"Theme\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Theme_product_idx_934f369b",
+        "table": "Theme"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Theme_product_idx_934f369b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Theme_product_idx_934f369b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Theme_product_idx_934f369b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Theme_product_idx_934f369b\"",
+        "sql": "CREATE INDEX \"Theme_product_idx_934f369b\" ON \"public\".\"Theme\" (\"product\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Theme_product_idx_934f369b\" exists on \"Theme\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Theme_product_idx_934f369b\"",
+          "i",
+          "I",
+          "\"public\".\"Theme\"",
+          "btree",
+          "[\"product\"]"
+        ]
+      }
+    ]
+  }
+]

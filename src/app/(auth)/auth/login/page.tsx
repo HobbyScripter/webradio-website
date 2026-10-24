@@ -40,16 +40,22 @@ export default function LoginPage() {
         password,
       });
 
+      if (res?.status === 429) {
+        setError('Zu viele Anmeldeversuche. Bitte warte einen Moment.');
+        return;
+      }
+
       if (res?.error) {
         setError('Ungültige Anmeldedaten. Bitte überprüfe E-Mail und Passwort.');
         return;
       }
 
       const session = await getSession();
+      const role = session?.user?.role;
       const fallback =
-        session?.user?.role === 'ADMIN'
+        role === 'ADMIN' || role === 'SYSTEM_ADMIN'
           ? '/admin'
-          : session?.user?.role === 'DEVELOPER'
+          : role === 'DEVELOPER'
             ? '/developer'
             : '/';
 
@@ -113,9 +119,12 @@ export default function LoginPage() {
             >
               Passwort
             </label>
-            <span className="text-[11px] text-zinc-600" title="Noch nicht implementiert">
-              Passwort-Reset folgt
-            </span>
+            <Link
+              href="/auth/forgot-password"
+              className="text-[11px] font-medium text-violet-300 hover:text-violet-200"
+            >
+              Passwort vergessen?
+            </Link>
           </div>
           <input
             id="login-password"
@@ -139,11 +148,22 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="mt-6 border-t border-white/[0.07] pt-6 text-center text-xs text-zinc-400">
-        Noch kein Konto?{' '}
-        <Link href="/auth/register" className="font-semibold text-violet-300 hover:text-violet-200">
-          Jetzt registrieren
-        </Link>
+      <div className="mt-6 space-y-2 border-t border-white/[0.07] pt-6 text-center text-xs text-zinc-400">
+        <p>
+          Noch kein Konto?{' '}
+          <Link href="/auth/register" className="font-semibold text-violet-300 hover:text-violet-200">
+            Jetzt registrieren
+          </Link>
+        </p>
+        <p>
+          E-Mail noch nicht bestätigt?{' '}
+          <Link
+            href="/auth/verify-email/resend"
+            className="font-semibold text-zinc-300 hover:text-white"
+          >
+            Neuen Link anfordern
+          </Link>
+        </p>
       </div>
     </div>
   );

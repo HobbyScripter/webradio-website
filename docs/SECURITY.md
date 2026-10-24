@@ -10,7 +10,11 @@ This document outlines the security measures implemented in the WebRadio Website
 - **Hashing**: bcryptjs with cost factor 12 (configurable)
 - **Storage**: Only password hashes stored, never plaintext
 - **Requirements**: Minimum 8 characters, recommended complexity
-- **Reset**: Secure token-based password reset with expiration
+- **Reset**: Token-based reset (`/auth/forgot-password`); 32 random bytes,
+  only a SHA-256 hash is stored, 60-minute lifetime, single use, rate-limited.
+  A successful reset revokes every database session for the account.
+- **Verification**: One-time e-mail verification tokens (24 hours, hashed,
+  single use). Assigning DEVELOPER or ADMIN requires a verified address.
 
 ### Session Management
 - **Authority**: Server-side session row in PostgreSQL (`Session` model). The
@@ -20,8 +24,8 @@ This document outlines the security measures implemented in the WebRadio Website
 - **Expiration**: 30 days for JWT and database session; expired rows are deleted on
   validation
 - **Token**: 32 bytes from the CSPRNG, stored as SHA-256 hash only
-- **Invalidation**: Logout deletes the database session immediately; roles are
-  re-read from the database on every protected access
+- **Invalidation**: Logout and password reset delete the database session(s)
+  immediately; roles are re-read from the database on every protected access
 - **Route Protection**: `src/proxy.ts` (Next.js 16) only redirects requests without a
   session cookie. Authorization always happens server-side in `src/lib/server-auth.ts`.
 
@@ -31,10 +35,27 @@ This document outlines the security measures implemented in the WebRadio Website
 - Optional enforcement for admin accounts
 
 ### Role-Based Access Control (RBAC)
-- **Roles**: Guest, User, Developer, Admin
-- **Enforcement**: Server-side checks on all protected routes
+- **Roles**: Guest, User, Developer, Admin, System Admin (`SYSTEM_ADMIN`)
+- **Enforcement**: Server-side checks on all protected routes. The role is
+  re-read from PostgreSQL for every protected access, never taken from the JWT
+  claim or a client-supplied value.
+- **Hierarchy**: `USER < DEVELOPER < ADMIN < SYSTEM_ADMIN`, defined once in
+  `src/lib/auth-service.ts` (`ROLE_RANK`). `SYSTEM_ADMIN` satisfies every
+  ADMIN check without changing the existing admin routes.
 - **Principle of Least Privilege**: Users only get necessary permissions
 - **Elevation**: Admin actions require explicit confirmation
+- **No HTTP path to SYSTEM_ADMIN**: Registration strips any supplied role, and
+  the role endpoint only accepts `USER`, `DEVELOPER` and `ADMIN`. The highest
+  level is created by the operator-only CLI with an explicit confirmation
+  phrase and database credentials.
+- **Protection of the highest level**: A normal Admin cannot change, demote or
+  remove a System Admin account. Role changes lock all privileged rows in a
+  transaction and the last remaining System Admin cannot be demoted.
+- **Verification gate**: A privileged role can only be assigned to an account
+  whose e-mail address has been verified; the bootstrap CLIs mark their
+  operator-controlled accounts verified
+- **Audit**: `SYSTEM_ADMIN_BOOTSTRAPPED`, `SYSTEM_ADMIN_RECOVERED` and
+  `ADMIN_ROLE_CHANGED` entries contain no password, hash or token
 
 ## 2. Data Protection
 
@@ -62,9 +83,13 @@ This document outlines the security measures implemented in the WebRadio Website
 ## 3. Protection Against Common Attacks
 
 ### SQL Injection
-- **Prevention**: Prisma ORM with parameterized queries
+- **Prevention**: Prisma 8 ORM and parameterized query plans; values are never
+  concatenated into SQL
 - **Validation**: Zod schemas before database operations
-- **No Raw SQL**: Avoid raw SQL queries unless absolutely necessary
+- **Raw SQL exception**: The atomic rate-limit increment uses
+  `db.raw.sql` with bound template parameters (the ORM has no atomic
+  increment). Identifiers are SHA-256 digests, never user input interpolated
+  into the statement
 
 ### Cross-Site Scripting (XSS)
 - **Prevention**: React automatic escaping
@@ -80,13 +105,24 @@ This document outlines the security measures implemented in the WebRadio Website
 - **State-Changing Methods**: POST/PUT/DELETE require a valid, non-revoked session
 
 ### Rate Limiting
-- **Status**: not implemented in the application yet (see `docs/PHASE3_5_REPORT.md`,
-  open risks). Must be added at the reverse proxy/WAF or with a persistent store
-  before public production use.
-- **API Endpoints**: Rate limit per user/IP (planned)
-- **Authentication Attempts**: Limit failed login attempts (planned)
-- **Brute Force Protection**: Exponential backoff (planned)
-- **DDoS Mitigation**: Vercel's built-in protection
+- **Status**: implemented in the application, backed by PostgreSQL
+  (`RateLimitBucket`), so limits are shared across serverless instances.
+- **Login**: 20 attempts / 15 min per trusted IP and 8 / 15 min per normalized
+  e-mail address. The credentials callback returns a real HTTP 429.
+- **Registration**: 5 / hour per trusted IP and 3 / hour per e-mail address.
+- **Password reset / verification**: 10 requests / 15 min per IP, 3 / 15 min
+  per account; token attempts 20 / 15 min per IP.
+- **Privacy**: keys are SHA-256 digests; no plaintext e-mail or IP is stored in
+  the bucket row.
+- **Trusted IP**: `x-forwarded-for` is used only with `VERCEL=1` or
+  `TRUST_PROXY=1`; otherwise IP limits are skipped rather than keyed on a
+  spoofable header.
+- **Failure mode**: a limiter/database failure fails open and is logged without
+  identifiers; authentication still requires a working database.
+- **Cleanup**: `cleanupExpiredRateLimits()` exists, but no scheduled job is
+  configured yet.
+- **DDoS Mitigation**: Vercel's built-in protection (not a substitute for the
+  application limits above).
 
 ### File Upload Security
 - **Validation**: File type, size, and content validation
@@ -162,11 +198,10 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 - Future: API keys for third-party integrations
 
 ### API Rate Limiting
-**Not implemented yet.** The following remains a required production task:
-- Per-user rate limits
-- Per-IP rate limits for anonymous users
-- Burst protection
-- Configurable limits per endpoint
+Authentication and token endpoints are limited as described in §3. Public
+read-only catalogue endpoints are not rate-limited yet; they are cache-disabled
+(`no-store`) for correctness, so an edge/WAF limit is still advisable for a
+public launch. Per-user API keys do not exist yet.
 
 ### Public Catalogue and API (Phase 4)
 - Every public query filters on `isPublished = true` **and**
@@ -177,14 +212,19 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 - `q`, `sort` and `page` are validated with Zod; invalid values return `400`
 - Download and preview URLs must be absolute HTTP(S) URLs without embedded
   credentials. Unsafe values are returned as `null` or not rendered
-- Public API responses use `s-maxage=60, stale-while-revalidate=300`. A newly
-  unpublished entry can therefore remain in a shared cache for a short time;
-  publication changes should be treated as eventually consistent within that
-  window
-- With Cache Components, `notFound()` after an awaited lookup would keep a
-  `200` status. The Next.js proxy checks plugin/theme/news detail slugs before
-  rendering and rewrites unknown or unpublished entries to `/404` with status
-  `404`. A database outage is not turned into a 404
+- Public API responses use `Cache-Control: no-store`. A withdrawn entry is
+  therefore not served from a shared cache after the next request
+- Successful detail pages and catalogue pages are also non-cacheable
+  (`private, no-cache, no-store`), because every request reads PostgreSQL
+- With Cache Components, the Next.js proxy checks plugin/theme/news detail
+  slugs before rendering and rewrites unknown or unpublished entries to
+  `/404` with status `404`. A database outage is not turned into a 404
+- Known framework limitation: Next.js 16.4 attaches its pre-rendered
+  `s-maxage=31536000` header to the rendered `404` answer even though the proxy
+  sets `no-store`. Withdrawn *content* is never cached (the 200 page and the
+  API are `no-store`), but a negative 404 can outlive a later publication. This
+  must be handled at the CDN or re-checked after a Next.js update; see
+  `docs/PHASE4_5_REPORT.md` §6 and §13
 - The proxy check adds one indexed slug lookup per detail request. It is not an
   authorization boundary and does not replace the page-level filter
 

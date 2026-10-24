@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'b0d9463c5ca3151b86d063e4791193bef2a6dfc12294b1b6735f16b6b06adc94'>;
+  StorageHashBase<'2eaf80b7361587d3661b4d4e4f329dc8ce6242623010563378fe4871023dacab'>;
 export type ExecutionHash =
-  ExecutionHashBase<'c58c8d1501bfc066597269dab0ab4c1bc47d5ad2d0150af6f5fecd9575fe89af'>;
+  ExecutionHashBase<'e73ce013d2074ea332be257777069e436fde1c5fed6d37b3d80dba38bd1e2899'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -241,7 +241,14 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly AuthToken: {
+        readonly type: {
+          readonly output: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+          readonly input: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+        };
+      };
       readonly Plugin: {
+        readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
         readonly status: {
           readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
           readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
@@ -257,6 +264,9 @@ type FieldTypeOverrides = {
           readonly input: 'PLUGIN' | 'THEME';
         };
       };
+      readonly Release: {
+        readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
+      };
       readonly RoadmapItem: {
         readonly status: {
           readonly output: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -264,6 +274,7 @@ type FieldTypeOverrides = {
         };
       };
       readonly Theme: {
+        readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
         readonly status: {
           readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
           readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
@@ -271,8 +282,8 @@ type FieldTypeOverrides = {
       };
       readonly User: {
         readonly role: {
-          readonly output: 'USER' | 'DEVELOPER' | 'ADMIN';
-          readonly input: 'USER' | 'DEVELOPER' | 'ADMIN';
+          readonly output: 'USER' | 'DEVELOPER' | 'ADMIN' | 'SYSTEM_ADMIN';
+          readonly input: 'USER' | 'DEVELOPER' | 'ADMIN' | 'SYSTEM_ADMIN';
         };
       };
     };
@@ -294,7 +305,14 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly AuthToken: {
+      readonly type: {
+        readonly output: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+        readonly input: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+      };
+    };
     readonly Plugin: {
+      readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
       readonly status: {
         readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
         readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
@@ -310,6 +328,9 @@ type ColumnTypeOverrides = {
         readonly input: 'PLUGIN' | 'THEME';
       };
     };
+    readonly Release: {
+      readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
+    };
     readonly RoadmapItem: {
       readonly status: {
         readonly output: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -317,6 +338,7 @@ type ColumnTypeOverrides = {
       };
     };
     readonly Theme: {
+      readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
       readonly status: {
         readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
         readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
@@ -324,8 +346,8 @@ type ColumnTypeOverrides = {
     };
     readonly User: {
       readonly role: {
-        readonly output: 'USER' | 'DEVELOPER' | 'ADMIN';
-        readonly input: 'USER' | 'DEVELOPER' | 'ADMIN';
+        readonly output: 'USER' | 'DEVELOPER' | 'ADMIN' | 'SYSTEM_ADMIN';
+        readonly input: 'USER' | 'DEVELOPER' | 'ADMIN' | 'SYSTEM_ADMIN';
       };
     };
   };
@@ -355,6 +377,17 @@ export namespace Models {
     userAgent: FieldOutputTypes['public']['AuditLog']['userAgent'];
     userId: FieldOutputTypes['public']['AuditLog']['userId'];
     user: public_User | null;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_AuthToken = {
+    createdAt: FieldOutputTypes['public']['AuthToken']['createdAt'];
+    expiresAt: FieldOutputTypes['public']['AuthToken']['expiresAt'];
+    id: FieldOutputTypes['public']['AuthToken']['id'];
+    tokenHash: FieldOutputTypes['public']['AuthToken']['tokenHash'];
+    type: FieldOutputTypes['public']['AuthToken']['type'];
+    usedAt: FieldOutputTypes['public']['AuthToken']['usedAt'];
+    userId: FieldOutputTypes['public']['AuthToken']['userId'];
+    user: public_User;
     readonly [RelationKeys]?: 'user';
   };
   export type public_Changelog = {
@@ -410,6 +443,7 @@ export namespace Models {
     id: FieldOutputTypes['public']['Plugin']['id'];
     isPublished: FieldOutputTypes['public']['Plugin']['isPublished'];
     name: FieldOutputTypes['public']['Plugin']['name'];
+    product: FieldOutputTypes['public']['Plugin']['product'];
     slug: FieldOutputTypes['public']['Plugin']['slug'];
     status: FieldOutputTypes['public']['Plugin']['status'];
     updatedAt: FieldOutputTypes['public']['Plugin']['updatedAt'];
@@ -462,6 +496,13 @@ export namespace Models {
     reviewer: public_User;
     readonly [RelationKeys]?: 'reviewer';
   };
+  export type public_RateLimitBucket = {
+    count: FieldOutputTypes['public']['RateLimitBucket']['count'];
+    expiresAt: FieldOutputTypes['public']['RateLimitBucket']['expiresAt'];
+    key: FieldOutputTypes['public']['RateLimitBucket']['key'];
+    windowStart: FieldOutputTypes['public']['RateLimitBucket']['windowStart'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_Release = {
     checksum: FieldOutputTypes['public']['Release']['checksum'];
     description: FieldOutputTypes['public']['Release']['description'];
@@ -469,6 +510,7 @@ export namespace Models {
     fileSize: FieldOutputTypes['public']['Release']['fileSize'];
     id: FieldOutputTypes['public']['Release']['id'];
     isLatest: FieldOutputTypes['public']['Release']['isLatest'];
+    product: FieldOutputTypes['public']['Release']['product'];
     releaseDate: FieldOutputTypes['public']['Release']['releaseDate'];
     title: FieldOutputTypes['public']['Release']['title'];
     version: FieldOutputTypes['public']['Release']['version'];
@@ -506,6 +548,7 @@ export namespace Models {
     id: FieldOutputTypes['public']['Theme']['id'];
     isPublished: FieldOutputTypes['public']['Theme']['isPublished'];
     name: FieldOutputTypes['public']['Theme']['name'];
+    product: FieldOutputTypes['public']['Theme']['product'];
     slug: FieldOutputTypes['public']['Theme']['slug'];
     status: FieldOutputTypes['public']['Theme']['status'];
     updatedAt: FieldOutputTypes['public']['Theme']['updatedAt'];
@@ -557,16 +600,19 @@ export namespace Models {
     role: FieldOutputTypes['public']['User']['role'];
     updatedAt: FieldOutputTypes['public']['User']['updatedAt'];
     auditLogs: public_AuditLog[];
+    authTokens: public_AuthToken[];
     developerProfile: public_DeveloperProfile | null;
     reviews: public_PublicationReview[];
     sessions: public_Session[];
-    readonly [RelationKeys]?: 'auditLogs' | 'developerProfile' | 'reviews' | 'sessions';
+    readonly [RelationKeys]?:
+      'auditLogs' | 'authTokens' | 'developerProfile' | 'reviews' | 'sessions';
   };
 }
 
 export declare const models: {
   public: {
     AuditLog: Models.public_AuditLog;
+    AuthToken: Models.public_AuthToken;
     Changelog: Models.public_Changelog;
     DeveloperProfile: Models.public_DeveloperProfile;
     GitHubToken: Models.public_GitHubToken;
@@ -576,6 +622,7 @@ export declare const models: {
     PluginTag: Models.public_PluginTag;
     PluginVersion: Models.public_PluginVersion;
     PublicationReview: Models.public_PublicationReview;
+    RateLimitBucket: Models.public_RateLimitBucket;
     Release: Models.public_Release;
     RoadmapItem: Models.public_RoadmapItem;
     Session: Models.public_Session;
@@ -677,6 +724,88 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'AuditLog';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly AuthToken: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly expiresAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tokenHash: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly usedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly userId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['tokenHash'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'AuthToken_expiresAt_idx_6b6b8c10';
+                  readonly prefix: 'AuthToken_expiresAt_idx';
+                  readonly columns: readonly ['expiresAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AuthToken_userId_idx_a489d58a';
+                  readonly prefix: 'AuthToken_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AuthToken_userId_type_idx_59b0b5ce';
+                  readonly prefix: 'AuthToken_userId_type_idx';
+                  readonly columns: readonly ['userId', 'type'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AuthToken';
                     readonly columns: readonly ['userId'];
                   };
                   readonly target: {
@@ -995,6 +1124,16 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly product: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'WEBRADIO'>;
+                  };
+                  readonly many: false;
+                };
                 readonly slug: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -1031,6 +1170,12 @@ type ContractBase = Omit<
                   readonly name: 'Plugin_isPublished_idx_d7ee5985';
                   readonly prefix: 'Plugin_isPublished_idx';
                   readonly columns: readonly ['isPublished'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Plugin_product_idx_934f369b';
+                  readonly prefix: 'Plugin_product_idx';
+                  readonly columns: readonly ['product'];
                   readonly unique: false;
                 },
                 {
@@ -1357,6 +1502,49 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly RateLimitBucket: {
+              columns: {
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly expiresAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly key: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly windowStart: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['key'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'RateLimitBucket_expiresAt_idx_6b6b8c10';
+                  readonly prefix: 'RateLimitBucket_expiresAt_idx';
+                  readonly columns: readonly ['expiresAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly Release: {
               columns: {
                 readonly checksum: {
@@ -1399,6 +1587,16 @@ type ContractBase = Omit<
                   };
                   readonly many: false;
                 };
+                readonly product: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'WEBRADIO'>;
+                  };
+                  readonly many: false;
+                };
                 readonly releaseDate: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
@@ -1421,6 +1619,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['version'] }];
               indexes: readonly [
+                {
+                  readonly name: 'Release_product_idx_934f369b';
+                  readonly prefix: 'Release_product_idx';
+                  readonly columns: readonly ['product'];
+                  readonly unique: false;
+                },
                 {
                   readonly name: 'Release_releaseDate_idx_6baed0ae';
                   readonly prefix: 'Release_releaseDate_idx';
@@ -1641,6 +1845,16 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly product: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'WEBRADIO'>;
+                  };
+                  readonly many: false;
+                };
                 readonly slug: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -1677,6 +1891,12 @@ type ContractBase = Omit<
                   readonly name: 'Theme_isPublished_idx_d7ee5985';
                   readonly prefix: 'Theme_isPublished_idx';
                   readonly columns: readonly ['isPublished'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Theme_product_idx_934f369b';
+                  readonly prefix: 'Theme_product_idx';
+                  readonly columns: readonly ['product'];
                   readonly unique: false;
                 },
                 {
@@ -1990,10 +2210,15 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly AuthTokenType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['EMAIL_VERIFICATION', 'PASSWORD_RESET'];
+            };
             readonly PluginStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED'];
             };
+            readonly Product: { readonly kind: 'valueSet'; readonly values: readonly ['WEBRADIO'] };
             readonly ReviewResult: {
               readonly kind: 'valueSet';
               readonly values: readonly ['APPROVED', 'REJECTED', 'CHANGES_REQUESTED'];
@@ -2008,7 +2233,7 @@ type ContractBase = Omit<
             };
             readonly Role: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['USER', 'DEVELOPER', 'ADMIN'];
+              readonly values: readonly ['USER', 'DEVELOPER', 'ADMIN', 'SYSTEM_ADMIN'];
             };
             readonly ThemeStatus: {
               readonly kind: 'valueSet';
@@ -2026,6 +2251,7 @@ type ContractBase = Omit<
   readonly targetFamily: 'sql';
   readonly roots: {
     readonly AuditLog: { readonly namespace: 'public' & NamespaceId; readonly model: 'AuditLog' };
+    readonly AuthToken: { readonly namespace: 'public' & NamespaceId; readonly model: 'AuthToken' };
     readonly Changelog: { readonly namespace: 'public' & NamespaceId; readonly model: 'Changelog' };
     readonly DeveloperProfile: {
       readonly namespace: 'public' & NamespaceId;
@@ -2049,6 +2275,10 @@ type ContractBase = Omit<
     readonly PublicationReview: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'PublicationReview';
+    };
+    readonly RateLimitBucket: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'RateLimitBucket';
     };
     readonly Release: { readonly namespace: 'public' & NamespaceId; readonly model: 'Release' };
     readonly RoadmapItem: {
@@ -2127,6 +2357,71 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly ipAddress: { readonly column: 'ipAddress' };
                 readonly userAgent: { readonly column: 'userAgent' };
+                readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
+          readonly AuthToken: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly expiresAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tokenHash: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly usedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'AuthToken';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly expiresAt: { readonly column: 'expiresAt' };
+                readonly id: { readonly column: 'id' };
+                readonly tokenHash: { readonly column: 'tokenHash' };
+                readonly type: { readonly column: 'type' };
+                readonly usedAt: { readonly column: 'usedAt' };
                 readonly userId: { readonly column: 'userId' };
               };
             };
@@ -2426,6 +2721,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly product: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly slug: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -2500,6 +2799,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly isPublished: { readonly column: 'isPublished' };
                 readonly name: { readonly column: 'name' };
+                readonly product: { readonly column: 'product' };
                 readonly slug: { readonly column: 'slug' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
@@ -2743,6 +3043,43 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly RateLimitBucket: {
+            readonly fields: {
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly expiresAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly key: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly windowStart: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'RateLimitBucket';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly count: { readonly column: 'count' };
+                readonly expiresAt: { readonly column: 'expiresAt' };
+                readonly key: { readonly column: 'key' };
+                readonly windowStart: { readonly column: 'windowStart' };
+              };
+            };
+          };
           readonly Release: {
             readonly fields: {
               readonly checksum: {
@@ -2768,6 +3105,10 @@ type ContractBase = Omit<
               readonly isLatest: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly product: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly releaseDate: {
                 readonly nullable: false;
@@ -2808,6 +3149,7 @@ type ContractBase = Omit<
                 readonly fileSize: { readonly column: 'fileSize' };
                 readonly id: { readonly column: 'id' };
                 readonly isLatest: { readonly column: 'isLatest' };
+                readonly product: { readonly column: 'product' };
                 readonly releaseDate: { readonly column: 'releaseDate' };
                 readonly title: { readonly column: 'title' };
                 readonly version: { readonly column: 'version' };
@@ -2977,6 +3319,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly product: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly slug: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3051,6 +3397,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly isPublished: { readonly column: 'isPublished' };
                 readonly name: { readonly column: 'name' };
+                readonly product: { readonly column: 'product' };
                 readonly slug: { readonly column: 'slug' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
@@ -3291,6 +3638,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['userId'];
                 };
               };
+              readonly authTokens: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AuthToken';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
               readonly developerProfile: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -3343,6 +3701,13 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
+          readonly AuthTokenType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'EMAIL_VERIFICATION'; readonly value: 'EMAIL_VERIFICATION' },
+              { readonly name: 'PASSWORD_RESET'; readonly value: 'PASSWORD_RESET' },
+            ];
+          };
           readonly PluginStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -3351,6 +3716,10 @@ type ContractBase = Omit<
               { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
               { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
             ];
+          };
+          readonly Product: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [{ readonly name: 'WEBRADIO'; readonly value: 'WEBRADIO' }];
           };
           readonly ReviewResult: {
             readonly codecId: 'pg/text@1';
@@ -3382,6 +3751,7 @@ type ContractBase = Omit<
               { readonly name: 'USER'; readonly value: 'USER' },
               { readonly name: 'DEVELOPER'; readonly value: 'DEVELOPER' },
               { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
+              { readonly name: 'SYSTEM_ADMIN'; readonly value: 'SYSTEM_ADMIN' },
             ];
           };
           readonly ThemeStatus: {
@@ -3395,12 +3765,17 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly AuthTokenType: readonly [
+            { readonly name: 'EMAIL_VERIFICATION'; readonly value: 'EMAIL_VERIFICATION' },
+            { readonly name: 'PASSWORD_RESET'; readonly value: 'PASSWORD_RESET' },
+          ];
           readonly PluginStatus: readonly [
             { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
             { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
             { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
             { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
           ];
+          readonly Product: readonly [{ readonly name: 'WEBRADIO'; readonly value: 'WEBRADIO' }];
           readonly ReviewResult: readonly [
             { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
             { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
@@ -3420,6 +3795,7 @@ type ContractBase = Omit<
             { readonly name: 'USER'; readonly value: 'USER' },
             { readonly name: 'DEVELOPER'; readonly value: 'DEVELOPER' },
             { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
+            { readonly name: 'SYSTEM_ADMIN'; readonly value: 'SYSTEM_ADMIN' },
           ];
           readonly ThemeStatus: readonly [
             { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
@@ -3475,6 +3851,22 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'AuditLog';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AuthToken';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AuthToken';
             readonly field: 'id';
             readonly namespace: 'public';
           };

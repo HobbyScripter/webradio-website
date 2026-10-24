@@ -115,17 +115,31 @@ PostgreSQL.
 ### 4. Role-Based Access Control
 **Decision**: Implement RBAC with server-side permission checks.
 
-**Roles**:
+**Roles** (hierarchical, enforced by `ROLE_RANK` in `src/lib/auth-service.ts`):
 - **Guest**: Public access only
 - **User**: Registered user with profile
 - **Developer**: Can submit plugins/themes
-- **Admin**: Full administrative access
+- **Admin**: Administrative access; may assign USER/DEVELOPER/ADMIN
+- **System Admin** (`SYSTEM_ADMIN`): Highest regular level; includes every
+  Admin permission
 
 **Implementation**:
-- Role stored in `User` model (or separate role model for flexibility)
-- Middleware checks before protected routes
-- Server-side validation in API routes
-- Audit logging for sensitive actions
+- Role stored in the `User` model and constrained by a database check
+  constraint; PostgreSQL is the authority
+- `src/proxy.ts` only performs an optimistic cookie check; every protected
+  page, route handler and data access re-validates the database session and
+  reads the current role
+- Server-side validation in API routes; `POST /api/admin/users/role` accepts
+  only the assignable roles (`USER`, `DEVELOPER`, `ADMIN`)
+- `SYSTEM_ADMIN` is never assignable over HTTP or in registration. It is
+  created exclusively by the operator-run CLI (`src/lib/system-admin.ts`),
+  which requires shell plus database access, an explicit confirmation phrase
+  and, for promotion, a verified e-mail address
+- Role changes and their audit entry are written in one transaction that locks
+  every privileged account first, so concurrent changes cannot remove the last
+  system administrator. Normal admins cannot modify a `SYSTEM_ADMIN` account
+- Audit logging for sensitive actions (`ADMIN_ROLE_CHANGED`,
+  `SYSTEM_ADMIN_BOOTSTRAPPED`, `SYSTEM_ADMIN_RECOVERED`)
 
 ### 5. Database Schema Design
 **Key Models**:
@@ -156,12 +170,15 @@ PostgreSQL.
 ### Data Protection
 - Encrypted storage of sensitive tokens (GitHub tokens)
 - Input validation via Zod on all endpoints
-- Prepared statements via Prisma (SQL injection protection)
-- Rate limiting on API endpoints
+- Parameterized Prisma queries (SQL injection protection); the one raw
+  statement (atomic rate-limit increment) uses bound parameters
+- Durable rate limiting in PostgreSQL for login, registration, password reset
+  and e-mail verification
 
 ### Content Security
 - XSS protection via React and Next.js defaults
-- CSP headers configured
+- CSP is **not** configured yet; it needs a nonce-aware policy for Next.js
+  before it can be enabled safely
 - File upload validation (type, size, content)
 - Malware scanning for uploaded packages (TBD)
 
@@ -177,8 +194,8 @@ PostgreSQL.
   to interactive pieces: the mobile navigation, the login and registration
   forms, and the error boundary.
 - `src/lib/catalog.ts` is the public data access layer. It applies the
-  publication filter (`isPublished` + `APPROVED`), returns whitelisted DTOs and
-  implements search, sorting and pagination.
+  publication filter (`isPublished` + `APPROVED` + product `WEBRADIO`), returns
+  whitelisted DTOs and implements search, sorting and pagination.
 - Catalogue pages stream their results behind `<Suspense>` with skeletons, so
   the header, page heading and footer are part of the static shell. Database
   failures render an error panel; empty results render an explicit empty state.
@@ -186,8 +203,8 @@ PostgreSQL.
   pre-render existence check so an unknown slug returns a real `404`.
 - Public API routes (`/api/plugins`, `/api/themes`, `/api/releases`,
   `/api/news`) are read-only, validate query parameters with Zod, return
-  `Cache-Control: s-maxage=60, stale-while-revalidate=300`, and return generic
-  `500` errors without driver details.
+  `Cache-Control: no-store` (withdrawn content must disappear immediately),
+  and return generic `500` errors without driver details.
 - Releases use the existing `Release`/`Changelog` models. The channel is derived
   from SemVer prerelease syntax; the contract has no platform field, so no
   platform support is displayed.
@@ -195,6 +212,30 @@ PostgreSQL.
   the sitemap are only emitted when `NEXT_PUBLIC_SITE_URL` is configured.
   `/admin`, `/developer` and `/auth` are marked `noindex` and disallowed in
   `robots.txt`.
+
+## Security & Recovery (Phase 4.5)
+
+- **Rate limiting:** `RateLimitBucket` stores per-scope SHA-256 keys and a
+  fixed-window counter. The increment is one atomic PostgreSQL statement, so
+  concurrent instances cannot exceed the limit. Limits fail open only when the
+  database itself is unavailable.
+- **Password reset:** `AuthToken` stores only a SHA-256 digest; 60-minute
+  lifetime, single use, transactional consumption, bcrypt re-hash and deletion
+  of all existing sessions.
+- **E-mail verification:** 24-hour hashed token, single use. Privileged role
+  assignment refuses unverified addresses. The bootstrap CLI verifies its own
+  operator-controlled account.
+- **E-mail delivery:** SMTP via Nodemailer when configured; development/test
+  writes to `.local-db/outbox/` and never logs a token.
+- **Product boundary:** `Product` enum (`WEBRADIO` only) on `Plugin`, `Theme`
+  and `Release`, plus a Zod literal in submission schemas and a `WEBRADIO`
+  filter in every public query.
+- **Cache:** public APIs and successful catalogue/detail responses are
+  `no-store`; dynamic catalogue holes are request-rendered, so revoking an
+  entry changes the next HTML/API response. Exception: Next.js 16.4 still
+  attaches `s-maxage=31536000` to a rendered 404; no withdrawn content is
+  cached, but the negative 404 risk is documented in
+  `docs/PHASE4_5_REPORT.md`.
 
 ## Performance Optimizations
 

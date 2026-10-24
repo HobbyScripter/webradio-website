@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/icons';
 import type { PluginDetail, ThemeDetail } from '@/lib/catalog';
 import { formatDate, formatFileSize } from '@/lib/format';
+import { WEBRADIO_PRODUCT_LABEL } from '@/lib/product';
 import { safeHttpUrl } from '@/lib/site';
 
 type DetailItem = PluginDetail | ThemeDetail;
@@ -64,6 +65,7 @@ export default function CatalogDetail({
                 <Badge tone="neutral">
                   <Icon className="h-3 w-3" /> {kindLabel}
                 </Badge>
+                <Badge tone="neutral">Für {WEBRADIO_PRODUCT_LABEL}</Badge>
                 {latest ? <Badge tone="accent">Version {latest.version}</Badge> : null}
                 <Badge tone="success">Veröffentlicht</Badge>
               </div>

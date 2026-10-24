@@ -72,7 +72,51 @@ npm run admin:bootstrap
 ```
 
 Danach die drei Variablen wieder entfernen. Weitere Rollenänderungen laufen
-über `POST /api/admin/users/role` (nur ADMIN, wird auditiert).
+über `POST /api/admin/users/role` (nur ADMIN oder SYSTEM_ADMIN, wird auditiert).
+
+### Systemadministrator (`SYSTEM_ADMIN`)
+
+`SYSTEM_ADMIN` ist die höchste reguläre Stufe und schließt alle
+ADMIN-Berechtigungen ein. Die Rolle kann **niemals** über HTTP vergeben werden:
+Registrierung, `POST /api/admin/users/role` und jede UI akzeptieren nur
+`USER`, `DEVELOPER` und `ADMIN`. Nur der folgende CLI-Weg mit
+Datenbankzugriff und ausdrücklicher Bestätigung kann sie setzen.
+
+```bash
+# Neues Systemadministrator-Konto (nur solange keines existiert)
+SYSTEM_ADMIN_BOOTSTRAP_CONFIRM=BOOTSTRAP_SYSTEM_ADMIN \
+SYSTEM_ADMIN_EMAIL="operator@example.com" \
+SYSTEM_ADMIN_PASSWORD="<mind. 16 Zeichen, selbst erzeugt>" \
+npm run system-admin:bootstrap
+
+# Alternativ: ein bereits registriertes und per E-Mail bestätigtes Konto
+# befördern. ID und Adresse müssen zum selben Konto gehören.
+SYSTEM_ADMIN_BOOTSTRAP_CONFIRM=BOOTSTRAP_SYSTEM_ADMIN \
+SYSTEM_ADMIN_TARGET_ID="<user-id>" \
+SYSTEM_ADMIN_TARGET_EMAIL="operator@example.com" \
+npm run system-admin:bootstrap
+```
+
+Der normale Bootstrap verweigert die Ausführung, sobald ein `SYSTEM_ADMIN`
+existiert. Für einen Betreiber, der die Kontrolle behalten, aber ein weiteres
+Konto freischalten will, gibt es den ausdrücklich bestätigten Recovery-Weg:
+
+```bash
+SYSTEM_ADMIN_RECOVERY=1 \
+SYSTEM_ADMIN_RECOVERY_CONFIRM=RECOVER_SYSTEM_ADMIN_CONTROL \
+SYSTEM_ADMIN_TARGET_ID="<user-id>" \
+SYSTEM_ADMIN_TARGET_EMAIL="operator@example.com" \
+npm run system-admin:recover
+```
+
+Recovery fügt nur einen weiteren Systemadministrator hinzu; es stuft niemanden
+herab und löscht kein Konto. Jeder erfolgreiche Vorgang schreibt
+`SYSTEM_ADMIN_BOOTSTRAPPED` beziehungsweise `SYSTEM_ADMIN_RECOVERED` ins
+Audit-Log. Normale ADMINs können SYSTEM_ADMIN-Konten weder ändern noch
+entfernen; der letzte SYSTEM_ADMIN kann nicht herabgestuft werden. Die
+Variablen gehören nie in Vercel oder eine laufende Instanz und werden nach dem
+Vorgang wieder entfernt. Führe diese Befehle bewusst selbst aus — es werden
+keine Zugangsdaten automatisch erzeugt oder eingecheckt.
 
 ### Tests
 
@@ -116,6 +160,29 @@ veröffentlicht; die Website verlinkt daher bewusst keine Platzhalterseiten.
 Den vollständigen Stand, die Testergebnisse und offenen Punkte dokumentiert
 [`docs/PHASE4_REPORT.md`](docs/PHASE4_REPORT.md).
 
+## Konten, Passwort-Reset und E-Mail-Verifizierung (Phase 4.5)
+
+- Registrierung, Login, Passwort-Reset und E-Mail-Bestätigung sind erreichbar
+  unter `/auth/register`, `/auth/login`, `/auth/forgot-password`,
+  `/auth/reset-password` und `/auth/verify-email`.
+- Rate-Limits liegen dauerhaft in PostgreSQL und gelten damit auch über
+  mehrere Serverless-Instanzen hinweg. Login und Registrierung antworten bei
+  Überschreitung mit HTTP 429.
+- Reset- und Verifizierungs-Tokens werden nur als SHA-256-Hash gespeichert,
+  sind zeitlich begrenzt und einmalig verwendbar. Ein erfolgreicher
+  Passwort-Reset beendet alle bestehenden Sitzungen.
+- Ohne SMTP-Konfiguration schreibt Development/Test Nachrichten nach
+  `.local-db/outbox/` (git-ignoriert); es werden keine Tokens geloggt.
+- Privilegierte Rollen werden nur an Konten mit bestätigter E-Mail-Adresse
+  vergeben. Der Admin-Bootstrap markiert sein operatorgesteuertes Konto als
+  bestätigt.
+- Alle öffentlichen Katalog-APIs und personalisierten Antworten senden
+  `Cache-Control: no-store`. Zurückgezogene Einträge verschwinden damit beim
+  nächsten Request.
+- Die Plattform ist strukturell auf das WebRadio-Desktop-Programm begrenzt:
+  `Plugin`, `Theme` und `Release` tragen ein `Product`-Enum mit ausschließlich
+  `WEBRADIO`; öffentliche Abfragen filtern darauf.
+
 ## Verfügbare Befehle
 
 | Befehl | Beschreibung |
@@ -135,6 +202,8 @@ Den vollständigen Stand, die Testergebnisse und offenen Punkte dokumentiert
 | `npm run db:verify` | Marker + Schema gegen Contract prüfen |
 | `npm run db:status` | Migrationsstatus der Datenbank |
 | `npm run admin:bootstrap` | Einmaliger, auditierter Admin-Bootstrap (CLI) |
+| `npm run system-admin:bootstrap` | SYSTEM_ADMIN anlegen oder bestätigtes Konto befördern (CLI) |
+| `npm run system-admin:recover` | Ausdrücklich bestätigter Recovery-Weg für SYSTEM_ADMIN (CLI) |
 
 ## Projektstruktur
 
@@ -182,6 +251,7 @@ webradio-website/
 ├── scripts/
 │   ├── generate-env.cjs     # .env-Generator mit sicherem NEXTAUTH_SECRET
 │   ├── bootstrap-admin.mts  # Einmaliger Admin-Bootstrap
+│   ├── system-admin-bootstrap.mts # SYSTEM_ADMIN-Bootstrap/Recovery (CLI)
 │   └── run-integration-tests.mjs  # Guard für die Test-Datenbank
 ├── .env.example             # Umgebungsvariablen-Vorlage (nur Platzhalter)
 ├── docker-compose.yml       # Optionales lokales PostgreSQL (unverifiziert)
@@ -208,6 +278,8 @@ Alle Variablen sind in [`.env.example`](.env.example) dokumentiert (nur Platzhal
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | Öffentliche Basis-URL; aktiviert Canonical-URLs, Open Graph und Sitemap |
 | `TEST_DATABASE_URL` | Ausschließlich für `npm run test:integration` (Name muss auf `_test` enden) |
+| `TRUST_PROXY` | `1` nur hinter einem Proxy, der `x-forwarded-for` überschreibt; sonst bleiben IP-Limits aus |
+| `EMAIL_FROM`, `EMAIL_SERVER_*` | SMTP für Reset- und Verifizierungsmails; ohne sie nur lokale Outbox |
 
 **Sicherheitshinweis:** `.env` ist in `.gitignore` eingetragen und darf **niemals** in Git landen.
 
@@ -217,8 +289,14 @@ GitHub Actions führt bei jedem Push auf `main`/`develop` und bei Pull Requests 
 
 - **Lint:** ESLint
 - **Type Check:** TypeScript
-- **Test:** Jest (Unit-Tests, datenbanklos; Integrationstests benötigen einen PostgreSQL-Service)
+- **Test:** Jest (Unit-Tests, datenbanklos)
+- **Integration (PostgreSQL):** Service-Container `postgres:18.4-alpine`,
+  Contract-Emit, `db:migrate`, `db:verify` und `npm run test:integration`
 - **Build:** Next.js Produktionsbuild
+
+Der Integration-Job wurde lokal mit derselben Datenbankkette ausgeführt. Eine
+Ausführung auf GitHub Actions selbst ist noch nicht erfolgt und wird im
+Abschlussbericht als nicht extern verifiziert gekennzeichnet.
 
 ## Dokumentation
 
@@ -231,3 +309,6 @@ GitHub Actions führt bei jedem Push auf `main`/`develop` und bei Pull Requests 
 - [Phase 3 Bericht](docs/PHASE3_REPORT.md)
 - [Phase 3.5 Bericht — Datenbankintegration](docs/PHASE3_5_REPORT.md)
 - [Phase 4 Bericht — öffentliche Website](docs/PHASE4_REPORT.md)
+- [Phase 4.5 Bericht — Sicherheit, Cache, CI, Vercel](docs/PHASE4_5_REPORT.md)
+- [Deployment & Vercel-Readiness](docs/DEPLOYMENT.md)
+- [Legal- & Lizenz-Checkliste](docs/LEGAL_LAUNCH_CHECKLIST.md)

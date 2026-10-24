@@ -9,6 +9,8 @@
  * administrator is created through the real CLI script.
  */
 import { spawn } from 'node:child_process';
+import { readdir, readFile, rm, stat } from 'node:fs/promises';
+import path from 'node:path';
 import {
   registerUser,
   authenticateUser,
@@ -27,8 +29,31 @@ import {
   InvalidCredentialsError,
   ForbiddenError,
   SELF_DEMOTION_CODE,
+  countSystemAdmins,
 } from '../auth-service';
+import {
+  SYSTEM_ADMIN_BOOTSTRAP_CONFIRM,
+  SYSTEM_ADMIN_RECOVERY_CONFIRM,
+  recoverSystemAdmin,
+} from '../system-admin';
 import { db } from '../db';
+import {
+  cleanupExpiredRateLimits,
+  consumeRateLimit,
+  hashRateLimitKey,
+} from '../rate-limit';
+import {
+  requestEmailVerification,
+  requestPasswordReset,
+  resetPasswordWithToken,
+  verifyEmailWithToken,
+} from '../account-service';
+import {
+  generateAuthToken,
+  hashAuthToken,
+  issueAuthToken,
+} from '../auth-tokens';
+import { getOutboxDirectory } from '../email';
 import {
   getPublishedNewsBySlug,
   getPublishedPluginBySlug,
@@ -41,6 +66,7 @@ import {
 } from '../catalog';
 
 const RUN = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+const TEST_STARTED_AT = Date.now();
 const USER_EMAIL = `user_${RUN}@webradio.test`;
 const DEV_EMAIL = `dev_${RUN}@webradio.test`;
 const ADMIN_EMAIL = `admin_${RUN}@webradio.test`;
@@ -70,6 +96,42 @@ const secondPluginSlug = `beta-${RUN}`;
 const publishedThemeSlug = `night-${RUN}`;
 const draftThemeSlug = `day-${RUN}`;
 
+async function findOutboxToken(
+  sinceMs: number,
+  recipient: string,
+  subjectFragment: string,
+): Promise<string | null> {
+  const dir = getOutboxDirectory();
+  let files: string[];
+  try {
+    files = await readdir(dir);
+  } catch {
+    return null;
+  }
+
+  const matches: { mtimeMs: number; token: string }[] = [];
+  for (const file of files) {
+    const full = path.join(dir, file);
+    const info = await stat(full);
+    if (info.mtimeMs < sinceMs) {
+      continue;
+    }
+
+    const text = await readFile(full, 'utf8');
+    if (!text.includes(`To: ${recipient}`) || !text.includes(subjectFragment)) {
+      continue;
+    }
+
+    const token = text.match(/[?&]token=([A-Za-z0-9_-]{43})/)?.[1];
+    if (token) {
+      matches.push({ mtimeMs: info.mtimeMs, token });
+    }
+  }
+
+  matches.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  return matches[0]?.token ?? null;
+}
+
 function runBootstrap(env: Record<string, string>): Promise<{ code: number | null; output: string }> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['scripts/bootstrap-admin.mts'], {
@@ -93,8 +155,37 @@ function runBootstrap(env: Record<string, string>): Promise<{ code: number | nul
   });
 }
 
+function runSystemAdminBootstrap(
+  env: Record<string, string>,
+): Promise<{ code: number | null; output: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ['scripts/system-admin-bootstrap.mts'], {
+      env: {
+        ...process.env,
+        DATABASE_URL: process.env['DATABASE_URL'],
+        ...env,
+      },
+      cwd: process.cwd(),
+    });
+
+    let output = '';
+    child.stdout.on('data', (chunk) => {
+      output += String(chunk);
+    });
+    child.stderr.on('data', (chunk) => {
+      output += String(chunk);
+    });
+    child.on('error', reject);
+    child.on('close', (code) => resolve({ code, output }));
+  });
+}
+
 beforeAll(async () => {
   ensureTestDatabase();
+  // Transactional mail must never reach a real SMTP server from tests. With
+  // these unset, the service writes to the local outbox instead.
+  delete process.env['EMAIL_SERVER_HOST'];
+  delete process.env['EMAIL_FROM'];
   // Disposable `_test` database: start from a clean slate.
   await db.orm.public.Session.where({}).deleteAll();
   await db.orm.public.AuditLog.where({}).deleteAll();
@@ -311,8 +402,25 @@ afterAll(async () => {
   }
 
   await db.orm.public.Session.where({}).deleteAll();
+  await db.orm.public.AuthToken.where({}).deleteAll();
+  await db.orm.public.RateLimitBucket.where({}).deleteAll();
   await db.orm.public.AuditLog.where({}).deleteAll();
   await db.orm.public.User.where({}).deleteAll();
+
+  // Remove only outbox files created by this run.
+  try {
+    const dir = getOutboxDirectory();
+    for (const file of await readdir(dir)) {
+      const full = path.join(dir, file);
+      const info = await stat(full);
+      if (info.mtimeMs >= TEST_STARTED_AT) {
+        await rm(full, { force: true });
+      }
+    }
+  } catch {
+    // The outbox may not exist if no message was generated.
+  }
+
   await db.close();
 });
 
@@ -536,6 +644,23 @@ describe('5. Roles, permissions and admin actions', () => {
     expect(target?.role).toBe('USER');
   });
 
+  it('refuses a privileged role before the target address is verified', async () => {
+    const target = await db.orm.public.User.first({ id: regularUserId });
+    expect(target?.emailVerified).toBeNull();
+
+    await expect(
+      changeUserRole({ actorId: adminId, targetUserId: regularUserId, newRole: 'DEVELOPER' }),
+    ).rejects.toMatchObject({ code: 'EMAIL_NOT_VERIFIED' });
+
+    const unchanged = await db.orm.public.User.first({ id: regularUserId });
+    expect(unchanged?.role).toBe('USER');
+
+    // Simulate the successful verification flow before the role change below.
+    await db.orm.public.User.where({ id: regularUserId }).update({
+      emailVerified: Temporal.Now.instant(),
+    });
+  });
+
   it('lets an ADMIN change a role and records an audit log entry', async () => {
     const updated = await changeUserRole({
       actorId: adminId,
@@ -558,6 +683,7 @@ describe('5. Roles, permissions and admin actions', () => {
     expect(audits[0]?.userId).toBe(adminId);
     expect(JSON.parse(audits[0]!.details!)).toEqual({
       targetUserId: regularUserId,
+      actorRole: 'ADMIN',
       previousRole: 'USER',
       newRole: 'DEVELOPER',
     });
@@ -573,6 +699,202 @@ describe('5. Roles, permissions and admin actions', () => {
     expect(() => assertRole('USER', 'ADMIN')).toThrow(ForbiddenError);
     expect(() => assertRole('DEVELOPER', 'ADMIN')).toThrow(ForbiddenError);
     expect(() => assertRole('ADMIN', 'ADMIN')).not.toThrow();
+  });
+});
+
+describe('5b. SYSTEM_ADMIN bootstrap, recovery and protection', () => {
+  const SYSTEM_ADMIN_EMAIL = `sysadmin_${RUN}@webradio.test`;
+  const SYSTEM_ADMIN_PASSWORD = 'SystemAdminIntegration2026!';
+  let promotedId = '';
+  let systemAdminId = '';
+  let secondSystemAdminId = '';
+
+  it('refuses the CLI without the explicit confirmation phrase', async () => {
+    const result = await runSystemAdminBootstrap({
+      SYSTEM_ADMIN_BOOTSTRAP_CONFIRM: '0',
+      SYSTEM_ADMIN_EMAIL: SYSTEM_ADMIN_EMAIL,
+      SYSTEM_ADMIN_PASSWORD: SYSTEM_ADMIN_PASSWORD,
+    });
+
+    expect(result.code).not.toBe(0);
+    expect(result.output).toMatch(/Refusing to run/i);
+    expect(await countSystemAdmins()).toBe(0);
+  });
+
+  it('promotes an existing, verified account through the CLI', async () => {
+    const candidate = await registerUser({
+      email: `promote_${RUN}@webradio.test`,
+      password: SYSTEM_ADMIN_PASSWORD,
+      confirmPassword: SYSTEM_ADMIN_PASSWORD,
+    });
+    promotedId = candidate.id;
+    await db.orm.public.User.where({ id: promotedId }).update({
+      emailVerified: Temporal.Now.instant(),
+    });
+
+    const result = await runSystemAdminBootstrap({
+      SYSTEM_ADMIN_BOOTSTRAP_CONFIRM,
+      SYSTEM_ADMIN_TARGET_ID: promotedId,
+      SYSTEM_ADMIN_TARGET_EMAIL: candidate.email,
+    });
+
+    expect(result.code).toBe(0);
+    const promoted = await db.orm.public.User.first({ id: promotedId });
+    expect(promoted?.role).toBe('SYSTEM_ADMIN');
+
+    const audit = await db.orm.public.AuditLog.where({
+      userId: promotedId,
+      action: 'SYSTEM_ADMIN_BOOTSTRAPPED',
+    }).all();
+    expect(audit).toHaveLength(1);
+    expect(JSON.parse(audit[0]!.details!)).toMatchObject({
+      method: 'promoted-existing',
+      previousRole: 'USER',
+      promotedExistingUser: true,
+    });
+
+    // Reset the fixture to exercise the create path below; this is direct test
+    // setup, not a supported application operation.
+    await db.orm.public.User.where({ id: promotedId }).update({ role: 'USER' });
+  });
+
+  it('creates the first SYSTEM_ADMIN and refuses a second normal bootstrap', async () => {
+    const created = await runSystemAdminBootstrap({
+      SYSTEM_ADMIN_BOOTSTRAP_CONFIRM,
+      SYSTEM_ADMIN_EMAIL,
+      SYSTEM_ADMIN_PASSWORD,
+      SYSTEM_ADMIN_NAME: 'System Operator',
+    });
+
+    expect(created.code).toBe(0);
+    const systemAdmin = await db.orm.public.User.first({
+      email: SYSTEM_ADMIN_EMAIL,
+    });
+    expect(systemAdmin?.role).toBe('SYSTEM_ADMIN');
+    expect(systemAdmin?.emailVerified).not.toBeNull();
+    expect(systemAdmin?.passwordHash).not.toBe(SYSTEM_ADMIN_PASSWORD);
+    systemAdminId = systemAdmin!.id;
+
+    const secondCreate = await runSystemAdminBootstrap({
+      SYSTEM_ADMIN_BOOTSTRAP_CONFIRM,
+      SYSTEM_ADMIN_EMAIL: `second_${RUN}@webradio.test`,
+      SYSTEM_ADMIN_PASSWORD,
+    });
+    expect(secondCreate.code).not.toBe(0);
+    expect(secondCreate.output).toMatch(/bereits ein Systemadministrator/i);
+
+    const secondPromote = await runSystemAdminBootstrap({
+      SYSTEM_ADMIN_BOOTSTRAP_CONFIRM,
+      SYSTEM_ADMIN_TARGET_ID: promotedId,
+      SYSTEM_ADMIN_TARGET_EMAIL: `promote_${RUN}@webradio.test`,
+    });
+    expect(secondPromote.code).not.toBe(0);
+    expect(await countSystemAdmins()).toBe(1);
+  });
+
+  it('requires the recovery confirmation and only adds an account', async () => {
+    const second = await registerUser({
+      email: `recovery_${RUN}@webradio.test`,
+      password: SYSTEM_ADMIN_PASSWORD,
+      confirmPassword: SYSTEM_ADMIN_PASSWORD,
+    });
+    secondSystemAdminId = second.id;
+    await db.orm.public.User.where({ id: secondSystemAdminId }).update({
+      emailVerified: Temporal.Now.instant(),
+    });
+
+    await expect(
+      recoverSystemAdmin({
+        targetUserId: secondSystemAdminId,
+        targetEmail: second.email,
+        confirmation: 'WRONG',
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_CONFIRMATION' });
+
+    const recovered = await recoverSystemAdmin({
+      targetUserId: secondSystemAdminId,
+      targetEmail: second.email,
+      confirmation: SYSTEM_ADMIN_RECOVERY_CONFIRM,
+    });
+    expect(recovered.alreadySystemAdmin).toBe(false);
+    expect(await countSystemAdmins()).toBe(2);
+
+    const audit = await db.orm.public.AuditLog.where({
+      userId: secondSystemAdminId,
+      action: 'SYSTEM_ADMIN_RECOVERED',
+    }).all();
+    expect(audit).toHaveLength(1);
+  });
+
+  it('blocks a normal ADMIN from touching a SYSTEM_ADMIN account', async () => {
+    await expect(
+      changeUserRole({
+        actorId: adminId,
+        targetUserId: systemAdminId,
+        newRole: 'ADMIN',
+      }),
+    ).rejects.toThrow(ForbiddenError);
+
+    const unchanged = await db.orm.public.User.first({ id: systemAdminId });
+    expect(unchanged?.role).toBe('SYSTEM_ADMIN');
+  });
+
+  it('lets one SYSTEM_ADMIN demote another but protects the last one', async () => {
+    const demoted = await changeUserRole({
+      actorId: systemAdminId,
+      targetUserId: secondSystemAdminId,
+      newRole: 'ADMIN',
+    });
+    expect(demoted.previousRole).toBe('SYSTEM_ADMIN');
+    expect(demoted.role).toBe('ADMIN');
+    expect(await countSystemAdmins()).toBe(1);
+
+    await expect(
+      changeUserRole({
+        actorId: systemAdminId,
+        targetUserId: systemAdminId,
+        newRole: 'ADMIN',
+      }),
+    ).rejects.toMatchObject({ code: SELF_DEMOTION_CODE });
+
+    const remaining = await db.orm.public.User.first({ id: systemAdminId });
+    expect(remaining?.role).toBe('SYSTEM_ADMIN');
+    expect(await countSystemAdmins()).toBe(1);
+  });
+
+  it('serialises reciprocal role changes and never leaves zero SYSTEM_ADMINs', async () => {
+    await recoverSystemAdmin({
+      targetUserId: secondSystemAdminId,
+      targetEmail: `recovery_${RUN}@webradio.test`,
+      confirmation: SYSTEM_ADMIN_RECOVERY_CONFIRM,
+    });
+    expect(await countSystemAdmins()).toBe(2);
+
+    const results = await Promise.allSettled([
+      changeUserRole({
+        actorId: systemAdminId,
+        targetUserId: secondSystemAdminId,
+        newRole: 'ADMIN',
+      }),
+      changeUserRole({
+        actorId: secondSystemAdminId,
+        targetUserId: systemAdminId,
+        newRole: 'ADMIN',
+      }),
+    ]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    expect(await countSystemAdmins()).toBe(1);
+  });
+
+  it('never exposes SYSTEM_ADMIN as an assignable role', async () => {
+    expect(hasRole('SYSTEM_ADMIN', 'ADMIN')).toBe(true);
+    expect(hasRole('ADMIN', 'SYSTEM_ADMIN')).toBe(false);
+
+    const schema = await import('../validations');
+    expect(schema.assignableRoleSchema.safeParse('SYSTEM_ADMIN').success).toBe(false);
+    expect(schema.roleSchema.safeParse('SYSTEM_ADMIN').success).toBe(true);
   });
 });
 
@@ -683,6 +1005,28 @@ describe('8. Public catalogue filters (real PostgreSQL)', () => {
     expect(await getPublishedPluginBySlug(`missing-${RUN}`)).toBeNull();
   });
 
+  it('binds catalogue and release rows to the WebRadio product', async () => {
+    const plugin = await db.orm.public.Plugin.first({ id: publishedPluginId });
+    const theme = await db.orm.public.Theme.first({ id: publishedThemeId });
+    const release = await db.orm.public.Release.first({ id: releaseId });
+
+    expect(plugin?.product).toBe('WEBRADIO');
+    expect(theme?.product).toBe('WEBRADIO');
+    expect(release?.product).toBe('WEBRADIO');
+
+    // The database check constraint rejects any other product value, even if
+    // a future endpoint forgot its validation.
+    await expect(
+      db.orm.public.Plugin.create({
+        slug: `other-product-${RUN}`,
+        name: 'Other product',
+        description: 'Not a WebRadio plugin',
+        developerId: catalogProfileId,
+        product: 'OTHER' as never,
+      }),
+    ).rejects.toBeDefined();
+  });
+
   it('applies the same publication rule to themes', async () => {
     const result = await listPublishedThemes({
       q: `Theme ${RUN}`,
@@ -731,5 +1075,248 @@ describe('8. Public catalogue filters (real PostgreSQL)', () => {
     expect(lowIndex).toBeGreaterThanOrEqual(0);
     expect(highIndex).toBeLessThan(lowIndex);
     expect(items[highIndex]?.status).toBe('IN_PROGRESS');
+  });
+
+  it('removes a withdrawn plugin from list and detail on the next query', async () => {
+    const before = await listPublishedPlugins({
+      q: `Radio ${RUN}`,
+      sort: 'name',
+      page: 1,
+      pageSize: 10,
+    });
+    expect(before.items.map((item) => item.slug)).toContain(publishedPluginSlug);
+
+    await db.orm.public.Plugin.where({ id: publishedPluginId }).update({
+      isPublished: false,
+    });
+
+    const after = await listPublishedPlugins({
+      q: `Radio ${RUN}`,
+      sort: 'name',
+      page: 1,
+      pageSize: 10,
+    });
+    expect(after.items.map((item) => item.slug)).not.toContain(publishedPluginSlug);
+    expect(await getPublishedPluginBySlug(publishedPluginSlug)).toBeNull();
+
+    await db.orm.public.Plugin.where({ id: publishedPluginId }).update({
+      isPublished: true,
+    });
+  });
+});
+
+describe('9. Durable rate limiting (real PostgreSQL)', () => {
+  const scope = 'loginAccount' as const;
+  const identifier = `Rate_${RUN}@WebRadio.test`;
+  const base = Date.now();
+
+  it('allows exactly the limit and rejects the next request', async () => {
+    const policy = { limit: 2, windowSeconds: 60 };
+    const first = await consumeRateLimit({ scope, identifier, policy, nowMs: base });
+    const second = await consumeRateLimit({ scope, identifier, policy, nowMs: base });
+    const third = await consumeRateLimit({ scope, identifier, policy, nowMs: base });
+
+    expect(first).toMatchObject({ allowed: true, remaining: 1, limit: 2 });
+    expect(second).toMatchObject({ allowed: true, remaining: 0 });
+    expect(third.allowed).toBe(false);
+    expect(third.retryAfterSeconds).toBeGreaterThan(0);
+  });
+
+  it('increments atomically under concurrent requests', async () => {
+    const policy = { limit: 5, windowSeconds: 60 };
+    const now = base + 120_000;
+
+    const results = await Promise.all(
+      Array.from({ length: 10 }, () =>
+        consumeRateLimit({ scope, identifier, policy, nowMs: now }),
+      ),
+    );
+
+    expect(results.filter((result) => result.allowed)).toHaveLength(5);
+    expect(results.filter((result) => !result.allowed)).toHaveLength(5);
+  });
+
+  it('opens a new bucket after the fixed window', async () => {
+    const policy = { limit: 1, windowSeconds: 60 };
+    const now = base + 240_000;
+
+    expect((await consumeRateLimit({ scope, identifier, policy, nowMs: now })).allowed).toBe(
+      true,
+    );
+    expect((await consumeRateLimit({ scope, identifier, policy, nowMs: now })).allowed).toBe(
+      false,
+    );
+    expect(
+      (await consumeRateLimit({ scope, identifier, policy, nowMs: now + 60_000 })).allowed,
+    ).toBe(true);
+  });
+
+  it('stores only a SHA-256 key, never the e-mail address', async () => {
+    const windowMs = 60_000;
+    const windowStart = Math.floor(base / windowMs) * windowMs;
+    const key = hashRateLimitKey(scope, identifier, windowStart);
+    const row = await db.orm.public.RateLimitBucket.first({ key });
+
+    expect(row).not.toBeNull();
+    expect(row?.key).toHaveLength(64);
+    expect(row?.key).not.toContain('@');
+    expect(row?.key).not.toContain('rate_');
+    expect(row?.count).toBe(3);
+  });
+
+  it('removes expired buckets', async () => {
+    const policy = { limit: 1, windowSeconds: 1 };
+    await consumeRateLimit({
+      scope,
+      identifier: `expired_${RUN}`,
+      policy,
+      nowMs: base - 120_000,
+    });
+
+    const removed = await cleanupExpiredRateLimits();
+    expect(removed).toBeGreaterThan(0);
+  });
+});
+
+describe('10. Password reset and e-mail verification (real PostgreSQL)', () => {
+  const resetEmail = `reset_${RUN}@webradio.test`;
+  const verificationEmail = `verify_${RUN}@webradio.test`;
+  const NEW_PASSWORD = 'NewIntegrationPassword2026!';
+  let resetUserId = '';
+  let verificationUserId = '';
+
+  beforeAll(async () => {
+    const resetUser = await registerUser({
+      email: resetEmail,
+      password: PASSWORD,
+      confirmPassword: PASSWORD,
+    });
+    resetUserId = resetUser.id;
+
+    const verificationUser = await registerUser({
+      email: verificationEmail,
+      password: PASSWORD,
+      confirmPassword: PASSWORD,
+    });
+    verificationUserId = verificationUser.id;
+  });
+
+  it('answers an unknown reset request without creating a token', async () => {
+    const result = await requestPasswordReset(`unknown_reset_${RUN}@webradio.test`);
+    expect(result.accountFound).toBe(false);
+
+    const tokens = await db.orm.public.AuthToken.where({
+      type: 'PASSWORD_RESET',
+    }).all();
+    expect(tokens).toHaveLength(0);
+  });
+
+  it('stores only a token hash and resets the password exactly once', async () => {
+    const session = await createDatabaseSession(resetUserId);
+    const since = Date.now() - 2_000;
+
+    const requested = await requestPasswordReset(resetEmail, {
+      ipAddress: '127.0.0.1',
+      userAgent: 'integration-test',
+    });
+    expect(requested.accountFound).toBe(true);
+
+    const rawToken = await findOutboxToken(since, resetEmail, 'Passwort');
+    expect(rawToken).not.toBeNull();
+
+    const stored = await db.orm.public.AuthToken.where({
+      userId: resetUserId,
+      type: 'PASSWORD_RESET',
+    }).all();
+    expect(stored).toHaveLength(1);
+    expect(stored[0]?.tokenHash).toHaveLength(64);
+    expect(stored[0]?.tokenHash).not.toBe(rawToken);
+    expect(stored[0]?.usedAt).toBeNull();
+
+    await expect(resetPasswordWithToken(rawToken!, NEW_PASSWORD)).resolves.toBe(true);
+
+    // Existing sessions are revoked and the old password no longer works.
+    expect(await validateDatabaseSession(session.token)).toBeNull();
+    expect(await db.orm.public.Session.where({ userId: resetUserId }).all()).toHaveLength(0);
+    await expect(authenticateUser(resetEmail, PASSWORD)).rejects.toThrow(
+      InvalidCredentialsError,
+    );
+    const updated = await authenticateUser(resetEmail, NEW_PASSWORD);
+    expect(updated.id).toBe(resetUserId);
+
+    // Single use: a second attempt with the same link fails.
+    await expect(resetPasswordWithToken(rawToken!, 'AnotherPassword2026!')).resolves.toBe(
+      false,
+    );
+
+    const audit = await db.orm.public.AuditLog.where({
+      action: 'PASSWORD_RESET_COMPLETED',
+    }).all();
+    expect(audit).toHaveLength(1);
+    expect(audit[0]?.userId).toBe(resetUserId);
+    expect(audit[0]?.details).toBeNull();
+  });
+
+  it('rejects an expired password-reset token', async () => {
+    const rawToken = generateAuthToken();
+    await db.orm.public.AuthToken.create({
+      userId: verificationUserId,
+      tokenHash: hashAuthToken(rawToken),
+      type: 'PASSWORD_RESET',
+      expiresAt: Temporal.Now.instant().subtract({ minutes: 1 }),
+    });
+
+    await expect(resetPasswordWithToken(rawToken, NEW_PASSWORD)).resolves.toBe(false);
+  });
+
+  it('verifies an e-mail address once and audits the event', async () => {
+    const since = Date.now() - 2_000;
+    const requested = await requestEmailVerification(verificationUserId);
+    expect(requested.sent).toBe(true);
+
+    const rawToken = await findOutboxToken(
+      since,
+      verificationEmail,
+      'E-Mail-Adresse bestätigen',
+    );
+    expect(rawToken).not.toBeNull();
+
+    await expect(verifyEmailWithToken(rawToken!)).resolves.toBe(true);
+
+    const user = await db.orm.public.User.first({ id: verificationUserId });
+    expect(user?.emailVerified).not.toBeNull();
+
+    // Single use and no duplicate verification mail for a verified account.
+    await expect(verifyEmailWithToken(rawToken!)).resolves.toBe(false);
+    expect(await requestEmailVerification(verificationUserId)).toMatchObject({
+      sent: false,
+    });
+
+    const audit = await db.orm.public.AuditLog.where({
+      userId: verificationUserId,
+      action: 'EMAIL_VERIFIED',
+    }).all();
+    expect(audit).toHaveLength(1);
+  });
+
+  it('issues tokens with a database-side hash and a bounded lifetime', async () => {
+    const issued = await issueAuthToken(resetUserId, 'PASSWORD_RESET');
+    expect(issued.raw).toMatch(/^[A-Za-z0-9_-]{43}$/);
+
+    const rows = await db.orm.public.AuthToken.where({
+      userId: resetUserId,
+      type: 'PASSWORD_RESET',
+      usedAt: null,
+    }).all();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.tokenHash).toBe(hashAuthToken(issued.raw));
+
+    const remainingSeconds = Number(
+      (Temporal.Instant.compare(issued.expiresAt, Temporal.Now.instant()) > 0
+        ? Temporal.Now.instant().until(issued.expiresAt).total('seconds')
+        : 0) ?? 0,
+    );
+    expect(remainingSeconds).toBeGreaterThan(0);
+    expect(remainingSeconds).toBeLessThanOrEqual(60 * 60 + 5);
   });
 });

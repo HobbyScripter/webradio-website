@@ -9,6 +9,7 @@ import { cache } from 'react';
 import { and, or } from '@prisma/orm-postgres/orm-client';
 import { db } from './db';
 import { pageOffset, type CatalogSort } from './catalog-query';
+import { WEBRADIO_PRODUCT } from './product';
 
 export type PluginSummary = {
   id: string;
@@ -124,9 +125,14 @@ function fetchPluginList(input: {
       ? and(
           p.isPublished.eq(true),
           p.status.eq('APPROVED'),
+          p.product.eq(WEBRADIO_PRODUCT),
           or(p.name.ilike(pattern), p.description.ilike(pattern)),
         )
-      : and(p.isPublished.eq(true), p.status.eq('APPROVED')),
+      : and(
+          p.isPublished.eq(true),
+          p.status.eq('APPROVED'),
+          p.product.eq(WEBRADIO_PRODUCT),
+        ),
   )
     .include('developer', (developer) => developer.select('displayName'))
     .include('tags', (tags) => tags.select('tag'))
@@ -166,9 +172,14 @@ function fetchThemeList(input: {
       ? and(
           t.isPublished.eq(true),
           t.status.eq('APPROVED'),
+          t.product.eq(WEBRADIO_PRODUCT),
           or(t.name.ilike(pattern), t.description.ilike(pattern)),
         )
-      : and(t.isPublished.eq(true), t.status.eq('APPROVED')),
+      : and(
+          t.isPublished.eq(true),
+          t.status.eq('APPROVED'),
+          t.product.eq(WEBRADIO_PRODUCT),
+        ),
   )
     .include('developer', (developer) => developer.select('displayName'))
     .include('tags', (tags) => tags.select('tag'))
@@ -263,7 +274,12 @@ export async function listPublishedThemes(input: {
 
 async function queryPublishedPluginBySlug(slug: string): Promise<PluginDetail | null> {
   const row = await db.orm.public.Plugin.where((p) =>
-    and(p.slug.eq(slug), p.isPublished.eq(true), p.status.eq('APPROVED')),
+    and(
+      p.slug.eq(slug),
+      p.isPublished.eq(true),
+      p.status.eq('APPROVED'),
+      p.product.eq(WEBRADIO_PRODUCT),
+    ),
   )
     .include('developer')
     .include('tags', (tags) => tags.select('tag'))
@@ -318,7 +334,12 @@ async function queryPublishedPluginBySlug(slug: string): Promise<PluginDetail | 
 
 async function queryPublishedThemeBySlug(slug: string): Promise<ThemeDetail | null> {
   const row = await db.orm.public.Theme.where((t) =>
-    and(t.slug.eq(slug), t.isPublished.eq(true), t.status.eq('APPROVED')),
+    and(
+      t.slug.eq(slug),
+      t.isPublished.eq(true),
+      t.status.eq('APPROVED'),
+      t.product.eq(WEBRADIO_PRODUCT),
+    ),
   )
     .include('developer')
     .include('tags', (tags) => tags.select('tag'))
@@ -377,9 +398,12 @@ export const getPublishedThemeBySlug = cache(queryPublishedThemeBySlug);
 export const getPublishedNewsBySlug = cache(queryPublishedNewsBySlug);
 
 export async function listReleases(limit = 20): Promise<ReleaseEntry[]> {
-  const rows = await db.orm.public.Release.include('changelogs', (changelogs) =>
-    changelogs.select('category', 'text', 'createdAt').orderBy((c) => c.createdAt.asc()),
-  )
+  const rows = await db.orm.public.Release.where({
+    product: WEBRADIO_PRODUCT,
+  })
+    .include('changelogs', (changelogs) =>
+      changelogs.select('category', 'text', 'createdAt').orderBy((c) => c.createdAt.asc()),
+    )
     .orderBy([(r) => r.releaseDate.desc(), (r) => r.id.desc()])
     .limit(limit)
     .all();

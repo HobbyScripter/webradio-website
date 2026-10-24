@@ -8,6 +8,10 @@
       "model": "AuditLog",
       "namespace": "public"
     },
+    "AuthToken": {
+      "model": "AuthToken",
+      "namespace": "public"
+    },
     "Changelog": {
       "model": "Changelog",
       "namespace": "public"
@@ -42,6 +46,10 @@
     },
     "PublicationReview": {
       "model": "PublicationReview",
+      "namespace": "public"
+    },
+    "RateLimitBucket": {
+      "model": "RateLimitBucket",
       "namespace": "public"
     },
     "Release": {
@@ -81,6 +89,19 @@
     "namespaces": {
       "public": {
         "enum": {
+          "AuthTokenType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "EMAIL_VERIFICATION",
+                "value": "EMAIL_VERIFICATION"
+              },
+              {
+                "name": "PASSWORD_RESET",
+                "value": "PASSWORD_RESET"
+              }
+            ]
+          },
           "PluginStatus": {
             "codecId": "pg/text@1",
             "members": [
@@ -99,6 +120,15 @@
               {
                 "name": "ARCHIVED",
                 "value": "ARCHIVED"
+              }
+            ]
+          },
+          "Product": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "WEBRADIO",
+                "value": "WEBRADIO"
               }
             ]
           },
@@ -167,6 +197,10 @@
               {
                 "name": "ADMIN",
                 "value": "ADMIN"
+              },
+              {
+                "name": "SYSTEM_ADMIN",
+                "value": "SYSTEM_ADMIN"
               }
             ]
           },
@@ -289,6 +323,110 @@
               },
               "namespaceId": "public",
               "table": "AuditLog"
+            }
+          },
+          "AuthToken": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "AuthTokenType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "usedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "tokenHash": {
+                  "column": "tokenHash"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "usedAt": {
+                  "column": "usedAt"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "AuthToken"
             }
           },
           "Changelog": {
@@ -743,6 +881,19 @@
                   "kind": "scalar"
                 }
               },
+              "product": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Product",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "slug": {
                 "nullable": false,
                 "type": {
@@ -856,6 +1007,9 @@
                 },
                 "name": {
                   "column": "name"
+                },
+                "product": {
+                  "column": "product"
                 },
                 "slug": {
                   "column": "slug"
@@ -1265,6 +1419,57 @@
               "table": "PublicationReview"
             }
           },
+          "RateLimitBucket": {
+            "fields": {
+              "count": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "key": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "windowStart": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "count": {
+                  "column": "count"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "key": {
+                  "column": "key"
+                },
+                "windowStart": {
+                  "column": "windowStart"
+                }
+              },
+              "namespaceId": "public",
+              "table": "RateLimitBucket"
+            }
+          },
           "Release": {
             "fields": {
               "checksum": {
@@ -1307,6 +1512,19 @@
                 "type": {
                   "codecId": "pg/bool@1",
                   "kind": "scalar"
+                }
+              },
+              "product": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Product",
+                  "namespaceId": "public",
+                  "plane": "domain"
                 }
               },
               "releaseDate": {
@@ -1367,6 +1585,9 @@
                 },
                 "isLatest": {
                   "column": "isLatest"
+                },
+                "product": {
+                  "column": "product"
                 },
                 "releaseDate": {
                   "column": "releaseDate"
@@ -1638,6 +1859,19 @@
                   "kind": "scalar"
                 }
               },
+              "product": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Product",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "slug": {
                 "nullable": false,
                 "type": {
@@ -1751,6 +1985,9 @@
                 },
                 "name": {
                   "column": "name"
+                },
+                "product": {
+                  "column": "product"
                 },
                 "slug": {
                   "column": "slug"
@@ -2131,6 +2368,21 @@
                   "namespace": "public"
                 }
               },
+              "authTokens": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "AuthToken",
+                  "namespace": "public"
+                }
+              },
               "developerProfile": {
                 "cardinality": "1:1",
                 "nullable": true,
@@ -2310,6 +2562,119 @@
                 ]
               },
               "uniques": []
+            },
+            "AuthToken": {
+              "checks": [
+                {
+                  "expression": "\"type\" IN ('EMAIL_VERIFICATION', 'PASSWORD_RESET')",
+                  "name": "AuthToken_type_check_5a4470d6",
+                  "prefix": "AuthToken_type_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "tokenHash": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AuthTokenType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "usedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "AuthToken_userId_idx_a489d58a"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "AuthToken"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "AuthToken_expiresAt_idx_6b6b8c10",
+                  "prefix": "AuthToken_expiresAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "AuthToken_userId_idx_a489d58a",
+                  "prefix": "AuthToken_userId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId",
+                    "type"
+                  ],
+                  "name": "AuthToken_userId_type_idx_59b0b5ce",
+                  "prefix": "AuthToken_userId_type_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "tokenHash"
+                  ]
+                }
+              ]
             },
             "Changelog": {
               "columns": {
@@ -2609,6 +2974,11 @@
             "Plugin": {
               "checks": [
                 {
+                  "expression": "\"product\" IN ('WEBRADIO')",
+                  "name": "Plugin_product_check_04056a18",
+                  "prefix": "Plugin_product_check"
+                },
+                {
                   "expression": "\"status\" IN ('PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED')",
                   "name": "Plugin_status_check_ee930c87",
                   "prefix": "Plugin_status_check"
@@ -2657,6 +3027,21 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "product": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "WEBRADIO"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Product",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "slug": {
                   "codecId": "pg/text@1",
@@ -2721,6 +3106,14 @@
                   ],
                   "name": "Plugin_isPublished_idx_d7ee5985",
                   "prefix": "Plugin_isPublished_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "product"
+                  ],
+                  "name": "Plugin_product_idx_934f369b",
+                  "prefix": "Plugin_product_idx",
                   "unique": false
                 },
                 {
@@ -3123,7 +3516,59 @@
               },
               "uniques": []
             },
+            "RateLimitBucket": {
+              "columns": {
+                "count": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "key": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "windowStart": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "RateLimitBucket_expiresAt_idx_6b6b8c10",
+                  "prefix": "RateLimitBucket_expiresAt_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "key"
+                ]
+              },
+              "uniques": []
+            },
             "Release": {
+              "checks": [
+                {
+                  "expression": "\"product\" IN ('WEBRADIO')",
+                  "name": "Release_product_check_04056a18",
+                  "prefix": "Release_product_check"
+                }
+              ],
               "columns": {
                 "checksum": {
                   "codecId": "pg/text@1",
@@ -3159,6 +3604,21 @@
                   },
                   "nullable": false
                 },
+                "product": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "WEBRADIO"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Product",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "releaseDate": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "dataType": "pg/timestamptz",
@@ -3177,6 +3637,14 @@
               },
               "foreignKeys": [],
               "indexes": [
+                {
+                  "columns": [
+                    "product"
+                  ],
+                  "name": "Release_product_idx_934f369b",
+                  "prefix": "Release_product_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "releaseDate"
@@ -3388,6 +3856,11 @@
             "Theme": {
               "checks": [
                 {
+                  "expression": "\"product\" IN ('WEBRADIO')",
+                  "name": "Theme_product_check_04056a18",
+                  "prefix": "Theme_product_check"
+                },
+                {
                   "expression": "\"status\" IN ('PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED')",
                   "name": "Theme_status_check_ee930c87",
                   "prefix": "Theme_status_check"
@@ -3436,6 +3909,21 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "product": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "WEBRADIO"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Product",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "slug": {
                   "codecId": "pg/text@1",
@@ -3500,6 +3988,14 @@
                   ],
                   "name": "Theme_isPublished_idx_d7ee5985",
                   "prefix": "Theme_isPublished_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "product"
+                  ],
+                  "name": "Theme_product_idx_934f369b",
+                  "prefix": "Theme_product_idx",
                   "unique": false
                 },
                 {
@@ -3787,8 +4283,8 @@
             "User": {
               "checks": [
                 {
-                  "expression": "\"role\" IN ('USER', 'DEVELOPER', 'ADMIN')",
-                  "name": "User_role_check_251e1149",
+                  "expression": "\"role\" IN ('USER', 'DEVELOPER', 'ADMIN', 'SYSTEM_ADMIN')",
+                  "name": "User_role_check_c07371c4",
                   "prefix": "User_role_check"
                 }
               ],
@@ -3870,6 +4366,13 @@
             }
           },
           "valueSet": {
+            "AuthTokenType": {
+              "kind": "valueSet",
+              "values": [
+                "EMAIL_VERIFICATION",
+                "PASSWORD_RESET"
+              ]
+            },
             "PluginStatus": {
               "kind": "valueSet",
               "values": [
@@ -3877,6 +4380,12 @@
                 "APPROVED",
                 "REJECTED",
                 "ARCHIVED"
+              ]
+            },
+            "Product": {
+              "kind": "valueSet",
+              "values": [
+                "WEBRADIO"
               ]
             },
             "ReviewResult": {
@@ -3908,7 +4417,8 @@
               "values": [
                 "USER",
                 "DEVELOPER",
-                "ADMIN"
+                "ADMIN",
+                "SYSTEM_ADMIN"
               ]
             },
             "ThemeStatus": {
@@ -3926,10 +4436,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b0d9463c5ca3151b86d063e4791193bef2a6dfc12294b1b6735f16b6b06adc94"
+    "storageHash": "2eaf80b7361587d3661b4d4e4f329dc8ce6242623010563378fe4871023dacab"
   },
   "execution": {
-    "executionHash": "c58c8d1501bfc066597269dab0ab4c1bc47d5ad2d0150af6f5fecd9575fe89af",
+    "executionHash": "e73ce013d2074ea332be257777069e436fde1c5fed6d37b3d80dba38bd1e2899",
     "mutations": {
       "defaults": [
         {
@@ -3950,6 +4460,28 @@
           },
           "ref": {
             "entry": "AuditLog",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "AuthToken",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "AuthToken",
             "field": "id",
             "namespace": "public"
           }

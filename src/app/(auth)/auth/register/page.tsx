@@ -87,7 +87,8 @@ export default function RegisterPage() {
           role="status"
           className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-200"
         >
-          Konto erfolgreich erstellt. Du wirst zur Anmeldung weitergeleitet …
+          Konto erfolgreich erstellt. Du wirst zur Anmeldung weitergeleitet. Falls der
+          E-Mail-Versand konfiguriert ist, erhältst du zusätzlich einen Bestätigungslink.
         </div>
       ) : null}
 

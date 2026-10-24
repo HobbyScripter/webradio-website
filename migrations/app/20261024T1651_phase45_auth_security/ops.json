@@ -1,0 +1,392 @@
+[
+  {
+    "id": "table.AuthToken",
+    "label": "Create table \"AuthToken\"",
+    "summary": "Creates table \"AuthToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AuthToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AuthToken\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AuthToken\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AuthToken\"",
+        "sql": "CREATE TABLE \"public\".\"AuthToken\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"expiresAt\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"tokenHash\" text NOT NULL,\n  \"type\" text NOT NULL,\n  \"usedAt\" timestamptz,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AuthToken_type_check_5a4470d6\" CHECK (\"type\" IN ('EMAIL_VERIFICATION', 'PASSWORD_RESET'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AuthToken\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AuthToken\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.RateLimitBucket",
+    "label": "Create table \"RateLimitBucket\"",
+    "summary": "Creates table \"RateLimitBucket\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "RateLimitBucket"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"RateLimitBucket\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RateLimitBucket\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"RateLimitBucket\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"RateLimitBucket\"",
+        "sql": "CREATE TABLE \"public\".\"RateLimitBucket\" (\n  \"count\" int4 DEFAULT 0 NOT NULL,\n  \"expiresAt\" timestamptz NOT NULL,\n  \"key\" text NOT NULL,\n  \"windowStart\" timestamptz NOT NULL,\n  PRIMARY KEY (\"key\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"RateLimitBucket\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"RateLimitBucket\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"RateLimitBucket\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.AuthToken.AuthToken_tokenHash_key",
+    "label": "Add unique constraint on \"AuthToken\" (tokenHash)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "AuthToken_tokenHash_key",
+        "table": "AuthToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"AuthToken_tokenHash_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AuthToken_tokenHash_key",
+          "public",
+          "\"public\".\"AuthToken\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"AuthToken_tokenHash_key\" on \"AuthToken\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"AuthToken_tokenHash_key\"",
+        "sql": "ALTER TABLE \"public\".\"AuthToken\" ADD CONSTRAINT \"AuthToken_tokenHash_key\" UNIQUE (\"tokenHash\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"AuthToken_tokenHash_key\" exists on (tokenHash)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "AuthToken_tokenHash_key",
+          "public",
+          "\"public\".\"AuthToken\"",
+          "u",
+          "[\"tokenHash\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AuthToken.AuthToken_expiresAt_idx_6b6b8c10",
+    "label": "Create index \"AuthToken_expiresAt_idx_6b6b8c10\" on \"AuthToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AuthToken_expiresAt_idx_6b6b8c10",
+        "table": "AuthToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AuthToken_expiresAt_idx_6b6b8c10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken_expiresAt_idx_6b6b8c10\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AuthToken_expiresAt_idx_6b6b8c10\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AuthToken_expiresAt_idx_6b6b8c10\"",
+        "sql": "CREATE INDEX \"AuthToken_expiresAt_idx_6b6b8c10\" ON \"public\".\"AuthToken\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AuthToken_expiresAt_idx_6b6b8c10\" exists on \"AuthToken\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken_expiresAt_idx_6b6b8c10\"",
+          "i",
+          "I",
+          "\"public\".\"AuthToken\"",
+          "btree",
+          "[\"expiresAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AuthToken.AuthToken_userId_idx_a489d58a",
+    "label": "Create index \"AuthToken_userId_idx_a489d58a\" on \"AuthToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AuthToken_userId_idx_a489d58a",
+        "table": "AuthToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AuthToken_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken_userId_idx_a489d58a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AuthToken_userId_idx_a489d58a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AuthToken_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"AuthToken_userId_idx_a489d58a\" ON \"public\".\"AuthToken\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AuthToken_userId_idx_a489d58a\" exists on \"AuthToken\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken_userId_idx_a489d58a\"",
+          "i",
+          "I",
+          "\"public\".\"AuthToken\"",
+          "btree",
+          "[\"userId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AuthToken.AuthToken_userId_type_idx_59b0b5ce",
+    "label": "Create index \"AuthToken_userId_type_idx_59b0b5ce\" on \"AuthToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AuthToken_userId_type_idx_59b0b5ce",
+        "table": "AuthToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AuthToken_userId_type_idx_59b0b5ce\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken_userId_type_idx_59b0b5ce\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AuthToken_userId_type_idx_59b0b5ce\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AuthToken_userId_type_idx_59b0b5ce\"",
+        "sql": "CREATE INDEX \"AuthToken_userId_type_idx_59b0b5ce\" ON \"public\".\"AuthToken\" (\"userId\", \"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AuthToken_userId_type_idx_59b0b5ce\" exists on \"AuthToken\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AuthToken_userId_type_idx_59b0b5ce\"",
+          "i",
+          "I",
+          "\"public\".\"AuthToken\"",
+          "btree",
+          "[\"userId\",\"type\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.RateLimitBucket.RateLimitBucket_expiresAt_idx_6b6b8c10",
+    "label": "Create index \"RateLimitBucket_expiresAt_idx_6b6b8c10\" on \"RateLimitBucket\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "RateLimitBucket_expiresAt_idx_6b6b8c10",
+        "table": "RateLimitBucket"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"RateLimitBucket_expiresAt_idx_6b6b8c10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RateLimitBucket_expiresAt_idx_6b6b8c10\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"RateLimitBucket_expiresAt_idx_6b6b8c10\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"RateLimitBucket_expiresAt_idx_6b6b8c10\"",
+        "sql": "CREATE INDEX \"RateLimitBucket_expiresAt_idx_6b6b8c10\" ON \"public\".\"RateLimitBucket\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"RateLimitBucket_expiresAt_idx_6b6b8c10\" exists on \"RateLimitBucket\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"RateLimitBucket_expiresAt_idx_6b6b8c10\"",
+          "i",
+          "I",
+          "\"public\".\"RateLimitBucket\"",
+          "btree",
+          "[\"expiresAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AuthToken.AuthToken_userId_fkey",
+    "label": "Add foreign key \"AuthToken_userId_fkey\" on \"AuthToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AuthToken_userId_fkey",
+        "table": "AuthToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AuthToken_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AuthToken_userId_fkey",
+          "public",
+          "\"public\".\"AuthToken\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AuthToken_userId_fkey\" on \"AuthToken\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AuthToken_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AuthToken\"\nADD CONSTRAINT \"AuthToken_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AuthToken_userId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AuthToken_userId_fkey",
+          "public",
+          "\"public\".\"AuthToken\"",
+          "f",
+          "[\"userId\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

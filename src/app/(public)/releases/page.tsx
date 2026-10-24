@@ -216,7 +216,8 @@ export default function ReleasesPage() {
 
         <div className="mt-12 space-y-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 text-xs leading-relaxed text-zinc-500">
           <p>
-            Das Release-Datenmodell enthält keine Plattformangaben. Deshalb werden hier keine
+            Alle Einträge sind offizielle Releases des WebRadio-Desktop-Programms. Das
+            Release-Datenmodell enthält keine Plattformangaben; deshalb werden hier keine
             unterstützten Betriebssysteme oder Architekturen behauptet.
           </p>
           <p>

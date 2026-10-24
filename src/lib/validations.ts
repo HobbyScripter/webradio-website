@@ -8,6 +8,7 @@
  * before touching the database. See docs/SECURITY.md.
  */
 import { z } from 'zod';
+import { WEBRADIO_PRODUCT } from './product';
 
 // ---------------------------------------------------------------------------
 // Shared primitives
@@ -64,6 +65,30 @@ export const changePasswordSchema = z
     path: ['confirmPassword'],
   });
 
+/** 32 random bytes, base64url encoded. */
+export const authTokenSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{43}$/, 'Invalid token format');
+
+export const passwordResetRequestSchema = z.object({
+  email: emailSchema,
+});
+
+export const passwordResetConfirmSchema = z
+  .object({
+    token: authTokenSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
+
+export const emailVerificationSchema = z.object({
+  token: authTokenSchema,
+});
+
 // ---------------------------------------------------------------------------
 // Developer Profile schemas
 // ---------------------------------------------------------------------------
@@ -79,10 +104,15 @@ export const developerProfileSchema = z.object({
 // Plugin schemas
 // ---------------------------------------------------------------------------
 
+// `product` is a literal, not a free string. Submission endpoints must pass
+// this schema; the database has the same one-value enum as a second barrier.
+export const productSchema = z.literal(WEBRADIO_PRODUCT).default(WEBRADIO_PRODUCT);
+
 export const pluginCreateSchema = z.object({
   slug: slugSchema,
   name: z.string().min(1, 'Plugin name is required').max(100).trim(),
   description: z.string().min(10, 'Description must be at least 10 characters').max(2000).trim(),
+  product: productSchema,
 });
 
 export const pluginVersionSchema = z.object({
@@ -111,6 +141,7 @@ export const themeCreateSchema = z.object({
   slug: slugSchema,
   name: z.string().min(1, 'Theme name is required').max(100).trim(),
   description: z.string().min(10, 'Description must be at least 10 characters').max(2000).trim(),
+  product: productSchema,
 });
 
 // ---------------------------------------------------------------------------
@@ -123,6 +154,7 @@ export const releaseCreateSchema = z.object({
     .regex(/^\d+\.\d+\.\d+$/, 'Version must follow semver format'),
   title: z.string().min(1, 'Release title is required').max(200).trim(),
   description: z.string().min(1, 'Release description is required').max(5000).trim(),
+  product: productSchema,
   downloadUrl: urlSchema.optional(),
   fileSize: z.number().int().positive().optional(),
   checksum: z.string().optional(),
@@ -156,7 +188,14 @@ export const roadmapItemSchema = z.object({
 // Role & Review schemas
 // ---------------------------------------------------------------------------
 
-export const roleSchema = z.enum(['USER', 'DEVELOPER', 'ADMIN']);
+// Roles that can be read from the database, including the operator-only
+// SYSTEM_ADMIN level.
+export const roleSchema = z.enum(['USER', 'DEVELOPER', 'ADMIN', 'SYSTEM_ADMIN']);
+
+// Roles that may be assigned through the application. SYSTEM_ADMIN is
+// intentionally absent: it is only reachable through the audited CLI
+// bootstrap/recovery path, never through registration or an admin endpoint.
+export const assignableRoleSchema = z.enum(['USER', 'DEVELOPER', 'ADMIN']);
 
 export const publicationReviewSchema = z.object({
   targetType: z.enum(['PLUGIN', 'THEME']),
@@ -170,10 +209,14 @@ export const publicationReviewSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export type Role = z.infer<typeof roleSchema>;
+export type AssignableRole = z.infer<typeof assignableRoleSchema>;
 export type PublicationReviewInput = z.infer<typeof publicationReviewSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchema>;
+export type PasswordResetConfirmInput = z.infer<typeof passwordResetConfirmSchema>;
+export type EmailVerificationInput = z.infer<typeof emailVerificationSchema>;
 export type DeveloperProfileInput = z.infer<typeof developerProfileSchema>;
 export type PluginCreateInput = z.infer<typeof pluginCreateSchema>;
 export type PluginVersionInput = z.infer<typeof pluginVersionSchema>;

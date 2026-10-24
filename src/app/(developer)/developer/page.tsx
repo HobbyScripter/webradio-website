@@ -79,6 +79,16 @@ async function DeveloperContent() {
         </span>
       </div>
 
+      {session.user.emailVerified === null ? (
+        <div className="rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-4 text-sm text-amber-200">
+          Deine E-Mail-Adresse ist noch nicht bestätigt. Für eine privilegierte Rolle ist
+          eine bestätigte Adresse erforderlich.{' '}
+          <Link href="/auth/verify-email/resend" className="font-semibold underline">
+            Bestätigungslink anfordern
+          </Link>
+        </div>
+      ) : null}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800">

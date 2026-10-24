@@ -74,7 +74,13 @@ async function main(): Promise<void> {
     if (existingUser) {
       // Promote the operator-chosen existing account instead of creating a
       // duplicate. Still gated by "no ADMIN exists yet".
-      await tx.orm.public.User.where({ id: existingUser.id }).update({ role: 'ADMIN' });
+      await tx.orm.public.User.where({ id: existingUser.id }).update({
+        role: 'ADMIN',
+        // The operator controls shell and database access. Treat that as
+        // sufficient verification for the one-time bootstrap account; normal
+        // role changes still require a verified address.
+        emailVerified: Temporal.Now.instant(),
+      });
       await tx.orm.public.AuditLog.create({
         userId: existingUser.id,
         action: 'ADMIN_BOOTSTRAPPED',
@@ -94,6 +100,7 @@ async function main(): Promise<void> {
       passwordHash,
       name,
       role: 'ADMIN',
+      emailVerified: Temporal.Now.instant(),
     });
 
     await tx.orm.public.AuditLog.create({

@@ -13,7 +13,27 @@ export function errorResponse(scope: string, error: unknown): NextResponse {
   logServerError(scope, error);
 
   const { status, body } = toPublicError(error);
-  return NextResponse.json(body, { status });
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
+}
+
+/**
+ * A response that must never be stored by a browser, proxy or CDN. Used for
+ * authentication, session and other personalized endpoints.
+ */
+export function noStoreJson(body: unknown, status = 200): NextResponse {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
 }
 
 /**

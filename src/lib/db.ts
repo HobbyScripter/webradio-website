@@ -51,4 +51,12 @@ const connectionUrl =
 export const db = postgres({
   contract,
   url: connectionUrl,
+  // Each serverless instance owns one module-level pool. Keep bad connections
+  // from hanging a request indefinitely and release idle ones early. A
+  // production deployment behind Vercel should additionally use a pooled
+  // connection string; see docs/DEPLOYMENT.md.
+  poolOptions: {
+    connectionTimeoutMillis: 10_000,
+    idleTimeoutMillis: 30_000,
+  },
 });

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
+import { hasRole } from '@/lib/auth-service';
 import { db } from '@/lib/db';
 
 async function AdminContent() {
@@ -13,7 +14,7 @@ async function AdminContent() {
   }
 
   // Server-side RBAC check against the current database role (never the JWT claim).
-  if (session.user.role !== 'ADMIN') {
+  if (!hasRole(session.user.role, 'ADMIN')) {
     return (
       <div className="max-w-md mx-auto my-16 p-8 rounded-2xl bg-zinc-900 border border-rose-900/50 text-center space-y-4">
         <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto text-xl font-bold">
@@ -27,7 +28,7 @@ async function AdminContent() {
           </span>
           . Dieser Bereich erfordert die Rolle{' '}
           <span className="font-mono text-xs bg-zinc-800 px-2 py-0.5 rounded text-rose-400">
-            ADMIN
+            ADMIN / SYSTEM_ADMIN
           </span>
           .
         </p>
@@ -61,6 +62,9 @@ async function AdminContent() {
           <p className="text-sm text-zinc-400 mt-1">
             Angemeldet als Administrator:{' '}
             <span className="text-emerald-400 font-medium">{session.user.email}</span>
+            <span className="ml-2 font-mono text-[11px] text-amber-300">
+              {session.user.role}
+            </span>
           </p>
         </div>
         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20">

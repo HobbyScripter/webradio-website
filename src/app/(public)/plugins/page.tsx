@@ -143,9 +143,10 @@ export default function PluginsPage({
         </Suspense>
 
         <p className="mt-10 text-xs leading-relaxed text-zinc-500">
-          Hinweis: Die Installation von Plugins im WebRadio-Client ist noch nicht Teil dieses
-          Stands. Der Katalog zeigt ausschließlich Daten, die in PostgreSQL als veröffentlicht und
-          freigegeben markiert sind.{' '}
+          Hinweis: Alle Einträge sind ausschließlich für das WebRadio-Desktop-Programm bestimmt.
+          Die Installation von Plugins im WebRadio-Client ist noch nicht Teil dieses Stands. Der
+          Katalog zeigt ausschließlich Daten, die in PostgreSQL als veröffentlicht und freigegeben
+          markiert sind.{' '}
           <Link href="/docs#plugins" className="text-zinc-400 underline-offset-4 hover:underline">
             Mehr zur Architektur
           </Link>

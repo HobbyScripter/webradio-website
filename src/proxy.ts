@@ -28,6 +28,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { and } from '@prisma/orm-postgres/orm-client';
 import { db } from '@/lib/db';
+import { WEBRADIO_PRODUCT } from '@/lib/product';
 
 // Routes that need a session cookie before rendering (optimistic only)
 const PROTECTED_PREFIXES = ['/developer', '/admin'];
@@ -39,12 +40,24 @@ const SESSION_COOKIE_NAMES = [
 
 const DETAIL_ROUTE_PATTERN = /^\/(plugins|themes|news)\/([^/]+)\/?$/;
 
+function notFoundResponse(request: NextRequest): NextResponse {
+  const response = NextResponse.rewrite(new URL('/404', request.url), { status: 404 });
+  // Attempt to keep the negative answer out of caches. Next.js 16.4 still
+  // overwrites `Cache-Control` for a rendered 404 with its pre-rendered
+  // `s-maxage=31536000`; the successful detail page and the public APIs are
+  // `no-store`, so no withdrawn *content* can be cached. The remaining
+  // stale-404 risk is documented in docs/PHASE4_5_REPORT.md.
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
+}
+
 async function publishedDetailExists(kind: string, slug: string): Promise<boolean> {
   if (kind === 'plugins') {
     const row = await db.orm.public.Plugin.where({
       slug,
       isPublished: true,
       status: 'APPROVED',
+      product: WEBRADIO_PRODUCT,
     })
       .select('id')
       .first();
@@ -56,6 +69,7 @@ async function publishedDetailExists(kind: string, slug: string): Promise<boolea
       slug,
       isPublished: true,
       status: 'APPROVED',
+      product: WEBRADIO_PRODUCT,
     })
       .select('id')
       .first();
@@ -104,13 +118,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     try {
       slug = decodeURIComponent(slug);
     } catch {
-      return NextResponse.rewrite(new URL('/404', request.url), { status: 404 });
+      return notFoundResponse(request);
     }
 
     try {
       const exists = await publishedDetailExists(kind, slug);
       if (!exists) {
-        return NextResponse.rewrite(new URL('/404', request.url), { status: 404 });
+        return notFoundResponse(request);
       }
     } catch {
       // A database outage is handled by the page's error state; do not turn it

@@ -142,9 +142,9 @@ export default function ThemesPage({
         </Suspense>
 
         <p className="mt-10 text-xs leading-relaxed text-zinc-500">
-          Hinweis: Das Anwenden von Themes im WebRadio-Client ist noch nicht Teil dieses Stands.
-          Vorschauen erscheinen nur, wenn für einen freigegebenen Eintrag tatsächlich Bild-URLs
-          hinterlegt sind.
+          Hinweis: Alle Einträge sind ausschließlich für das WebRadio-Desktop-Programm bestimmt.
+          Das Anwenden von Themes im WebRadio-Client ist noch nicht Teil dieses Stands. Vorschauen
+          erscheinen nur, wenn für einen freigegebenen Eintrag tatsächlich Bild-URLs hinterlegt sind.
         </p>
       </Container>
     </>

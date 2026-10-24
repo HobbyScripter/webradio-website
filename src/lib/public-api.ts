@@ -10,8 +10,12 @@ import {
   type CatalogQuery,
 } from './catalog-query';
 
-export const PUBLIC_CACHE_CONTROL =
-  'public, max-age=0, s-maxage=60, stale-while-revalidate=300';
+// Public catalogue responses are deliberately not shared-cacheable. A
+// withdrawn entry must disappear on the next request; `s-maxage` plus
+// `stale-while-revalidate` could keep it visible for minutes in a CDN. The
+// database is the source of truth for publication, so a short server-side
+// cache would need a reliable purge hook that this project does not have.
+export const PUBLIC_CACHE_CONTROL = 'no-store';
 
 const NO_STORE = 'no-store';
 

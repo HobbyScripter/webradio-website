@@ -14,12 +14,15 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAdminSession } from '@/lib/server-auth';
 import { changeUserRole } from '@/lib/auth-service';
-import { roleSchema } from '@/lib/validations';
+import { assignableRoleSchema } from '@/lib/validations';
 import { errorResponse, isSameOriginRequest } from '@/lib/api-response';
+import { getClientIp } from '@/lib/rate-limit';
 
 const bodySchema = z.object({
   userId: z.string().min(1),
-  role: roleSchema,
+  // SYSTEM_ADMIN is deliberately not assignable here. It is created only by
+  // the audited CLI bootstrap/recovery path.
+  role: assignableRoleSchema,
 });
 
 export async function POST(request: Request) {
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
       actorId: admin.id,
       targetUserId: parsed.data.userId,
       newRole: parsed.data.role,
-      ipAddress: request.headers.get('x-forwarded-for') ?? undefined,
+      ipAddress: getClientIp(request.headers) ?? undefined,
       userAgent: request.headers.get('user-agent') ?? undefined,
     });
 
