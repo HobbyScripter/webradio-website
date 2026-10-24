@@ -330,9 +330,10 @@ Requests aus (Token nur mit `contents: read`):
 Der Integration-Job wurde lokal mit derselben Datenbankkette ausgeführt. Die
 realen Läufe auf GitHub Actions zeigten zwei konkrete CI-Probleme: Run
 `40125408700` scheiterte an einem unvollständigen npm-10-Lockfile, Run
-`40128763959` danach an Jest/ESM unter Node 22. Beide Ursachen sind behoben;
-CI nutzt jetzt Node 24. Ein grüner Lauf des aktuellen Stands steht noch aus.
-Details stehen im [Phase-4.7-Bericht](docs/PHASE4_7_REPORT.md).
+`40128763959` danach an Jest/ESM unter Node 22. Nach beiden Fixes ist Run
+`40130062502` mit Node 24 in allen fünf Jobs erfolgreich, einschließlich 134
+Unit-Tests, 54 Integrationstests und Build. Details stehen im
+[Phase-4.7-Bericht](docs/PHASE4_7_REPORT.md).
 
 ## Dokumentation
 

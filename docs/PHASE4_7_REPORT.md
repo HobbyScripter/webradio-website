@@ -3,10 +3,10 @@
 **Projekt:** `F:\Dev\webradio-website`  
 **Datum:** 2026-10-24  
 **Branch:** `master`  
-**Status:** Zwei reale CI-Läufe wurden ausgewertet und zwei konkrete Ursachen
-behoben. Der aktuelle Reparaturstand ist lokal unter Node 24 vollständig
-validiert, aber **noch nicht gepusht**; ein dritter, grüner GitHub-Actions-Lauf
-steht deshalb noch aus. Es gab kein Deployment, keinen SYSTEM_ADMIN-Bootstrap
+**Status:** Drei reale CI-Läufe wurden ausgewertet. Der dritte Lauf
+(`40130062502`, Commit `542fd87`) ist **vollständig erfolgreich**: alle fünf
+Jobs `success`, einschließlich 134 Unit-Tests, 54 PostgreSQL-Integrationstests
+und Produktions-Build. Es gab kein Deployment, keinen SYSTEM_ADMIN-Bootstrap
 und keine Änderung am Electron-Repository.
 
 Dieser Bericht unterscheidet durchgehend zwischen **lokal ausgeführt**, **real
@@ -19,15 +19,16 @@ auf GitHub ausgeführt**, **lokal reproduziert, extern noch nicht bestätigt** u
 
 | Bereich | Ergebnis |
 |---|---|
-| Git | `master`, HEAD `8e0f549`, `origin/master` ebenfalls `8e0f549` nach dem ersten Fix |
+| Git | `master`, erfolgreicher CI-Commit `542fd87`; `origin/master` enthält den Fix |
 | Workflow | `.github/workflows/ci.yml`; Trigger, Rechte und PostgreSQL-Service geprüft |
 | Lauf 1 | `40125408700` für `6e5a5e3`: failure in allen fünf Jobs an `npm ci` |
 | Ursache 1 | npm-10-Lockfile unvollständig (zwei fehlende Peer-Einträge) |
 | Fix 1 | Lockfile mit npm 10.9.4 neu erzeugt; 8 Einträge ergänzt, 0 Versionsänderungen; gepusht als `8e0f549` |
 | Lauf 2 | `40128763959` für `8e0f549`: Lint, Type Check und Build **success**; Unit Tests und Integration **failure** |
 | Ursache 2 | Jest 30 kann unter Node 22 ESM-Pakete (`temporal-polyfill`, `@prisma/orm-postgres`) nicht per `require` laden |
-| Fix 2 | CI auf Node 24 umgestellt, Projekt-Engine auf `>=24.11.0`; lokal unter Node 24 vollständig validiert |
-| Aktueller Stand | Fix 2 ist **uncommitted**; ein dritter CI-Lauf ist ohne Freigabe nicht möglich |
+| Fix 2 | CI auf Node 24 umgestellt, Projekt-Engine auf `>=24.11.0`; gepusht als `542fd87` |
+| Lauf 3 | `40130062502` für `542fd87`: **success in allen fünf Jobs** |
+| Aktueller Stand | CI ist extern bestätigt grün; keine weitere CI-Reparatur offen |
 | Audit | 0 critical; 10 high / 5 moderate gesamt, davon 2 high in Production |
 
 ---
@@ -36,28 +37,21 @@ auf GitHub ausgeführt**, **lokal reproduziert, extern noch nicht bestätigt** u
 
 ```text
 Branch:          master
-HEAD:            8e0f549ed27eea377fe65830f313f42cc8f14882
-HEAD-Titel:      fix(ci): make lockfile installable with npm 10
-origin/master:   8e0f549ed27eea377fe65830f313f42cc8f14882
-Vorheriger HEAD: 66edd34 (lokaler Website-Commit, mit 8e0f549 gepusht)
+CI-Commit:       542fd8716ac7d63746d82dc162963fefa84e6e22
+Commit-Titel:    fix(ci): run checks on Node 24
+Erfolgreicher Run: 40130062502
 ```
 
-Der Lockfile-Fix wurde nach ausdrücklicher Freigabe committet und gepusht. Der
-Push enthielt den bereits vorhandenen lokalen Commit `66edd34`; das war
-Bestandteil der Freigabe.
-
-Aktuell uncommitted und **nicht** Teil von `8e0f549`:
-
-- `.github/workflows/ci.yml` (Node 24)
-- `package.json` (`engines.node >=24.11.0`)
-- `package-lock.json` (Engine-Eintrag)
-- `README.md`, `docs/TESTING.md`, `docs/DEPLOYMENT.md`, dieser Bericht
+Der Lockfile-Fix (`8e0f549`) und der Node-24-Fix (`542fd87`) wurden nach
+ausdrücklicher Freigabe committet und gepusht. Der erste Push enthielt den
+bereits vorhandenen lokalen Commit `66edd34`; das war Bestandteil der Freigabe.
 
 **Wichtig:** Im Arbeitsbaum existieren zusätzlich umfangreiche, nicht von dieser
 Phase stammende Änderungen anderer Bearbeiter (u. a. Account-, Admin- und
-Entwicklerbereiche). Sie wurden weder gelesen noch verändert, nicht gestaged und
-nicht gepusht. Der Clean-Test dieser Phase lief deshalb in einer separaten Kopie
-von `8e0f549` plus ausschließlich den CI-Dateien.
+Entwicklerbereiche). Sie wurden nicht verändert, nicht gestaged und nicht
+gepusht. Der Clean-Test dieser Phase lief deshalb in einer separaten Kopie von
+`8e0f549` plus ausschließlich den CI-Dateien, nicht im gemeinsam genutzten
+Arbeitsbaum.
 
 ---
 
@@ -160,6 +154,29 @@ ESM-Paketen:
 Jest 30 weist selbst auf die Lösung hin: Node 24.9+ unterstützt
 `require(esm)` nativ. Unter Node 22.14 schlägt auch das Setzen von
 `--experimental-require-module` fehl; das wurde lokal geprüft.
+
+### 4.3 Lauf 3 — Node 24, erfolgreich
+
+| Feld | Wert |
+|---|---|
+| Run-ID | `40130062502` |
+| Ereignis | `push` |
+| Commit | `542fd8716ac7d63746d82dc162963fefa84e6e22` |
+| Ergebnis | **success** |
+| URL | <https://github.com/HobbyScripter/webradio-website/actions/runs/40130062502> |
+
+| Job | Ergebnis |
+|---|---|
+| Lint | **success** |
+| Type Check | **success** |
+| Unit Tests | **success** (16 Suiten, 134 Tests) |
+| Integration (PostgreSQL) | **success** (54 Tests) |
+| Build | **success** (38 Seiten) |
+
+Damit ist die CI-Kette auf einem echten GitHub-Runner bestätigt. Die im
+Unit-Test-Job ausgeführte `npm audit --audit-level=critical` endete trotz der
+15 bekannten Findings mit Exit 0, weil keine kritischen Findings vorhanden
+sind.
 
 ---
 
@@ -272,13 +289,13 @@ brechen würde und daher nicht zulässig ist.
 
 | Datei | Änderung | Status |
 |---|---|---|
-| `package-lock.json` | npm-10-kompatibel; 8 fehlende Peer-Einträge; Engine `>=24.11.0` | Lockfile-Fix gepusht; Engine-Änderung uncommitted |
-| `.github/workflows/ci.yml` | alle fünf Jobs auf Node 24 | uncommitted |
-| `package.json` | `engines.node: >=24.11.0` | uncommitted |
-| `README.md` | CI-Historie, Node-Version | uncommitted |
-| `docs/DEPLOYMENT.md` | CI-Node-Version | uncommitted |
-| `docs/TESTING.md` | CI-Status und Node-24-Validierung | uncommitted |
-| `docs/PHASE4_7_REPORT.md` | dieser Bericht | uncommitted |
+| `package-lock.json` | npm-10-kompatibel; 8 fehlende Peer-Einträge; Engine `>=24.11.0` | gepusht |
+| `.github/workflows/ci.yml` | alle fünf Jobs auf Node 24 | gepusht |
+| `package.json` | `engines.node: >=24.11.0` | gepusht |
+| `README.md` | CI-Historie, Node-Version | gepusht |
+| `docs/DEPLOYMENT.md` | CI-Node-Version | gepusht |
+| `docs/TESTING.md` | CI-Status und Node-24-Validierung | gepusht |
+| `docs/PHASE4_7_REPORT.md` | dieser Bericht | gepusht |
 
 `.github/workflows/ci.yml` wurde erst geändert, nachdem Lauf 2 den
 Node-22/Jest-Fehler nachgewiesen hatte.
@@ -291,27 +308,27 @@ Node-22/Jest-Fehler nachgewiesen hatte.
 |---|---|
 | **Implementiert** | npm-10-Lockfile-Fix; CI auf Node 24; Engine-Anpassung |
 | **Lokal getestet** | `npm ci` mit npm 10.9.4, Type-Check, Lint, 134 Unit-Tests, 54 Integrationstests, `db:verify`, Build, Contract Emit — alles unter Node 24 |
-| **Real auf GitHub ausgeführt** | Run `40125408700` (Lockfile-Failure) und Run `40128763959` (Node-22/Jest-Failure); jeweils mit Job- und Log-Auswertung |
-| **Extern noch nicht bestätigt** | Ein grüner CI-Lauf des Node-24-Stands |
-| **Offen / Freigabe nötig** | Commit und Push der Node-24-Änderungen und Dokumentation |
+| **Real auf GitHub ausgeführt** | Run `40125408700` (Lockfile-Failure), Run `40128763959` (Node-22/Jest-Failure) und Run `40130062502` (alle fünf Jobs success) |
+| **Extern bestätigt** | CI-Lauf `40130062502` für Commit `542fd87` ist vollständig grün |
+| **Offen / Freigabe nötig** | nichts für diese CI-Reparatur; Audit-Maßnahmen bleiben separat |
 | **Nicht durchgeführt** | Deployment, Vercel-Test, SYSTEM_ADMIN-Bootstrap, Änderungen am Electron-Repository, Dependency-Major-Upgrades |
 
 ---
 
 ## 9. Nächste Schritte
 
-1. **Freigabe für Commit und Push** der Node-24-Änderungen erteilen. Der Push
-   enthält ausschließlich CI-, Engine-, Lockfile- und Dokumentationsänderungen;
-   die unfertigen parallelen Arbeitsbaumänderungen bleiben unangetastet.
-2. Den dritten Run beobachten und alle fünf Jobs einzeln prüfen. Erfolg ist erst
-   bestätigt, wenn Unit Tests und Integration PostgreSQL `success` melden.
-3. Bei einem weiteren Fehler die Logs des konkreten Jobs auswerten; keine
-   Erfolgsmeldung aus lokalen Läufen ableiten.
-4. `nodemailer`/`next-auth` erst in einer separaten, getesteten Änderung
+1. CI ist für diesen Stand bestätigt; kein weiterer Push für die Reparatur
+   erforderlich.
+2. `nodemailer`/`next-auth` erst in einer separaten, getesteten Änderung
    adressieren. Ein Upgrade auf Nodemailer 10 ist wegen des NextAuth-4-Peers
    `^7.0.7` nicht als reine Patch-Maßnahme geeignet.
-5. Optional `workflow_dispatch` ergänzen, damit künftige Läufe ohne neuen
+3. Optional `workflow_dispatch` ergänzen, damit künftige Läufe ohne neuen
    Commit manuell gestartet werden können.
+4. Optional die Actions-Versionen prüfen, um die Node-20-Deprecation-Warnungen
+   zu beseitigen; das ist kein CI-Fehler.
+5. Die parallelen Account-/Admin-/Entwickleränderungen separat prüfen und
+   erst nach deren Fertigstellung in die CI aufnehmen — sie waren nicht Teil
+   dieses Auftrags.
 
 ---
 
@@ -323,6 +340,6 @@ Node-22/Jest-Fehler nachgewiesen hatte.
 | Keine Änderung am Electron-Repository | erfüllt; nur lesende GitHub-API-Aufrufe |
 | Keine Produktionsdatenbank verändert | erfüllt; lokale Dev-/Test-DB |
 | Kein Bootstrap, kein Deployment | erfüllt |
-| Keine Commits/Pushes ohne Freigabe | erfüllt; erster Fix nach Freigabe, zweiter Fix noch uncommitted |
-| Keine erfundenen CI-Ergebnisse | erfüllt; beide Fehlschläge und der fehlende grüne Lauf sind ausdrücklich benannt |
+| Keine Commits/Pushes ohne Freigabe | erfüllt; beide Fixes wurden erst nach ausdrücklicher Freigabe gepusht |
+| Keine erfundenen CI-Ergebnisse | erfüllt; zwei Fehlschläge und der erfolgreiche Lauf sind mit Run-IDs belegt |
 | Verständlicher Bericht mit nächsten Schritten | erfüllt |

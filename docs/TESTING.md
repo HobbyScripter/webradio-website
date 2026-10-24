@@ -127,12 +127,12 @@ erreichbare Platzhalter-`DATABASE_URL` und wurde lokal in dieser Form
 ausgeführt.
 
 Die vollständige Befehlskette wurde lokal auf einer frischen
-PostgreSQL-Datenbank reproduziert. Zwei echte GitHub-Actions-Läufe zeigten
-nacheinander einen unvollständigen npm-10-Lockfile (`40125408700`) und einen
-Jest/ESM-Fehler unter Node 22 (`40128763959`). Beide Ursachen sind lokal
-behoben: CI nutzt jetzt Node 24, der Lockfile ist mit npm 10.9.4 erzeugt, und
-die komplette Kette wurde unter Node 24 in einer sauberen Kopie validiert. Ein
-grüner Lauf des aktuellen Stands steht noch aus. Details stehen im
+PostgreSQL-Datenbank reproduziert. Zwei echte GitHub-Actions-Läufe scheiterten
+nacheinander an einem unvollständigen npm-10-Lockfile (`40125408700`) und an
+einem Jest/ESM-Fehler unter Node 22 (`40128763959`). Beide Ursachen sind
+behoben: CI nutzt jetzt Node 24, der Lockfile ist mit npm 10.9.4 erzeugt. Run
+`40130062502` (Commit `542fd87`) ist in allen fünf Jobs erfolgreich,
+einschließlich 134 Unit-Tests und 54 Integrationstests. Details stehen im
 `PHASE4_7_REPORT.md`.
 
 Die GitHub-Tests sind vollständig gemockt. Sie benötigen weder Netzwerk noch
@@ -147,6 +147,4 @@ beim lokalen Build/Start gegen die öffentliche API geprüft.
 - Kein automatischer Browser-Test des NextAuth-Cookie-Flows.
 - Kein Last-/Performance-Test.
 - Kein visueller Regressionstest.
-- Keine erfolgreiche CI-Ausführung auf GitHub; die realen Läufe scheiterten
-  an Lockfile bzw. Node-22-Jest/ESM. Der Node-24-Fix ist lokal verifiziert,
-  aber noch nicht auf GitHub bestätigt.
+- CI ist auf GitHub bestätigt; Details im `PHASE4_7_REPORT.md`.
