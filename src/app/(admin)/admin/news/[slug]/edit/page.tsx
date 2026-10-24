@@ -12,6 +12,9 @@ import {
 } from '@/app/(admin)/admin/actions';
 import { ArrowLeftIcon, CheckIcon, EyeIcon } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 const NOTICES: Record<string, string> = {
   created: 'Artikel als Entwurf angelegt.',
   updated: 'Änderungen gespeichert.',

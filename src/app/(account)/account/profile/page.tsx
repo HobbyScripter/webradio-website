@@ -7,6 +7,7 @@ import { getSession } from 'next-auth/react';
 import { Container, SectionHeading } from '@/components/ui/layout';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { UserIcon, CheckIcon, AlertIcon, ArrowLeftIcon } from '@/components/ui/icons';
+import { accountErrorMessage } from '@/lib/account-messages';
 
 type ProfileFormData = {
   name: string;
@@ -89,7 +90,9 @@ export default function AccountProfilePage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || result.message || 'Fehler beim Speichern des Profils');
+        throw new Error(
+          accountErrorMessage(result.error, 'Fehler beim Speichern des Profils'),
+        );
       }
 
       setSuccess(

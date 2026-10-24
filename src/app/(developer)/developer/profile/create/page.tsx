@@ -12,6 +12,9 @@ import {
   CheckIcon,
 } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 export default async function CreateDeveloperProfilePage({
   searchParams,
 }: {

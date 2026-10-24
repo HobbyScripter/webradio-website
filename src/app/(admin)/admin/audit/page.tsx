@@ -6,6 +6,9 @@ import { formatDateTime } from '@/lib/format';
 import { ButtonLink } from '@/components/ui/button';
 import { BookIcon, SearchIcon } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 const ACTION_LABELS: Record<string, string> = {
   USER_REGISTERED: 'Benutzer registriert',
   USER_LOGIN: 'Benutzer angemeldet',

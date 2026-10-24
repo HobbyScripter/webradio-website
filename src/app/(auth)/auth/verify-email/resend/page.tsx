@@ -4,6 +4,9 @@ import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
 import ResendVerificationForm from './resend-form';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 async function ResendContent() {
   const session = await getServerAuthSession();
   if (!session) {

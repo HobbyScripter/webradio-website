@@ -7,6 +7,9 @@ import CatalogStatusBadge from '@/components/dashboard/CatalogStatusBadge';
 import { ArrowLeftIcon } from '@/components/ui/icons';
 import { createThemeVersionAction } from '@/app/(developer)/developer/actions';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 export default async function CreateThemeVersionPage({
   params,
   searchParams,

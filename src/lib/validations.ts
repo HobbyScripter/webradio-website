@@ -33,7 +33,7 @@ export const slugSchema = z
 
 // Only web URLs. `z.url()` alone also accepts schemes such as `javascript:` or
 // `data:`, which must never end up in an href rendered by the site.
-export const urlSchema = z.url().refine(
+export const urlSchema = z.url({ message: 'Nur HTTP(S)-URLs sind erlaubt.' }).refine(
   (value) => {
     try {
       const parsed = new URL(value);

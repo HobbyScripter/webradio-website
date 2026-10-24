@@ -12,6 +12,12 @@ import {
   MailIcon,
 } from '@/components/ui/icons';
 
+// Authenticated dashboard: the session, role and statistics are request data,
+// so this route must render on demand instead of being prerendered. The
+// `instant = false` opt-out covers this segment itself; a parent layout's
+// opt-out does not silence the validation of a child page.
+export const instant = false;
+
 export default async function SystemAdminDashboardPage() {
   await requireRoleSession('SYSTEM_ADMIN');
 

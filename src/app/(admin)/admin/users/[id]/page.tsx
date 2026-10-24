@@ -16,6 +16,9 @@ import {
   PaletteIcon,
 } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 const ROLE_CLASSES: Record<string, string> = {
   USER: 'bg-zinc-800 text-zinc-300',
   DEVELOPER: 'bg-violet-500/10 text-violet-400',

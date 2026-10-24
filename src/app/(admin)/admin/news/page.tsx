@@ -18,6 +18,9 @@ import {
   CheckIcon,
 } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 const STATUS_TABS = [
   { key: 'all', label: 'Alle' },
   { key: 'published', label: 'Veröffentlicht' },

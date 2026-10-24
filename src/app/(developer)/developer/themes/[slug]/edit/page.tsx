@@ -3,6 +3,9 @@ import { requireDeveloperSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import CatalogEntryEditor from '@/components/dashboard/CatalogEntryEditor';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 export default async function EditThemePage({
   params,
   searchParams,

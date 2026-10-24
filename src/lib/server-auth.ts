@@ -11,6 +11,7 @@
  *     client-supplied field and never a stale token claim).
  */
 import { getServerSession } from 'next-auth';
+import { connection } from 'next/server';
 import { authOptions } from './auth';
 import {
   UnauthorizedError,
@@ -44,6 +45,12 @@ export type ServerAuthSession = {
  * is missing, expired or revoked.
  */
 export async function getServerAuthSession(): Promise<ServerAuthSession | null> {
+  // next-auth derives a CSRF token from crypto randomness on every session
+  // read. That value is only valid at request time, so without this marker a
+  // Cache Components prerender of an authenticated route fails with
+  // "encountered the unstable value crypto.randomBytes while prerendering".
+  await connection();
+
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id || !session.user.sessionId) {

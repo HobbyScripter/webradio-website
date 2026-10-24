@@ -15,6 +15,9 @@ import {
   PencilIcon,
 } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 const SUBMISSION_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Entwurf',
   PENDING_REVIEW: 'In Prüfung',

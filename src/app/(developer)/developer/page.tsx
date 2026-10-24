@@ -13,6 +13,9 @@ import {
   ArrowRightIcon,
 } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 async function DeveloperContent() {
   const user = await requireDeveloperSession();
 

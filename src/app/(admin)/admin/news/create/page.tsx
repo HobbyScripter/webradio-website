@@ -4,6 +4,9 @@ import NewsForm from '@/components/dashboard/NewsForm';
 import { createNewsAction } from '@/app/(admin)/admin/actions';
 import { ArrowLeftIcon } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 export default async function CreateNewsPage({
   searchParams,
 }: {

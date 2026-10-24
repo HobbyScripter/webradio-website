@@ -4,6 +4,9 @@ import { db } from '@/lib/db';
 import { formatDate, formatDateTime } from '@/lib/format';
 import CatalogEntryDetail from '@/components/dashboard/CatalogEntryDetail';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 export default async function ThemeDetailPage({
   params,
   searchParams,

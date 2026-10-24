@@ -8,6 +8,9 @@ import { formatDate } from '@/lib/format';
 import { ButtonLink } from '@/components/ui/button';
 import { SearchIcon, ShieldIcon, UserIcon, CheckIcon, AlertIcon, ChevronRightIcon } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 const ROLE_CLASSES: Record<string, string> = {
   USER: 'bg-zinc-800 text-zinc-400',
   DEVELOPER: 'bg-violet-500/10 text-violet-400',

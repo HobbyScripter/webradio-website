@@ -13,6 +13,9 @@ import {
   AlertIcon,
 } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 async function AdminContent() {
   const user = await requireAdminSession();
   const emailConfigured = Boolean(process.env['EMAIL_SERVER_HOST']);

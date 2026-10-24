@@ -23,6 +23,12 @@ jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
 }));
 
+// The helper marks the session read as request-time. Outside a Next request
+// scope (plain Jest) `connection()` has nothing to await, so it resolves.
+jest.mock('next/server', () => ({
+  connection: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../auth', () => ({
   authOptions: {},
 }));

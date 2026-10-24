@@ -15,6 +15,9 @@ import {
   PencilIcon,
 } from '@/components/ui/icons';
 
+// Session-guarded page: renders on demand instead of being prerendered.
+export const instant = false;
+
 const FILTERS = [
   { key: '', label: 'Alle' },
   { key: 'DRAFT', label: 'Entwürfe' },

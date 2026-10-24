@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { verifyPassword, hashPassword, AuthError, logServerError } from '@/lib/auth-service';
+import { and, not } from '@prisma/orm-postgres/orm-client';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -65,8 +66,11 @@ export async function PUT(request: Request) {
       passwordHash: newPasswordHash,
     });
 
-    // Revoke all other sessions (security best practice)
-    await db.orm.public.Session.where({ userId: session.user.id }).delete();
+    // Revoke every other session but keep the one that performed the change,
+    // so the user is not silently logged out by their own password update.
+    await db.orm.public.Session.where((s) =>
+      and(s.userId.eq(session.user.id), not(s.id.eq(session.user.sessionId))),
+    ).delete();
 
     // Create audit log
     try {

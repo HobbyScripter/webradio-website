@@ -6,6 +6,7 @@ import { getSession, signOut } from 'next-auth/react';
 import { Container, SectionHeading } from '@/components/ui/layout';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { ShieldIcon, CheckIcon, AlertIcon, ArrowLeftIcon, TrashIcon, CalendarIcon } from '@/components/ui/icons';
+import { accountErrorMessage } from '@/lib/account-messages';
 
 type PasswordFormData = {
   currentPassword: string;
@@ -87,7 +88,9 @@ export default function AccountSecurityPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || result.message || 'Fehler beim Ändern des Passworts');
+        throw new Error(
+          accountErrorMessage(result.error, 'Fehler beim Ändern des Passworts'),
+        );
       }
 
       setSuccess('Passwort erfolgreich geändert!');
