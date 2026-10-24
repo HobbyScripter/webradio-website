@@ -127,9 +127,11 @@ erreichbare Platzhalter-`DATABASE_URL` und wurde lokal in dieser Form
 ausgeführt.
 
 Die vollständige Befehlskette wurde lokal auf einer frischen
-PostgreSQL-Datenbank reproduziert. Eine Ausführung auf GitHub Actions ist
-noch nicht erfolgt; das ist im `PHASE4_6_REPORT.md` als nicht extern
-verifiziert vermerkt.
+PostgreSQL-Datenbank reproduziert. Ein echter GitHub-Actions-Lauf
+(`40125408700`, Commit `6e5a5e3`) ist in allen fünf Jobs an `npm ci`
+gescheitert; der Lockfile-Fix ist lokal mit npm 10.9.4 und Node 22 validiert,
+aber noch nicht erneut auf GitHub ausgeführt. Details stehen im
+`PHASE4_7_REPORT.md`.
 
 Die GitHub-Tests sind vollständig gemockt. Sie benötigen weder Netzwerk noch
 GitHub-Zugangsdaten und schreiben nie in das Upstream-Repository. Ein echter
@@ -143,4 +145,5 @@ beim lokalen Build/Start gegen die öffentliche API geprüft.
 - Kein automatischer Browser-Test des NextAuth-Cookie-Flows.
 - Kein Last-/Performance-Test.
 - Kein visueller Regressionstest.
-- Keine CI-Ausführung auf GitHub (nur lokale Reproduktion der Schritte).
+- Keine erfolgreiche CI-Ausführung auf GitHub; der reale Lauf scheiterte am
+  Lockfile, der Fix ist nur lokal verifiziert.

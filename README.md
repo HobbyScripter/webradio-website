@@ -327,9 +327,13 @@ Requests aus (Token nur mit `contents: read`):
   Contract-Emit, `db:migrate`, `db:verify` und `npm run test:integration`
 - **Build:** Next.js Produktionsbuild
 
-Der Integration-Job wurde lokal mit derselben Datenbankkette ausgeführt. Eine
-Ausführung auf GitHub Actions selbst ist noch nicht erfolgt und wird im
-Abschlussbericht als nicht extern verifiziert gekennzeichnet.
+Der Integration-Job wurde lokal mit derselben Datenbankkette ausgeführt. Ein
+realer Lauf auf GitHub Actions (Run `40125408700`, Commit `6e5a5e3`) ist
+allerdings in allen fünf Jobs an `npm ci` gescheitert: Der Lockfile war mit
+einem neueren npm erzeugt worden und enthielt für npm 10 zwei fehlende
+Peer-Pakete. Der Lockfile-Fix ist lokal mit npm 10.9.4 validiert; ein neuer
+grüner Lauf steht noch aus. Details stehen im
+[Phase-4.7-Bericht](docs/PHASE4_7_REPORT.md).
 
 ## Dokumentation
 
@@ -344,6 +348,7 @@ Abschlussbericht als nicht extern verifiziert gekennzeichnet.
 - [Phase 4 Bericht — öffentliche Website](docs/PHASE4_REPORT.md)
 - [Phase 4.5 Bericht — Sicherheit, Cache, CI, Vercel](docs/PHASE4_5_REPORT.md)
 - [Phase 4.6 Bericht — CI, 404-Cache, Vercel-Vorbereitung](docs/PHASE4_6_REPORT.md)
+- [Phase 4.7 Bericht — realer CI-Lauf und Lockfile-Reparatur](docs/PHASE4_7_REPORT.md)
 - [GitHub-Integration — Release-Quelle und Projektinhalte](docs/GITHUB_INTEGRATION_REPORT.md)
 - [Deployment & Vercel-Readiness](docs/DEPLOYMENT.md)
 - [Legal- & Lizenz-Checkliste](docs/LEGAL_LAUNCH_CHECKLIST.md)
