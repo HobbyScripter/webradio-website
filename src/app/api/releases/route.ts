@@ -1,3 +1,4 @@
+import { io } from 'next/cache';
 import { GitHubError, getGitHubSnapshot } from '@/lib/github';
 import { publicJson } from '@/lib/public-api';
 
@@ -13,6 +14,10 @@ import { publicJson } from '@/lib/public-api';
  * cache and reports `source.stale` when it had to use older public data.
  */
 export async function GET() {
+  // Keep the route out of the build-time prerender attempt: GitHub is a
+  // runtime data source, and a build machine must not need network access.
+  await io();
+
   try {
     const snapshot = await getGitHubSnapshot();
 

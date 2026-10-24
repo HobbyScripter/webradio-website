@@ -68,12 +68,6 @@ export const metadata: Metadata = {
     follow: true,
   },
   ...(absoluteUrl("/") ? { alternates: { canonical: absoluteUrl("/") } } : {}),
-  icons: {
-    icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' },
-    ],
-  },
 };
 
 export const viewport: Viewport = {

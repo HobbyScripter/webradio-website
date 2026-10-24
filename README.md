@@ -1,6 +1,6 @@
 # WebRadio Website
 
-Die offizielle Website für das WebRadio-Projekt. Verwaltet Plugins, Themes, Releases, News und Community-Ressourcen.
+Die offizielle Website für das WebRadio-Desktop-Projekt. Sie präsentiert die Anwendung, verwaltet den Website-Katalog für freigegebene Plugins und Themes und zeigt offizielle Releases direkt aus dem GitHub-Repository `YourEliteSystems/WebRadio`.
 
 ## Tech Stack
 
@@ -147,10 +147,10 @@ PostgreSQL. Öffentlich sichtbar sind ausschließlich Einträge mit
 
 | Route | Inhalt |
 |---|---|
-| `/` | Startseite mit Live-Vorschau von Katalog und Releases |
+| `/` | Startseite mit Live-Vorschau von Katalog und GitHub-Releases |
 | `/plugins`, `/plugins/[slug]` | Plugin-Katalog und Detailseite |
 | `/themes`, `/themes/[slug]` | Theme-Katalog und Detailseite |
-| `/releases` | Stabile Releases und Beta-Builds aus der Datenbank |
+| `/releases` | Stabile Releases, Beta- und Alpha-Builds direkt aus GitHub |
 | `/docs` | Projektinformationen, Installation, API und Einschränkungen |
 | `/news`, `/news/[slug]` | Veröffentlichte und datierte Neuigkeiten |
 | `/roadmap` | Roadmap-Einträge aus der Datenbank |
@@ -158,6 +158,26 @@ PostgreSQL. Öffentlich sichtbar sind ausschließlich Einträge mit
 Öffentliche Read-only-API: `GET /api/plugins`, `GET /api/themes` (jeweils `q`,
 `sort=newest|name|downloads`, `page`), `GET /api/releases` und `GET /api/news`.
 Die Routen liefern keine E-Mail-Adressen, Sessions, Audit-Logs oder Entwürfe.
+
+### GitHub als maßgebliche Release-Quelle
+
+- Offizielle Releases, Release Notes, Kanäle und Download-Artefakte kommen
+  ausschließlich aus der GitHub REST API für `YourEliteSystems/WebRadio`.
+- Die Website-Datenbank enthält weiterhin ein historisches
+  `Release`/`Changelog`-Modell, veröffentlicht aber keine offiziellen
+  Releases mehr. Es wird nicht als Downloadquelle verwendet und nicht gelöscht.
+- Es werden nur öffentliche Releases ohne `draft` angezeigt. Assets werden auf
+  `.exe`, `.AppImage`, `.pkg.tar.zst`, `.deb` und `.dmg` begrenzt; Update-
+  Metadaten (`*.yml`, `*.blockmap`, `SHA256SUMS.txt`) sind keine Downloads.
+- Download-URLs müssen auf `github.com/YourEliteSystems/WebRadio/releases/download/`
+  zeigen. Dateigröße und SHA-256-Digest stammen aus den GitHub-Asset-Daten.
+- Erfolgreiche Antworten werden pro Serverinstanz fünf Minuten
+  zwischengespeichert. Bei einem Ausfall oder Rate-Limit dient ein höchstens
+  24 Stunden alter Bestand als ausdrücklich gekennzeichneter Fallback. Die
+  öffentliche API sendet `Cache-Control: no-store`; der Datenstand wird als
+  `source.fetchedAt` und `source.stale` ausgegeben.
+- Ohne Token gilt das öffentliche GitHub-Rate-Limit. Ein serverseitiger
+  `GITHUB_TOKEN` ist optional und wird nie an den Browser ausgeliefert.
 
 Ohne `NEXT_PUBLIC_SITE_URL` werden keine Canonical-URLs, Open-Graph-URLs oder
 Sitemap-Einträge erzeugt. Datenschutz und Impressum sind noch nicht
@@ -244,6 +264,7 @@ webradio-website/
 │   │   ├── server-auth.ts   # Serverseitige Session-/Rollenprüfung
 │   │   ├── catalog.ts       # Öffentliche Katalogabfragen (Freigabefilter)
 │   │   ├── catalog-query.ts # Suche, Sortierung, Pagination
+│   │   ├── github.ts        # Validierte GitHub-Release-/Repository-Daten
 │   │   ├── api-response.ts  # Fehler-Sanitisierung + Same-Origin-Schutz
 │   │   └── validations.ts   # Zod-Schemata
 │   └── proxy.ts             # Next.js-16-Proxy (Cookie-Check + uncachebarer 404)
@@ -287,6 +308,7 @@ Alle Variablen sind in [`.env.example`](.env.example) dokumentiert (nur Platzhal
 | Variable | Beschreibung |
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | Öffentliche Basis-URL; aktiviert Canonical-URLs, Open Graph und Sitemap |
+| `GITHUB_TOKEN` | Optionaler serverseitiger Token für höhere GitHub-API-Limits; niemals `NEXT_PUBLIC_*` |
 | `TEST_DATABASE_URL` | Ausschließlich für `npm run test:integration` (Name muss auf `_test` enden) |
 | `TRUST_PROXY` | `1` nur hinter einem Proxy, der `x-forwarded-for` überschreibt; sonst bleiben IP-Limits aus |
 | `EMAIL_FROM`, `EMAIL_SERVER_*` | SMTP für Reset- und Verifizierungsmails; ohne sie nur lokale Outbox |
@@ -322,5 +344,6 @@ Abschlussbericht als nicht extern verifiziert gekennzeichnet.
 - [Phase 4 Bericht — öffentliche Website](docs/PHASE4_REPORT.md)
 - [Phase 4.5 Bericht — Sicherheit, Cache, CI, Vercel](docs/PHASE4_5_REPORT.md)
 - [Phase 4.6 Bericht — CI, 404-Cache, Vercel-Vorbereitung](docs/PHASE4_6_REPORT.md)
+- [GitHub-Integration — Release-Quelle und Projektinhalte](docs/GITHUB_INTEGRATION_REPORT.md)
 - [Deployment & Vercel-Readiness](docs/DEPLOYMENT.md)
 - [Legal- & Lizenz-Checkliste](docs/LEGAL_LAUNCH_CHECKLIST.md)

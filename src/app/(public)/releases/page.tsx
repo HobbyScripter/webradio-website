@@ -209,7 +209,7 @@ function LatestSummary({ snapshot }: { snapshot: GitHubSnapshot }) {
   );
 }
 
-async function ReleasesContent() {
+export async function ReleasesContent() {
   await io();
 
   let snapshot: GitHubSnapshot;

@@ -3,10 +3,12 @@ import ReleaseAssets from '../public/ReleaseAssets';
 import ReleaseNotes from '../public/ReleaseNotes';
 import type { GitHubAsset } from '@/lib/github';
 
+const expectedDigest = 'sha256:' + 'a'.repeat(64);
+
 const asset: GitHubAsset = {
   name: 'WebRadio-1.0.6-win-x64.exe',
   size: 136641014,
-  digest: 'sha256:' + 'a'.repeat(64),
+  digest: expectedDigest,
   downloadUrl:
     'https://github.com/YourEliteSystems/WebRadio/releases/download/v1.0.6/WebRadio-1.0.6-win-x64.exe',
   platform: 'windows',
@@ -43,7 +45,7 @@ describe('ReleaseAssets', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.getByText(asset.name)).toBeInTheDocument();
     expect(screen.getByText('130,3 MB')).toBeInTheDocument();
-    expect(screen.getByText(asset.digest)).toBeInTheDocument();
+    expect(screen.getByText(expectedDigest)).toBeInTheDocument();
   });
 });
 

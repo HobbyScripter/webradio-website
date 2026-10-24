@@ -28,7 +28,7 @@ The WebRadio Website is a greenfield Next.js application for managing plugins, t
 
 ### External Services
 - **Object Storage** (TBD: AWS S3, Cloudflare R2, or similar) - File uploads and plugin/theme packages
-- **GitHub API** - Release synchronization and webhook handling
+- **GitHub REST API** - Read-only source for the official project metadata, README and public releases. No webhook, no write access and no release synchronization job.
 
 ## Project Structure
 
@@ -148,7 +148,7 @@ PostgreSQL.
 - `DeveloperProfile`: Extended profile for plugin/theme authors
 - `Plugin`/`Theme`: Content with versioning
 - `PluginVersion`/`ThemeVersion`: Version history with compatibility info
-- `Release`: Official WebRadio releases
+- `Release`: Historical release table retained for compatibility; official releases are read from GitHub and are not served from this table
 - `News`: Articles and announcements
 - `RoadmapItem`: Project roadmap tracking
 - `AuditLog`: Security and compliance logging
@@ -202,12 +202,23 @@ PostgreSQL.
 - Detail pages are blocking routes (`instant = false`) and use the proxy's
   pre-render existence check so an unknown slug returns a real `404`.
 - Public API routes (`/api/plugins`, `/api/themes`, `/api/releases`,
-  `/api/news`) are read-only, validate query parameters with Zod, return
-  `Cache-Control: no-store` (withdrawn content must disappear immediately),
-  and return generic `500` errors without driver details.
-- Releases use the existing `Release`/`Changelog` models. The channel is derived
-  from SemVer prerelease syntax; the contract has no platform field, so no
-  platform support is displayed.
+  `/api/news`) are read-only and return `Cache-Control: no-store` (withdrawn
+  content must disappear immediately). Catalogue routes validate query
+  parameters with Zod and return generic `500` errors without driver details.
+- `/api/releases` reads GitHub through `src/lib/github.ts`; the website database
+  is not involved. A GitHub outage returns `503` rather than guessed releases.
+  The legacy `Release`/`Changelog` tables remain in the contract but are not a
+  public release source.
+- GitHub releases are validated into a narrow DTO: draft releases are dropped,
+  `prerelease` determines the channel, and only `.exe`, `.AppImage`,
+  `.pkg.tar.zst`, `.deb` and `.dmg` assets from this repository's download path
+  are exposed. Update metadata (`*.yml`, `*.blockmap`, checksum text files) is
+  not presented as an installable artifact.
+- GitHub requests are server-only, time out after six seconds, validate the
+  repository identity and are capped at five minutes of per-instance caching.
+  A public-data snapshot up to 24 hours old can be shown as an explicitly
+  marked stale fallback. `GITHUB_TOKEN` is optional; no token is ever sent to
+  the browser.
 - SEO: metadata is defined per public page. Canonical URLs, Open Graph URLs and
   the sitemap are only emitted when `NEXT_PUBLIC_SITE_URL` is configured.
   `/admin`, `/developer` and `/auth` are marked `noindex` and disallowed in
@@ -232,10 +243,13 @@ PostgreSQL.
   filter in every public query.
 - **Cache:** public APIs and successful catalogue/detail responses are
   `no-store`; dynamic catalogue holes are request-rendered, so revoking an
-  entry changes the next HTML/API response. Exception: Next.js 16.4 still
-  attaches `s-maxage=31536000` to a rendered 404; no withdrawn content is
-  cached, but the negative 404 risk is documented in
-  `docs/PHASE4_5_REPORT.md`.
+  entry changes the next HTML/API response. Unknown or withdrawn detail slugs
+  are answered by `src/proxy.ts` with a direct `404` and `no-store` on browser,
+  CDN and Vercel levels, so a negative hit cannot hide a later publication.
+- **GitHub cache:** successful GitHub responses are cached per server instance
+  for five minutes and may be reused for at most 24 hours as a clearly marked
+  stale fallback. This is not a shared CDN cache, and public API responses stay
+  `no-store`; `source.fetchedAt` and `source.stale` make the data age explicit.
 
 ## Performance Optimizations
 
@@ -275,7 +289,7 @@ PostgreSQL.
 - Database sharding if needed (future)
 
 ### Background Jobs
-- GitHub synchronization via scheduled jobs
+- No GitHub synchronization job: public metadata and releases are read on demand and cached briefly
 - Email sending via queue system (TBD)
 - Package processing in background (TBD)
 

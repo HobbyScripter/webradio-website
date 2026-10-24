@@ -50,6 +50,7 @@ Seiten werden als statische Shell mit dynamischen Datenlücken gerendert.
 | `NEXTAUTH_SECRET` | Pflicht | Pflicht | Pflicht | JWT-/Cookie-Signierung |
 | `NEXTAUTH_URL` | `http://localhost:3000` | z. B. `https://<preview-host>` | `https://<produktions-domain>` | Cookies, E-Mail-Links, Origin |
 | `NEXT_PUBLIC_SITE_URL` | optional | optional | Produktionsdomain | Canonical, OG, Sitemap |
+| `GITHUB_TOKEN` | optional | optional | optional | serverseitiger GitHub-API-Token; niemals `NEXT_PUBLIC_*` |
 | `TRUST_PROXY` | leer | automatisch via `VERCEL=1` | automatisch via `VERCEL=1` | IP-Limits/Audit-IP |
 | `EMAIL_FROM` | optional | Pflicht für Versand | Pflicht für Versand | Absender |
 | `EMAIL_SERVER_HOST` | optional | Pflicht für Versand | Pflicht für Versand | SMTP |
@@ -164,6 +165,24 @@ Versionen prüfen, Migration auf leerer DB testen, `db:verify` ausführen.
 - Kein `Domain`-Attribut wird gesetzt; Cookies bleiben hostgebunden. Preview
   und Production teilen daher keine Cookie-Domain.
 
+## 6a. GitHub-Release-Quelle
+
+- Die Release-Seite und `/api/releases` lesen ausschließlich die öffentliche
+  GitHub REST API für `YourEliteSystems/WebRadio`. Drafts werden verworfen;
+  nur echte Release-Assets dieses Repositories werden als Download angeboten.
+- Erfolgreiche Antworten werden pro Serverinstanz fünf Minuten gehalten. Bei
+  Ausfall oder Rate-Limit wird ein bis zu 24 Stunden alter öffentlicher
+  Bestand als `stale` gekennzeichnet; ist kein Bestand vorhanden, antwortet die
+  API mit `503`. Die Antworten selbst sind `no-store`, damit ein CDN keine
+  veralteten Downloads zwischenspeichert.
+- Ohne `GITHUB_TOKEN` gilt das öffentliche Limit von 60 Anfragen pro Stunde und
+  IP. Bei mehreren Instanzen kann ein Token sinnvoll sein; er wird nur
+  serverseitig gelesen und gehört in die Vercel-Projekteinstellungen, nie in
+  `vercel.json`, das Repository oder ein `NEXT_PUBLIC_*`-Bundle.
+- Ein GitHub-Ausfall beeinflusst weder Login noch Datenbankzugriffe oder
+  Berechtigungsprüfungen. Die Seiten bleiben bedienbar und zeigen einen
+  Fehler- beziehungsweise Stale-Zustand.
+
 ## 7. Rate Limiting und Wartung
 
 Rate-Limits liegen in PostgreSQL (`RateLimitBucket`), damit sie über alle
@@ -253,6 +272,11 @@ npm run db:verify
 - [ ] `GET /api/health` → 200, keine internen Daten
 - [ ] Startseite, `/plugins`, `/themes`, `/releases`, `/docs` laden ohne
       Konsolen-/Netzwerkfehler
+- [ ] `/api/releases` → 200 mit `source.provider=github`, `fetchedAt` und
+      `stale`; Download-URLs zeigen auf `github.com/YourEliteSystems/WebRadio`
+- [ ] GitHub kurzzeitig nicht erreichbar → `/api/releases` 503 oder
+      ausdrücklich `stale: true`; keine erfundene Version, kein erfundener Link
+- [ ] Kein `GITHUB_TOKEN` im Browser-Bundle, in HTML oder in Logs
 - [ ] Login, Session-Cookie (`Secure`, `HttpOnly`, `SameSite=Lax`), Logout
 - [ ] Geschützte Seiten `/admin`, `/developer` ohne Session → Redirect
 - [ ] USER/DEVELOPER erhalten serverseitig keine Admin-Aktionen

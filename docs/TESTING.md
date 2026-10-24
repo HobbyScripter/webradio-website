@@ -1,6 +1,6 @@
 # WebRadio Website — Testing
 
-**Stand:** 2026-10-24 (Phase 4.5)
+**Stand:** 2026-10-24 (GitHub-Integration)
 
 Dieses Dokument beschreibt die **tatsächlich vorhandenen** Tests. Es gibt
 bewusst keine erfundenen Coverage-Ziele oder nicht installierten E2E-Tools.
@@ -61,7 +61,15 @@ Preview- oder Produktionsdatenbank wird vorher abgebrochen.
   Server-Session, fremde Origin → 403
 - Zod-Schemata inklusive WebRadio-Produktgrenze
 - Katalog-Suche, Sortierung, Pagination und URL-Aufbau
-- öffentliche API-Routen: Validierung, `no-store`, generische Fehler
+- öffentliche API-Routen: Validierung, `no-store`, generische Fehler,
+  GitHub-Release-Antwort und `503` bei GitHub-Ausfall
+- GitHub-Client (gemocktes `fetch`, keine Netzwerkzugriffe):
+  Repository-Identität und Produktgrenze, stabile/beta/alpha-Kanäle,
+  Draft-Filter, Asset-Whitelist und fremde Hosts, unvollständige Uploads,
+  Rate-Limit-/Timeout-/Payload-Fehler, fünfminütiger Cache und maximal
+  24 Stunden alter Stale-Fallback, README-Sanitisierung
+- Release-Komponenten: keine Download-Schaltfläche ohne Asset, exakte
+  GitHub-URL, Größe und Digest, Release Notes ohne HTML-Injektion
 - Auth-Routen: 429-Weitergabe, generische Reset-Antwort, Tokenfehler
 - NextAuth-Credentials-Guard: Konto-/IP-Bucket, Body bleibt lesbar
 - Server-Auth: DB-Session statt JWT-Claim, Rollen aus der DB
@@ -90,6 +98,8 @@ Preview- oder Produktionsdatenbank wird vorher abgebrochen.
 - Veröffentlichungsfilter für Plugins, Themes, News
 - Widerruf: Eintrag verschwindet aus Liste und Detail
 - Produktgrenze: DB-Check lehnt ein anderes Produkt ab
+- Legacy-`Release`/`Changelog`-Tabellen bleiben lesbar; die öffentliche
+  Release-API und Release-Seite verwenden sie nicht mehr
 - Rate-Limiting: Limit, atomare Parallelität, neues Zeitfenster,
   gehashter Schlüssel, Ablaufbereinigung
 - Passwort-Reset: Hash-only-Token, Einmalverwendung, Session-Widerruf,
@@ -120,6 +130,11 @@ Die vollständige Befehlskette wurde lokal auf einer frischen
 PostgreSQL-Datenbank reproduziert. Eine Ausführung auf GitHub Actions ist
 noch nicht erfolgt; das ist im `PHASE4_6_REPORT.md` als nicht extern
 verifiziert vermerkt.
+
+Die GitHub-Tests sind vollständig gemockt. Sie benötigen weder Netzwerk noch
+GitHub-Zugangsdaten und schreiben nie in das Upstream-Repository. Ein echter
+GitHub-Liveabruf ist kein Bestandteil der Testsuite; die Release-Seite wird
+beim lokalen Build/Start gegen die öffentliche API geprüft.
 
 ## 6. Nicht vorhanden / offen
 
