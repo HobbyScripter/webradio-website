@@ -113,6 +113,17 @@ export const pluginCreateSchema = z.object({
   name: z.string().min(1, 'Plugin name is required').max(100).trim(),
   description: z.string().min(10, 'Description must be at least 10 characters').max(2000).trim(),
   product: productSchema,
+  // `true` persists a draft (owner-only). Omitting it submits for review,
+  // which keeps the previous API behaviour for existing callers.
+  saveAsDraft: z.boolean().optional(),
+});
+
+export const themeCreateSchema = z.object({
+  slug: slugSchema,
+  name: z.string().min(1, 'Theme name is required').max(100).trim(),
+  description: z.string().min(10, 'Description must be at least 10 characters').max(2000).trim(),
+  product: productSchema,
+  saveAsDraft: z.boolean().optional(),
 });
 
 export const pluginVersionSchema = z.object({
@@ -136,13 +147,6 @@ export const pluginVersionSchema = z.object({
 // ---------------------------------------------------------------------------
 // Theme schemas
 // ---------------------------------------------------------------------------
-
-export const themeCreateSchema = z.object({
-  slug: slugSchema,
-  name: z.string().min(1, 'Theme name is required').max(100).trim(),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(2000).trim(),
-  product: productSchema,
-});
 
 // ---------------------------------------------------------------------------
 // Release schemas
@@ -171,6 +175,10 @@ export const newsCreateSchema = z.object({
   summary: z.string().max(500).trim().optional(),
   isPublished: z.boolean().default(false),
 });
+
+// Updates may change content without touching the publication state; publishing
+// is a separate, audited transition.
+export const newsUpdateSchema = newsCreateSchema.omit({ isPublished: true });
 
 // ---------------------------------------------------------------------------
 // Roadmap schemas
@@ -202,7 +210,34 @@ export const reviewTargetSchema = z.enum(['PLUGIN', 'THEME']);
 export const reviewResultSchema = z.enum(['APPROVED', 'REJECTED', 'CHANGES_REQUESTED']);
 
 // Catalog moderation states of a plugin or theme.
-export const pluginStatusSchema = z.enum(['PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED']);
+export const pluginStatusSchema = z.enum([
+  'DRAFT',
+  'PENDING_REVIEW',
+  'APPROVED',
+  'REJECTED',
+  'CHANGES_REQUESTED',
+  'ARCHIVED',
+]);
+
+export const themeStatusSchema = pluginStatusSchema;
+
+// Moderation decisions. A rejection or a change request must explain itself;
+// the refinement is re-checked in the service layer as well.
+export const moderationDecisionSchema = z
+  .object({
+    targetType: reviewTargetSchema,
+    targetId: z.string().min(1, 'Target ID is required'),
+    decision: reviewResultSchema,
+    notes: z.string().max(2000).trim().optional(),
+  })
+  .refine(
+    (value) =>
+      value.decision === 'APPROVED' || (value.notes?.trim().length ?? 0) >= 10,
+    {
+      message: 'Begründung erforderlich (mindestens 10 Zeichen).',
+      path: ['notes'],
+    },
+  );
 
 export const publicationReviewSchema = z.object({
   targetType: reviewTargetSchema,
@@ -226,6 +261,8 @@ export type PasswordResetConfirmInput = z.infer<typeof passwordResetConfirmSchem
 export type EmailVerificationInput = z.infer<typeof emailVerificationSchema>;
 export type DeveloperProfileInput = z.infer<typeof developerProfileSchema>;
 export type PluginCreateInput = z.infer<typeof pluginCreateSchema>;
+export type ModerationDecisionInput = z.infer<typeof moderationDecisionSchema>;
+export type CatalogStatus = z.infer<typeof pluginStatusSchema>;
 export type PluginVersionInput = z.infer<typeof pluginVersionSchema>;
 export type ThemeCreateInput = z.infer<typeof themeCreateSchema>;
 export type ReleaseCreateInput = z.infer<typeof releaseCreateSchema>;

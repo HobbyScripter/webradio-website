@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { connection } from 'next/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
@@ -11,6 +12,10 @@ import { UserIcon, SettingsIcon, ShieldIcon, CalendarIcon, CheckIcon, AlertIcon 
 export const instant = false;
 
 async function AccountDashboardContent() {
+  // Session reads go through next-auth, which builds a CSRF token from crypto
+  // randomness. Mark the access as request-time work so it is never evaluated
+  // during prerendering.
+  await connection();
   const session = await getServerAuthSession();
 
   if (!session?.user) {

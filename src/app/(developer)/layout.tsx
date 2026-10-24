@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
-import { hasRole } from '@/lib/auth-service';
+import { hasRole } from '@/lib/roles';
 import { db } from '@/lib/db';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import Link from 'next/link';
+import DashboardNav, { type DashboardNavItem } from '@/components/dashboard/DashboardNav';
+import DashboardBreadcrumbs from '@/components/dashboard/DashboardBreadcrumbs';
 import {
   CodeIcon,
   PlugIcon,
@@ -26,114 +28,39 @@ export const metadata: Metadata = {
 // have no static shell and are allowed to block on that lookup.
 export const instant = false;
 
-// Developer navigation items
-type NavItem = {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-  match: (path: string) => boolean;
-};
-
-const DEV_NAV_MAIN: NavItem[] = [
-  { 
-    label: 'Übersicht', 
-    href: '/developer', 
+const DEV_NAV_MAIN: DashboardNavItem[] = [
+  {
+    label: 'Übersicht',
+    href: '/developer',
     icon: <HomeIcon className="h-5 w-5" />,
-    match: (path: string) => path === '/developer' || path === '/developer/',
+    exact: true,
   },
   {
     label: 'Plugins',
     href: '/developer/plugins',
     icon: <PlugIcon className="h-5 w-5" />,
-    match: (path: string) => path.startsWith('/developer/plugins'),
   },
   {
     label: 'Themes',
     href: '/developer/themes',
     icon: <PaletteIcon className="h-5 w-5" />,
-    match: (path: string) => path.startsWith('/developer/themes'),
   },
   {
     label: 'Einreichungen',
     href: '/developer/submissions',
     icon: <CalendarIcon className="h-5 w-5" />,
-    match: (path: string) => path.startsWith('/developer/submissions'),
   },
-];
-
-const DEV_NAV_ACCOUNT: NavItem[] = [
   {
     label: 'Mein Profil',
     href: '/developer/profile',
     icon: <UserIcon className="h-5 w-5" />,
-    match: (path: string) => path.startsWith('/developer/profile'),
   },
   {
     label: 'Dokumentation',
     href: '/docs#website-katalog',
     icon: <BookIcon className="h-5 w-5" />,
-    match: (path: string) => path === '/docs#website-katalog',
   },
 ];
-
-function DeveloperSidebar({ currentPath, hasProfile }: { currentPath: string; hasProfile: boolean }) {
-  const navItems: NavItem[] = [...DEV_NAV_MAIN];
-  
-  // Only show profile link if user has a developer profile
-  if (hasProfile) {
-    navItems.push(...DEV_NAV_ACCOUNT);
-  }
-
-  return (
-    <nav aria-label="Entwickler-Navigation" className="w-64 shrink-0 pr-8">
-      <div className="sticky top-24">
-        <div className="mb-6">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
-            Entwicklerportal
-          </h2>
-          <ul className="space-y-1">
-            {navItems.map((item) => {
-              const isActive = item.match(currentPath);
-              
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
-                        : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                    }`}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        {!hasProfile && (
-          <div className="mt-6 p-4 rounded-xl bg-zinc-900/40 border border-dashed border-zinc-800">
-            <Link
-              href="/developer/profile/create"
-              className="flex items-center gap-2 text-sm font-medium text-violet-400 hover:text-violet-300"
-            >
-              <UserIcon className="h-4 w-4" />
-              Entwicklerprofil erstellen
-              <ChevronRightIcon className="h-4 w-4" />
-            </Link>
-            <p className="text-xs text-zinc-500 mt-2">
-              Erstelle ein Profil, um Plugins und Themes einzureichen
-            </p>
-          </div>
-        )}
-      </div>
-    </nav>
-  );
-}
 
 export default async function DeveloperLayout({
   children,
@@ -150,39 +77,30 @@ export default async function DeveloperLayout({
     redirect('/');
   }
 
-  // Check if user has developer profile
   const profile = await db.orm.public.DeveloperProfile.where({
     userId: session.user.id,
   }).first();
 
-  const hasProfile = !!profile;
-
+  const hasProfile = Boolean(profile);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100">
       <Header />
-      
-      {/* Developer Header */}
+
       <div className="border-b border-zinc-800 bg-zinc-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20">
+            <span className="rounded-md border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-xs font-semibold text-violet-400">
               Developer Portal
             </span>
             <span className="text-xs text-zinc-400">
-              Verwalte deine Plugins, Themes & Einreichungen
+              Verwalte deine Plugins, Themes &amp; Einreichungen
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href="/developer"
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
-            >
-              Übersicht
-            </Link>
-            <Link
               href="/docs#website-katalog"
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-600 hover:bg-violet-500 text-white transition-colors"
+              className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-violet-500"
             >
               Katalogregeln
             </Link>
@@ -190,12 +108,39 @@ export default async function DeveloperLayout({
         </div>
       </div>
 
-      <main id="main-content" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="flex gap-8">
-          <DeveloperSidebar currentPath="/developer" hasProfile={hasProfile} />
-          <div className="flex-1 min-w-0">
-            {children}
-          </div>
+      <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+        <DashboardBreadcrumbs rootLabel="Developer" rootHref="/developer" />
+        <div className="flex flex-col gap-8 lg:flex-row">
+          <DashboardNav
+            items={DEV_NAV_MAIN}
+            ariaLabel="Entwickler-Navigation"
+            heading="Entwicklerportal"
+            mobileLabel="Entwickler-Menü"
+            tone="violet"
+            footer={
+              !hasProfile ? (
+                <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 p-4">
+                  <Link
+                    href="/developer/profile/create"
+                    className="flex items-center gap-2 text-sm font-medium text-violet-400 hover:text-violet-300"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    Entwicklerprofil erstellen
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </Link>
+                  <p className="mt-2 text-xs text-zinc-500">
+                    Erstelle ein Profil, um Plugins und Themes einzureichen
+                  </p>
+                </div>
+              ) : (
+                <p className="flex items-center gap-2 px-1 text-xs text-zinc-500">
+                  <CodeIcon className="h-4 w-4 text-violet-400" />
+                  {profile?.displayName}
+                </p>
+              )
+            }
+          />
+          <div className="min-w-0 flex-1">{children}</div>
         </div>
       </main>
       <Footer />

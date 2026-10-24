@@ -13,9 +13,11 @@ import {
   LogoutIcon,
   ShieldIcon,
   CodeIcon,
+  ServerIcon,
   ChevronRightIcon
 } from '@/components/ui/icons';
 import { PRODUCT_REPOSITORY_URL } from '@/lib/site';
+import { getAccountNavItems, ROLE_LABELS, type AccountNavIcon } from '@/lib/roles';
 import type { Role } from '@/lib/validations';
 
 type NavItem = { label: string; href: string };
@@ -25,13 +27,6 @@ type MobileMenuProps = {
   isAuthenticated?: boolean;
   userEmail?: string;
   userRole?: Role;
-};
-
-const ROLE_LABELS: Record<Role, string> = {
-  USER: 'Benutzer',
-  DEVELOPER: 'Entwickler',
-  ADMIN: 'Administrator',
-  SYSTEM_ADMIN: 'Systemadministrator',
 };
 
 const ROLE_COLORS: Record<Role, string> = {
@@ -70,30 +65,23 @@ export default function MobileMenu({
     await signOut({ callbackUrl: '/' });
   };
 
-  // Account-Navigationslinks basierend auf Rolle
-  const getAccountLinks = () => {
-    const links: { label: string; href: string; icon: React.ReactNode }[] = [
-      { label: 'Mein Konto', href: '/account', icon: <UserIcon className="h-4 w-4" /> },
-      { label: 'Profil', href: '/account/profile', icon: <SettingsIcon className="h-4 w-4" /> },
-      { label: 'Sicherheit', href: '/account/security', icon: <ShieldIcon className="h-4 w-4" /> },
-    ];
-
-    if (userRole === 'DEVELOPER' || userRole === 'ADMIN' || userRole === 'SYSTEM_ADMIN') {
-      links.push({ label: 'Developer-Dashboard', href: '/developer', icon: <CodeIcon className="h-4 w-4" /> });
+  function NavIcon({ name }: { name: AccountNavIcon }) {
+    switch (name) {
+      case 'settings':
+        return <SettingsIcon className="h-4 w-4" />;
+      case 'shield':
+        return <ShieldIcon className="h-4 w-4" />;
+      case 'code':
+        return <CodeIcon className="h-4 w-4" />;
+      case 'server':
+        return <ServerIcon className="h-4 w-4" />;
+      default:
+        return <UserIcon className="h-4 w-4" />;
     }
+  }
 
-    if (userRole === 'ADMIN' || userRole === 'SYSTEM_ADMIN') {
-      links.push({ label: 'Admin-Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> });
-    }
-
-    if (userRole === 'SYSTEM_ADMIN') {
-      links.push({ label: 'Systemverwaltung', href: '/system-admin', icon: <ShieldIcon className="h-4 w-4" /> });
-    }
-
-    return links;
-  };
-
-  const accountLinks = getAccountLinks();
+  // Role-dependent links come from the shared account navigation table.
+  const accountLinks = getAccountNavItems(userRole);
 
   return (
     <div className="md:hidden">
@@ -176,7 +164,7 @@ export default function MobileMenu({
                   <nav aria-label="Konto-Navigation" className="ml-4 mt-1 space-y-1">
                     {accountLinks.map((link) => (
                       <Link
-                        key={link.href}
+                        key={link.key}
                         href={link.href}
                         onClick={() => {
                           setMenuOpen(false);
@@ -184,7 +172,7 @@ export default function MobileMenu({
                         }}
                         className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-white"
                       >
-                        {link.icon}
+                        <NavIcon name={link.icon} />
                         {link.label}
                       </Link>
                     ))}

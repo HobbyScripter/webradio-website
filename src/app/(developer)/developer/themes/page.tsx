@@ -36,7 +36,12 @@ const THEME_STATUS_BG: Record<string, string> = {
   ARCHIVED: 'bg-zinc-500/10 border border-zinc-500/20',
 };
 
-async function ThemeContent({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+async function ThemeContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedSearchParams = await searchParams;
   const user = await requireDeveloperSession();
 
   // Get developer profile
@@ -58,8 +63,10 @@ async function ThemeContent({ searchParams }: { searchParams: { [key: string]: s
   }
 
   // Get search and filter parameters
-  const search = typeof searchParams.search === 'string' ? searchParams.search : '';
-  const statusFilter = typeof searchParams.status === 'string' ? searchParams.status : '';
+  const search =
+    typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : '';
+  const statusFilter =
+    typeof resolvedSearchParams.status === 'string' ? resolvedSearchParams.status : '';
 
   // Get all themes by this developer
   let themes = await db.orm.public.Theme.where({ developerId: profile.id }).all();
@@ -293,7 +300,7 @@ async function ThemeContent({ searchParams }: { searchParams: { [key: string]: s
 export default function ThemesPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   return (
     <Suspense

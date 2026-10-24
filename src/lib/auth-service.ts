@@ -19,7 +19,11 @@ import crypto from 'crypto';
 import bcryptjs from 'bcryptjs';
 import { or } from '@prisma/orm-postgres/orm-client';
 import { db } from './db';
+import { hasRole } from './roles';
 import type { AssignableRole, Role, RegisterInput } from './validations';
+
+// Re-exported so every existing server-side import keeps one hierarchy.
+export { hasRole } from './roles';
 
 const BCRYPT_ROUNDS = 12;
 const SESSION_MAX_AGE_DAYS = 30;
@@ -426,16 +430,6 @@ export async function revokeDatabaseSessionById(sessionId: string) {
  * ADMIN satisfies. The rank is the single source of truth for hierarchy, so a
  * new role cannot accidentally become an admin-level role by string equality.
  */
-const ROLE_RANK: Record<Role, number> = {
-  USER: 0,
-  DEVELOPER: 1,
-  ADMIN: 2,
-  SYSTEM_ADMIN: 3,
-};
-
-export function hasRole(userRole: Role, requiredRole: Role): boolean {
-  return ROLE_RANK[userRole] >= ROLE_RANK[requiredRole];
-}
 
 export function assertRole(userRole: Role, requiredRole: Role): void {
   if (!hasRole(userRole, requiredRole)) {

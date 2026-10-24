@@ -15,9 +15,10 @@ export default async function EditPluginPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
+  const { slug } = await params;
   const { error } = await searchParams;
   const user = await requireDeveloperSession();
 
@@ -32,7 +33,7 @@ export default async function EditPluginPage({
 
   // Get plugin by slug
   const plugin = await db.orm.public.Plugin.where({
-    slug: params.slug,
+    slug,
     developerId: profile.id,
   }).first();
 
@@ -59,7 +60,7 @@ export default async function EditPluginPage({
     }
 
     const plugin = await db.orm.public.Plugin.where({
-      slug: params.slug,
+      slug,
       developerId: profile.id,
     }).first();
 
@@ -77,7 +78,7 @@ export default async function EditPluginPage({
     const parsed = pluginCreateSchema.safeParse(rawData);
     if (!parsed.success) {
       redirect(
-        `/developer/plugins/${params.slug}/edit?error=${encodeURIComponent(
+        `/developer/plugins/${slug}/edit?error=${encodeURIComponent(
           parsed.error.issues.map((i) => i.message).join(', '),
         )}`,
       );
@@ -89,7 +90,7 @@ export default async function EditPluginPage({
       const existingPlugin = await db.orm.public.Plugin.first({ slug: parsed.data.slug });
       if (existingPlugin && existingPlugin.id !== plugin.id) {
         redirect(
-          `/developer/plugins/${params.slug}/edit?error=${encodeURIComponent(
+          `/developer/plugins/${slug}/edit?error=${encodeURIComponent(
             'Plugin-Slug ist bereits vergeben',
           )}`,
         );

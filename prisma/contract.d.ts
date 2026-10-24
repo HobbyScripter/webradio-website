@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'2eaf80b7361587d3661b4d4e4f329dc8ce6242623010563378fe4871023dacab'>;
+  StorageHashBase<'8116d0696aa09b6976cfc453f7c9db1cf55107d54bc492483cc3146e9673671c'>;
 export type ExecutionHash =
   ExecutionHashBase<'e73ce013d2074ea332be257777069e436fde1c5fed6d37b3d80dba38bd1e2899'>;
 export type ProfileHash =
@@ -250,8 +250,10 @@ type FieldTypeOverrides = {
       readonly Plugin: {
         readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
         readonly status: {
-          readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
-          readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+          readonly output:
+            'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
+          readonly input:
+            'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
         };
       };
       readonly PublicationReview: {
@@ -276,8 +278,10 @@ type FieldTypeOverrides = {
       readonly Theme: {
         readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
         readonly status: {
-          readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
-          readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+          readonly output:
+            'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
+          readonly input:
+            'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
         };
       };
       readonly User: {
@@ -314,8 +318,10 @@ type ColumnTypeOverrides = {
     readonly Plugin: {
       readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
       readonly status: {
-        readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
-        readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+        readonly output:
+          'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
+        readonly input:
+          'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
       };
     };
     readonly PublicationReview: {
@@ -340,8 +346,10 @@ type ColumnTypeOverrides = {
     readonly Theme: {
       readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
       readonly status: {
-        readonly output: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
-        readonly input: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+        readonly output:
+          'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
+        readonly input:
+          'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED' | 'ARCHIVED';
       };
     };
     readonly User: {
@@ -2216,7 +2224,14 @@ type ContractBase = Omit<
             };
             readonly PluginStatus: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED'];
+              readonly values: readonly [
+                'DRAFT',
+                'PENDING_REVIEW',
+                'APPROVED',
+                'REJECTED',
+                'CHANGES_REQUESTED',
+                'ARCHIVED',
+              ];
             };
             readonly Product: { readonly kind: 'valueSet'; readonly values: readonly ['WEBRADIO'] };
             readonly ReviewResult: {
@@ -2237,7 +2252,14 @@ type ContractBase = Omit<
             };
             readonly ThemeStatus: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED'];
+              readonly values: readonly [
+                'DRAFT',
+                'PENDING_REVIEW',
+                'APPROVED',
+                'REJECTED',
+                'CHANGES_REQUESTED',
+                'ARCHIVED',
+              ];
             };
           };
         };
@@ -3711,9 +3733,11 @@ type ContractBase = Omit<
           readonly PluginStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
+              { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
               { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
               { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
               { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+              { readonly name: 'CHANGES_REQUESTED'; readonly value: 'CHANGES_REQUESTED' },
               { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
             ];
           };
@@ -3757,9 +3781,11 @@ type ContractBase = Omit<
           readonly ThemeStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
+              { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
               { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
               { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
               { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+              { readonly name: 'CHANGES_REQUESTED'; readonly value: 'CHANGES_REQUESTED' },
               { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
             ];
           };
@@ -3770,9 +3796,11 @@ type ContractBase = Omit<
             { readonly name: 'PASSWORD_RESET'; readonly value: 'PASSWORD_RESET' },
           ];
           readonly PluginStatus: readonly [
+            { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
             { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
             { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
             { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+            { readonly name: 'CHANGES_REQUESTED'; readonly value: 'CHANGES_REQUESTED' },
             { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
           ];
           readonly Product: readonly [{ readonly name: 'WEBRADIO'; readonly value: 'WEBRADIO' }];
@@ -3798,9 +3826,11 @@ type ContractBase = Omit<
             { readonly name: 'SYSTEM_ADMIN'; readonly value: 'SYSTEM_ADMIN' },
           ];
           readonly ThemeStatus: readonly [
+            { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
             { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
             { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
             { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+            { readonly name: 'CHANGES_REQUESTED'; readonly value: 'CHANGES_REQUESTED' },
             { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
           ];
         };

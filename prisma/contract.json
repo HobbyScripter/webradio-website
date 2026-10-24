@@ -106,6 +106,10 @@
             "codecId": "pg/text@1",
             "members": [
               {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
                 "name": "PENDING_REVIEW",
                 "value": "PENDING_REVIEW"
               },
@@ -116,6 +120,10 @@
               {
                 "name": "REJECTED",
                 "value": "REJECTED"
+              },
+              {
+                "name": "CHANGES_REQUESTED",
+                "value": "CHANGES_REQUESTED"
               },
               {
                 "name": "ARCHIVED",
@@ -208,6 +216,10 @@
             "codecId": "pg/text@1",
             "members": [
               {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
                 "name": "PENDING_REVIEW",
                 "value": "PENDING_REVIEW"
               },
@@ -218,6 +230,10 @@
               {
                 "name": "REJECTED",
                 "value": "REJECTED"
+              },
+              {
+                "name": "CHANGES_REQUESTED",
+                "value": "CHANGES_REQUESTED"
               },
               {
                 "name": "ARCHIVED",
@@ -2979,8 +2995,8 @@
                   "prefix": "Plugin_product_check"
                 },
                 {
-                  "expression": "\"status\" IN ('PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED')",
-                  "name": "Plugin_status_check_ee930c87",
+                  "expression": "\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED')",
+                  "name": "Plugin_status_check_d5a30912",
                   "prefix": "Plugin_status_check"
                 }
               ],
@@ -3861,8 +3877,8 @@
                   "prefix": "Theme_product_check"
                 },
                 {
-                  "expression": "\"status\" IN ('PENDING_REVIEW', 'APPROVED', 'REJECTED', 'ARCHIVED')",
-                  "name": "Theme_status_check_ee930c87",
+                  "expression": "\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED')",
+                  "name": "Theme_status_check_d5a30912",
                   "prefix": "Theme_status_check"
                 }
               ],
@@ -4376,9 +4392,11 @@
             "PluginStatus": {
               "kind": "valueSet",
               "values": [
+                "DRAFT",
                 "PENDING_REVIEW",
                 "APPROVED",
                 "REJECTED",
+                "CHANGES_REQUESTED",
                 "ARCHIVED"
               ]
             },
@@ -4424,9 +4442,11 @@
             "ThemeStatus": {
               "kind": "valueSet",
               "values": [
+                "DRAFT",
                 "PENDING_REVIEW",
                 "APPROVED",
                 "REJECTED",
+                "CHANGES_REQUESTED",
                 "ARCHIVED"
               ]
             }
@@ -4436,7 +4456,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "2eaf80b7361587d3661b4d4e4f329dc8ce6242623010563378fe4871023dacab"
+    "storageHash": "8116d0696aa09b6976cfc453f7c9db1cf55107d54bc492483cc3146e9673671c"
   },
   "execution": {
     "executionHash": "e73ce013d2074ea332be257777069e436fde1c5fed6d37b3d80dba38bd1e2899",

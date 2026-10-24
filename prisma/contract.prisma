@@ -138,9 +138,13 @@ model Plugin {
 }
 
 enum PluginStatus {
+  // Persisted draft: only the owner sees it, never a moderator or the public.
+  DRAFT
   PENDING_REVIEW
   APPROVED
   REJECTED
+  // Reviewer asked the developer for changes; editable and resubmittable.
+  CHANGES_REQUESTED
   ARCHIVED
 }
 
@@ -218,9 +222,13 @@ model Theme {
 }
 
 enum ThemeStatus {
+  // Persisted draft: only the owner sees it, never a moderator or the public.
+  DRAFT
   PENDING_REVIEW
   APPROVED
   REJECTED
+  // Reviewer asked the developer for changes; editable and resubmittable.
+  CHANGES_REQUESTED
   ARCHIVED
 }
 

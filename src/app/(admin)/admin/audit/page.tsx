@@ -40,15 +40,20 @@ const ACTION_LABELS: Record<string, string> = {
 async function AuditContent({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const user = await requireAdminSession();
+  const resolvedSearchParams = await searchParams;
 
   // Get filter parameters
-  const search = typeof searchParams.search === 'string' ? searchParams.search : '';
-  const actionFilter = typeof searchParams.action === 'string' ? searchParams.action : '';
-  const userFilter = typeof searchParams.userId === 'string' ? searchParams.userId : '';
-  const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1;
+  const search =
+    typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : '';
+  const actionFilter =
+    typeof resolvedSearchParams.action === 'string' ? resolvedSearchParams.action : '';
+  const userFilter =
+    typeof resolvedSearchParams.userId === 'string' ? resolvedSearchParams.userId : '';
+  const page =
+    typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
   const limit = 20;
   const offset = (page - 1) * limit;
 
@@ -256,7 +261,7 @@ async function AuditContent({
 export default function AuditPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   return (
     <Suspense

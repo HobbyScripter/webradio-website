@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { connection } from 'next/server';
 import Link from 'next/link';
 import { getServerAuthSession } from '@/lib/server-auth';
 import Brand from './Brand';
@@ -16,12 +17,15 @@ const NAV_ITEMS = [
   { label: 'Neuigkeiten', href: '/news' },
 ] as const;
 
-/** Signed-out controls, used for anonymous visitors and as the streaming fallback. */
+/** Signed-out controls, used for anonymous visitors. */
 function SignedOutControls() {
   return (
     <>
       <ButtonLink href="/developer" variant="ghost" size="sm">
         Entwickler
+      </ButtonLink>
+      <ButtonLink href="/auth/register" variant="ghost" size="sm">
+        Registrieren
       </ButtonLink>
       <ButtonLink href="/auth/login" size="sm">
         Anmelden
@@ -31,22 +35,53 @@ function SignedOutControls() {
 }
 
 /**
+ * Neutral placeholder while the session streams in.
+ *
+ * It deliberately does not render the signed-out buttons: a logged-in visitor
+ * would otherwise see "Anmelden" for a moment on every page load. It keeps the
+ * same footprint so the header does not shift when the real controls arrive.
+ */
+function AccountControlsPlaceholder() {
+  return (
+    <div className="flex items-center gap-2" aria-hidden="true">
+      <div className="h-8 w-20 animate-pulse rounded-lg bg-white/[0.05]" />
+      <div className="h-8 w-24 animate-pulse rounded-lg bg-white/[0.07]" />
+    </div>
+  );
+}
+
+function MobileMenuPlaceholder() {
+  return (
+    <div className="md:hidden" aria-hidden="true">
+      <div className="h-9 w-9 animate-pulse rounded-lg bg-white/[0.05]" />
+    </div>
+  );
+}
+
+/**
  * Session-dependent desktop controls. Reading cookies here would otherwise make
  * every page that renders the header dynamic, so the lookup sits behind the
  * Suspense boundary in `Header` and only this subtree streams.
  */
 async function HeaderAccountControls() {
+  // next-auth builds a CSRF token from crypto randomness on every session read,
+  // which is only allowed at request time. `connection()` marks this subtree as
+  // dynamic so the random value is never produced during prerendering.
+  await connection();
   const session = await getServerAuthSession();
 
   if (!session?.user) {
     return <SignedOutControls />;
   }
 
-  return <AccountDropdown email={session.user.email ?? ''} role={session.user.role ?? 'USER'} />;
+  return (
+    <AccountDropdown email={session.user.email ?? ''} role={session.user.role ?? 'USER'} />
+  );
 }
 
-/** Session-aware mobile menu; renders the signed-out menu while the session loads. */
+/** Session-aware mobile menu; renders nothing account-specific while loading. */
 async function HeaderMobileMenu() {
+  await connection();
   const session = await getServerAuthSession();
 
   return (
@@ -91,19 +126,13 @@ export default function Header() {
             <GitHubIcon className="h-[18px] w-[18px]" />
           </a>
 
-          <Suspense
-            fallback={
-              <div className="flex items-center gap-2">
-                <SignedOutControls />
-              </div>
-            }
-          >
+          <Suspense fallback={<AccountControlsPlaceholder />}>
             <HeaderAccountControls />
           </Suspense>
         </div>
 
         {/* Mobile Menu */}
-        <Suspense fallback={<MobileMenu items={NAV_ITEMS} />}>
+        <Suspense fallback={<MobileMenuPlaceholder />}>
           <HeaderMobileMenu />
         </Suspense>
       </div>

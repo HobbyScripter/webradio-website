@@ -1,29 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { signOut } from 'next-auth/react';
-import { ButtonLink } from '@/components/ui/button';
 import {
   ChevronDownIcon,
   UserIcon,
   SettingsIcon,
   LogoutIcon,
   ShieldIcon,
-  CodeIcon
+  CodeIcon,
+  ServerIcon,
 } from '@/components/ui/icons';
+import { getAccountNavItems, ROLE_LABELS, type AccountNavIcon } from '@/lib/roles';
 import type { Role } from '@/lib/validations';
 
 type AccountDropdownProps = {
   email: string;
   role: Role;
-};
-
-const ROLE_LABELS: Record<Role, string> = {
-  USER: 'Benutzer',
-  DEVELOPER: 'Entwickler',
-  ADMIN: 'Administrator',
-  SYSTEM_ADMIN: 'Systemadministrator',
 };
 
 const ROLE_COLORS: Record<Role, string> = {
@@ -40,117 +34,168 @@ const ROLE_BG_COLORS: Record<Role, string> = {
   SYSTEM_ADMIN: 'bg-rose-500/10',
 };
 
-// Icons für Rollen
-const ROLE_ICONS: Record<Role, React.ReactNode> = {
-  USER: <UserIcon className="h-4 w-4" />,
-  DEVELOPER: <CodeIcon className="h-4 w-4" />,
-  ADMIN: <ShieldIcon className="h-4 w-4" />,
-  SYSTEM_ADMIN: <ShieldIcon className="h-4 w-4" />,
-};
+function NavIcon({ name }: { name: AccountNavIcon }) {
+  switch (name) {
+    case 'settings':
+      return <SettingsIcon className="h-4 w-4" />;
+    case 'shield':
+      return <ShieldIcon className="h-4 w-4" />;
+    case 'code':
+      return <CodeIcon className="h-4 w-4" />;
+    case 'server':
+      return <ServerIcon className="h-4 w-4" />;
+    case 'logout':
+      return <LogoutIcon className="h-4 w-4" />;
+    case 'user':
+    default:
+      return <UserIcon className="h-4 w-4" />;
+  }
+}
 
 export default function AccountDropdown({ email, role }: AccountDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
-  // Schließe Dropdown bei Klick außerhalb
+  const links = getAccountNavItems(role);
+
+  const focusableItems = () =>
+    Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
+    );
+
+  const close = (restoreFocus = false) => {
+    setIsOpen(false);
+    if (restoreFocus) {
+      buttonRef.current?.focus();
+    }
+  };
+
+  // Click outside closes the menu without stealing focus.
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    if (!isOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
   }, [isOpen]);
 
-  // Tastatursteuerung
+  // Escape closes from anywhere; arrows and Home/End move focus within the menu.
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        event.preventDefault();
+        close(true);
+        return;
+      }
+
+      const items = focusableItems();
+      if (items.length === 0) {
+        return;
+      }
+
+      const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const next = currentIndex < 0 ? 0 : (currentIndex + 1) % items.length;
+        items[next]?.focus();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        const previous =
+          currentIndex < 0 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+        items[previous]?.focus();
+      } else if (event.key === 'Home') {
+        event.preventDefault();
+        items[0]?.focus();
+      } else if (event.key === 'End') {
+        event.preventDefault();
+        items[items.length - 1]?.focus();
+      } else if (event.key === 'Tab') {
+        // Let Tab continue through the page, but close the menu first.
         setIsOpen(false);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isOpen]);
 
   const handleLogout = async () => {
+    // Full navigation after the session is revoked, so every server component
+    // (header included) renders the signed-out state immediately.
     await signOut({ callbackUrl: '/' });
   };
 
-  // Rollenabhängige Navigationslinks
-  const getRoleLinks = () => {
-    const links: { label: string; href: string; icon: React.ReactNode }[] = [];
-
-    // Alle Benutzer
-    links.push({ label: 'Mein Konto', href: '/account', icon: <UserIcon className="h-4 w-4" /> });
-    links.push({ label: 'Profil', href: '/account/profile', icon: <SettingsIcon className="h-4 w-4" /> });
-    links.push({ label: 'Sicherheit', href: '/account/security', icon: <ShieldIcon className="h-4 w-4" /> });
-
-    // Entwickler und höher
-    if (role === 'DEVELOPER' || role === 'ADMIN' || role === 'SYSTEM_ADMIN') {
-      links.push({ label: 'Developer-Dashboard', href: '/developer', icon: <CodeIcon className="h-4 w-4" /> });
-    }
-
-    // Admin und höher
-    if (role === 'ADMIN' || role === 'SYSTEM_ADMIN') {
-      links.push({ label: 'Admin-Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> });
-    }
-
-    // Nur SYSTEM_ADMIN
-    if (role === 'SYSTEM_ADMIN') {
-      links.push({ label: 'Systemverwaltung', href: '/system-admin', icon: <ShieldIcon className="h-4 w-4" /> });
-    }
-
-    return links;
-  };
-
-  const roleLinks = getRoleLinks();
-
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={containerRef}>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => setIsOpen((previous) => !previous)}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown' && !isOpen) {
+            event.preventDefault();
+            setIsOpen(true);
+            // Focus moves to the first item after the menu renders.
+            window.setTimeout(() => focusableItems()[0]?.focus(), 0);
+          }
+        }}
         aria-expanded={isOpen}
-        aria-haspopup="true"
+        aria-haspopup="menu"
+        aria-controls={isOpen ? menuId : undefined}
         aria-label={`Konto-Menü für ${email} öffnen`}
         className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-zinc-100 transition-colors hover:border-white/[0.12] hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07070a]"
       >
         <span className="flex items-center gap-1.5">
-          <span className={`flex h-6 w-6 items-center justify-center rounded-md ${ROLE_BG_COLORS[role]}`}>
-            {ROLE_ICONS[role]}
+          <span
+            className={`flex h-6 w-6 items-center justify-center rounded-md ${ROLE_BG_COLORS[role]}`}
+          >
+            <UserIcon className="h-4 w-4" />
           </span>
-          <span className="hidden sm:inline truncate max-w-[120px]">{email}</span>
+          <span className="hidden max-w-[120px] truncate sm:inline">{email}</span>
         </span>
-        <span className={`hidden sm:inline text-xs font-medium ${ROLE_COLORS[role]} px-1.5 py-0.5 rounded-md bg-opacity-20`}>
+        <span
+          className={`hidden rounded-md px-1.5 py-0.5 text-xs font-medium sm:inline ${ROLE_COLORS[role]}`}
+        >
           {ROLE_LABELS[role]}
         </span>
-        <ChevronDownIcon className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDownIcon
+          className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
-      {/* Dropdown-Menü */}
-      {isOpen && (
+      {isOpen ? (
         <div
+          id={menuId}
+          ref={menuRef}
           role="menu"
           aria-label="Konto-Aktionen"
-          className="absolute right-0 mt-2 w-56 rounded-xl border border-white/[0.08] bg-[#07070a] shadow-2xl shadow-black/60 backdrop-blur-xl z-50 py-1.5"
+          className="absolute right-0 z-50 mt-2 w-60 rounded-xl border border-white/[0.08] bg-[#07070a] py-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl"
         >
-          <div className="px-3 py-2 border-b border-white/[0.05]">
+          <div className="border-b border-white/[0.05] px-3 py-2">
             <div className="flex items-center gap-2">
-              <span className={`flex h-6 w-6 items-center justify-center rounded-md ${ROLE_BG_COLORS[role]}`}>
-                {ROLE_ICONS[role]}
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-md ${ROLE_BG_COLORS[role]}`}
+              >
+                <UserIcon className="h-4 w-4" />
               </span>
-              <div>
-                <div className="text-sm font-medium text-white truncate">{email}</div>
-                <div className={`text-xs ${ROLE_COLORS[role]} font-medium`}>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-white">{email}</div>
+                <div className={`text-xs font-medium ${ROLE_COLORS[role]}`}>
                   {ROLE_LABELS[role]}
                 </div>
               </div>
@@ -158,15 +203,16 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
           </div>
 
           <nav aria-label="Konto-Navigation" className="py-1">
-            {roleLinks.map((link) => (
+            {links.map((link) => (
               <Link
-                key={link.href}
+                key={link.key}
                 href={link.href}
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-400 focus-visible:ring-inset"
                 role="menuitem"
+                tabIndex={-1}
+                onClick={() => close()}
+                className="flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white focus-visible:bg-white/[0.06] focus-visible:text-white focus-visible:outline-none"
               >
-                {link.icon}
+                <NavIcon name={link.icon} />
                 <span>{link.label}</span>
               </Link>
             ))}
@@ -175,16 +221,17 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
           <div className="border-t border-white/[0.05] pt-1">
             <button
               type="button"
-              onClick={handleLogout}
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-rose-300 transition-colors hover:bg-rose-500/5 hover:text-rose-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400 focus-visible:ring-inset"
               role="menuitem"
+              tabIndex={-1}
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-rose-300 transition-colors hover:bg-rose-500/5 hover:text-rose-200 focus-visible:bg-rose-500/10 focus-visible:text-rose-100 focus-visible:outline-none"
             >
-              <LogoutIcon className="h-4 w-4" />
+              <NavIcon name="logout" />
               <span>Abmelden</span>
             </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

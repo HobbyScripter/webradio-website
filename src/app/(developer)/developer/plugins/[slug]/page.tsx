@@ -42,8 +42,9 @@ const PLUGIN_STATUS_BG: Record<string, string> = {
 export default async function PluginDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const user = await requireDeveloperSession();
 
   // Get developer profile
@@ -57,7 +58,7 @@ export default async function PluginDetailPage({
 
   // Get plugin by slug
   const plugin = await db.orm.public.Plugin.where({
-    slug: params.slug,
+    slug,
     developerId: profile.id,
   }).first();
 
@@ -100,7 +101,7 @@ export default async function PluginDetailPage({
     }
 
     const plugin = await db.orm.public.Plugin.where({
-      slug: params.slug,
+      slug,
       developerId: profile.id,
     }).first();
 

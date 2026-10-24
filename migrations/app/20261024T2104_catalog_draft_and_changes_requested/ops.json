@@ -1,0 +1,196 @@
+[
+  {
+    "id": "dropCheckConstraint.Plugin.Plugin_status_check_ee930c87",
+    "label": "Drop check constraint \"Plugin_status_check_ee930c87\" on \"Plugin\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Plugin_status_check_ee930c87",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Plugin_status_check_ee930c87\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Plugin_status_check_ee930c87",
+          "public",
+          "\"public\".\"Plugin\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Plugin_status_check_ee930c87\" on \"Plugin\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Plugin_status_check_ee930c87\"",
+        "sql": "ALTER TABLE \"public\".\"Plugin\" DROP CONSTRAINT \"Plugin_status_check_ee930c87\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Plugin_status_check_ee930c87\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Plugin_status_check_ee930c87",
+          "public",
+          "\"public\".\"Plugin\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Plugin_status_check_ee930c87\" on \"Plugin\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.Theme.Theme_status_check_ee930c87",
+    "label": "Drop check constraint \"Theme_status_check_ee930c87\" on \"Theme\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Theme_status_check_ee930c87",
+        "table": "Theme"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Theme_status_check_ee930c87\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Theme_status_check_ee930c87",
+          "public",
+          "\"public\".\"Theme\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Theme_status_check_ee930c87\" on \"Theme\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Theme_status_check_ee930c87\"",
+        "sql": "ALTER TABLE \"public\".\"Theme\" DROP CONSTRAINT \"Theme_status_check_ee930c87\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Theme_status_check_ee930c87\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Theme_status_check_ee930c87",
+          "public",
+          "\"public\".\"Theme\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Theme_status_check_ee930c87\" on \"Theme\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Plugin.Plugin_status_check_d5a30912",
+    "label": "Add check constraint \"Plugin_status_check_d5a30912\" on \"Plugin\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Plugin_status_check_d5a30912",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Plugin_status_check_d5a30912\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Plugin_status_check_d5a30912",
+          "public",
+          "\"public\".\"Plugin\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Plugin_status_check_d5a30912\" on \"Plugin\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Plugin_status_check_d5a30912\"",
+        "sql": "ALTER TABLE \"public\".\"Plugin\" ADD CONSTRAINT \"Plugin_status_check_d5a30912\" CHECK (\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Plugin_status_check_d5a30912\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Plugin_status_check_d5a30912",
+          "public",
+          "\"public\".\"Plugin\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Theme.Theme_status_check_d5a30912",
+    "label": "Add check constraint \"Theme_status_check_d5a30912\" on \"Theme\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Theme_status_check_d5a30912",
+        "table": "Theme"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Theme_status_check_d5a30912\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Theme_status_check_d5a30912",
+          "public",
+          "\"public\".\"Theme\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Theme_status_check_d5a30912\" on \"Theme\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Theme_status_check_d5a30912\"",
+        "sql": "ALTER TABLE \"public\".\"Theme\" ADD CONSTRAINT \"Theme_status_check_d5a30912\" CHECK (\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Theme_status_check_d5a30912\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Theme_status_check_d5a30912",
+          "public",
+          "\"public\".\"Theme\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]
