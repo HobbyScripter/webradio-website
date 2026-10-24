@@ -16,8 +16,12 @@ const content = [
   '',
   '# Database (Required)',
   '# Set your PostgreSQL connection string here.',
-  '# Example: postgresql://postgres:password@localhost:5432/webradio_dev',
+  '# Example: postgresql://postgres:password@localhost:5433/webradio_dev',
   'DATABASE_URL=""',
+  '',
+  '# Disposable database for npm run test:integration (name must end in _test)',
+  '# Example: postgresql://postgres:password@localhost:5433/webradio_test',
+  'TEST_DATABASE_URL=""',
   '',
   '# NextAuth (Required)',
   '# Generated automatically - change only to invalidate all sessions.',
@@ -26,6 +30,11 @@ const content = [
   '',
   '# Node Environment',
   'NODE_ENV="development"',
+  '',
+  '# One-time admin bootstrap (CLI only; leave empty after use)',
+  'ADMIN_BOOTSTRAP_CONFIRM=""',
+  'BOOTSTRAP_ADMIN_EMAIL=""',
+  'BOOTSTRAP_ADMIN_PASSWORD=""',
 ].join('\n');
 
 fs.writeFileSync(envPath, content, 'utf8');

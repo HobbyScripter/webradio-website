@@ -23,6 +23,9 @@ import type { Role, RegisterInput } from './validations';
 const BCRYPT_ROUNDS = 12;
 const SESSION_MAX_AGE_DAYS = 30;
 
+export const SELF_DEMOTION_CODE = 'SELF_DEMOTION_FORBIDDEN';
+export const LAST_ADMIN_CODE = 'LAST_ADMIN';
+
 /**
  * A valid bcrypt hash used only to equalise timing when an email does not
  * exist. It does not correspond to any known account password.
@@ -100,6 +103,38 @@ export function toPublicError(error: unknown): {
       message: 'An unexpected error occurred.',
     },
   };
+}
+
+/**
+ * Guard for integration-test runs. Only loopback hosts and databases whose
+ * name ends in `_test` are accepted, so a misconfigured TEST_DATABASE_URL can
+ * never point the destructive test setup at a real database.
+ */
+export function ensureTestDatabase(url: string | undefined = process.env['DATABASE_URL']): void {
+  if (!url) {
+    throw new Error('Refusing to run: DATABASE_URL is not set.');
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error('Refusing to run: DATABASE_URL is not a valid connection URL.');
+  }
+
+  const loopbackHosts = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
+  if (!loopbackHosts.has(parsed.hostname)) {
+    throw new Error(
+      `Refusing to run against non-local host "${parsed.hostname}". Only loopback databases are allowed.`,
+    );
+  }
+
+  const databaseName = parsed.pathname.replace(/^\//, '');
+  if (!databaseName.endsWith('_test')) {
+    throw new Error(
+      `Refusing to run against database "${databaseName}": the name must end in _test.`,
+    );
+  }
 }
 
 /**
@@ -411,23 +446,25 @@ export async function changeUserRole(input: {
   ipAddress?: string;
   userAgent?: string;
 }): Promise<{ id: string; email: string; role: Role; previousRole: Role }> {
-  const actor = await db.orm.public.User.first({ id: input.actorId });
-  if (!actor) {
-    throw new UnauthorizedError();
-  }
-  if (!hasRole(actor.role as Role, 'ADMIN')) {
-    throw new ForbiddenError('Administrator privileges are required.');
-  }
-
-  if (input.actorId === input.targetUserId && input.newRole !== 'ADMIN') {
-    throw new AuthError(
-      'Administrators cannot demote their own account. Ask another administrator.',
-      409,
-      'SELF_DEMOTION_FORBIDDEN',
-    );
-  }
-
   return db.transaction(async (tx) => {
+    // Resolve the actor inside the same transaction as the write, so a
+    // concurrent demotion cannot be bypassed between check and update.
+    const actor = await tx.orm.public.User.first({ id: input.actorId });
+    if (!actor) {
+      throw new UnauthorizedError();
+    }
+    if (!hasRole(actor.role as Role, 'ADMIN')) {
+      throw new ForbiddenError('Administrator privileges are required.');
+    }
+
+    if (input.actorId === input.targetUserId && input.newRole !== 'ADMIN') {
+      throw new AuthError(
+        'Administrators cannot demote their own account. Ask another administrator.',
+        409,
+        SELF_DEMOTION_CODE,
+      );
+    }
+
     const target = await tx.orm.public.User.first({ id: input.targetUserId });
     if (!target) {
       throw new NotFoundError('User not found.');
@@ -449,7 +486,7 @@ export async function changeUserRole(input: {
         throw new AuthError(
           'The last administrator cannot be demoted.',
           409,
-          'LAST_ADMIN',
+          LAST_ADMIN_CODE,
         );
       }
     }

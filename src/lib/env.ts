@@ -20,7 +20,7 @@ function getEnvVar(name: string): string {
     throw new Error(
       `Missing required environment variable: ${name}\n` +
         `Please set ${name} in your .env file.\n` +
-        `See docs/env.example for all required variables.`,
+        `See .env.example for all required variables.`,
     );
   }
   return value;
@@ -47,7 +47,7 @@ function validateEnv(): void {
     throw new Error(
       `Missing required environment variables:\n` +
         missing.map((n) => `  - ${n}`).join('\n') +
-        `\n\nSee docs/env.example for all required variables.`,
+        `\n\nSee .env.example for all required variables.`,
     );
   }
 }

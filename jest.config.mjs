@@ -18,6 +18,10 @@ const customJestConfig = {
     '!src/**/*.stories.{js,jsx,ts,tsx}',
     '!src/**/__tests__/**',
   ],
+  // Real PostgreSQL tests require a live database and run via `npm run
+  // test:integration` (jest.config.integration.mjs). The default suite stays
+  // hermetic so `npm test` works without a database.
+  testPathIgnorePatterns: ['/node_modules/', '\\.integration\\.test\\.ts$'],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',

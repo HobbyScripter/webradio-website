@@ -21,7 +21,8 @@ Die offizielle Website für das WebRadio-Projekt. Verwaltet Plugins, Themes, Rel
 
 - Node.js 22+
 - npm
-- PostgreSQL-Datenbank (Neon, Supabase, Railway oder lokal)
+- PostgreSQL 18 (lokal oder per `docker-compose.yml`) — **ausschließlich eine neue,
+  getrennte Entwicklungsdatenbank**, niemals die alte Website-Datenbank
 
 ### Installation
 
@@ -34,19 +35,50 @@ cd webradio-website
 npm install
 
 # Umgebungsvariablen konfigurieren
-cp docs/env.example .env
-# → .env bearbeiten und DATABASE_URL + NEXTAUTH_SECRET eintragen
+cp .env.example .env
+# → .env bearbeiten: DATABASE_URL, TEST_DATABASE_URL und NEXTAUTH_SECRET eintragen
 # → oder: node scripts/generate-env.cjs (erzeugt .env mit generiertem NEXTAUTH_SECRET)
 ```
 
-### Datenbank einrichten
+### Datenbank einrichten (Prisma 8)
+
+Prisma 8 kennt kein `prisma migrate deploy`. Der dokumentierte Ablauf ist
+`contract emit` → `db migrate`:
 
 ```bash
-# Prisma-Schema gegen Datenbank anwenden (erste Einrichtung)
-npm run prisma:db:init
+# 1. Contract-Artefakte erzeugen (contract.json + contract.d.ts)
+npm run prisma:contract:emit
 
-# Datenbankstatus prüfen
-npx prisma db verify
+# 2. Migration auf die (leere) Datenbank anwenden
+npm run db:migrate
+
+# 3. Marker und Schema gegen den Contract prüfen
+npm run db:verify
+```
+
+`npm run prisma:db:init` baseline-t eine bereits existierende Datenbank und
+ist für eine leere Datenbank mit Migrationspaket **nicht** nötig.
+
+### Ersten Administrator anlegen
+
+Es gibt bewusst keinen HTTP-Endpunkt dafür. Der CLI-Bootstrap verweigert die
+Ausführung, sobald ein ADMIN existiert:
+
+```bash
+ADMIN_BOOTSTRAP_CONFIRM=1 \
+BOOTSTRAP_ADMIN_EMAIL="admin@example.com" \
+BOOTSTRAP_ADMIN_PASSWORD="<mind. 12 Zeichen>" \
+npm run admin:bootstrap
+```
+
+Danach die drei Variablen wieder entfernen. Weitere Rollenänderungen laufen
+über `POST /api/admin/users/role` (nur ADMIN, wird auditiert).
+
+### Tests
+
+```bash
+npm test               # Unit-Tests (datenbanklos)
+npm run test:integration  # echte PostgreSQL-Tests (TEST_DATABASE_URL, Name endet auf _test)
 ```
 
 ### Entwicklungsserver starten
@@ -66,12 +98,16 @@ npm run dev
 | `npm run lint` | ESLint ausführen |
 | `npm run lint:fix` | ESLint-Fehler automatisch beheben |
 | `npm run type-check` | TypeScript-Typprüfung |
-| `npm test` | Tests ausführen |
+| `npm test` | Unit-Tests ausführen (ohne Datenbank) |
+| `npm run test:integration` | Echte PostgreSQL-Integrationstests |
 | `npm run test:coverage` | Tests mit Coverage-Report |
 | `npm run prisma:contract:emit` | Prisma-Contract-Artefakte generieren |
-| `npm run prisma:db:init` | Schema erstmalig auf Datenbank anwenden |
+| `npm run prisma:db:init` | Bestehende Datenbank baselinen (`db init`) |
 | `npm run prisma:db:update` | Schema-Änderungen (Entwicklung, ohne Migration) |
-| `npm run prisma:db:migrate` | Migrationen anwenden |
+| `npm run db:migrate` | Migrationspakete anwenden (`db migrate`) |
+| `npm run db:verify` | Marker + Schema gegen Contract prüfen |
+| `npm run db:status` | Migrationsstatus der Datenbank |
+| `npm run admin:bootstrap` | Einmaliger, auditierter Admin-Bootstrap (CLI) |
 
 ## Projektstruktur
 
@@ -92,20 +128,28 @@ webradio-website/
 │   ├── lib/
 │   │   ├── db.ts            # Prisma 8 Datenbank-Singleton
 │   │   ├── env.ts           # Umgebungsvariablen-Validierung
-│   │   ├── auth.ts          # NextAuth.js Konfiguration
+│   │   ├── auth.ts          # NextAuth.js Konfiguration (JWT + DB-Session)
+│   │   ├── auth-service.ts  # Hashing, Sessions, RBAC, Audit-Log
+│   │   ├── server-auth.ts   # Serverseitige Session-/Rollenprüfung
+│   │   ├── api-response.ts  # Fehler-Sanitisierung + Same-Origin-Schutz
 │   │   └── validations.ts   # Zod-Schemata
-│   └── middleware/
-│       └── index.ts         # Route-Schutz-Middleware
+│   └── proxy.ts             # Next.js-16-Proxy (nur optimistischer Cookie-Check)
 ├── docs/
 │   ├── ARCHITECTURE.md      # Architektur-Dokumentation
 │   ├── SECURITY.md          # Sicherheitskonzept
 │   ├── TESTING.md           # Teststrategie
 │   ├── REQUIREMENTS.md      # Anforderungen
-│   ├── env.example          # Umgebungsvariablen-Vorlage
 │   ├── PHASE1_REPORT.md     # Phase-1-Bericht
-│   └── PHASE2_REPORT.md     # Phase-2-Bericht
+│   ├── PHASE2_REPORT.md     # Phase-2-Bericht
+│   ├── PHASE3_REPORT.md     # Phase-3-Bericht
+│   └── PHASE3_5_REPORT.md   # Phase-3.5-Bericht (DB-Integration)
+├── migrations/              # Prisma-8-Migrationspakete + Snapshots
 ├── scripts/
-│   └── generate-env.cjs     # .env-Generator mit sicherem NEXTAUTH_SECRET
+│   ├── generate-env.cjs     # .env-Generator mit sicherem NEXTAUTH_SECRET
+│   ├── bootstrap-admin.mts  # Einmaliger Admin-Bootstrap
+│   └── run-integration-tests.mjs  # Guard für die Test-Datenbank
+├── .env.example             # Umgebungsvariablen-Vorlage (nur Platzhalter)
+├── docker-compose.yml       # Optionales lokales PostgreSQL (unverifiziert)
 ├── prisma.config.ts         # Prisma CLI Konfiguration
 ├── next.config.ts           # Next.js Konfiguration
 └── vercel.json              # Vercel-Deployment-Konfiguration
@@ -113,7 +157,7 @@ webradio-website/
 
 ## Umgebungsvariablen
 
-Alle Variablen sind in [`docs/env.example`](docs/env.example) dokumentiert.
+Alle Variablen sind in [`.env.example`](.env.example) dokumentiert (nur Platzhalter).
 
 **Pflichtfelder:**
 
@@ -131,7 +175,7 @@ GitHub Actions führt bei jedem Push auf `main`/`develop` und bei Pull Requests 
 
 - **Lint:** ESLint
 - **Type Check:** TypeScript
-- **Test:** Jest (16 Unit-Tests, datenbanklos)
+- **Test:** Jest (Unit-Tests, datenbanklos; Integrationstests benötigen einen PostgreSQL-Service)
 - **Build:** Next.js Produktionsbuild
 
 ## Dokumentation
@@ -142,3 +186,5 @@ GitHub Actions führt bei jedem Push auf `main`/`develop` und bei Pull Requests 
 - [Anforderungen](docs/REQUIREMENTS.md)
 - [Phase 1 Bericht](docs/PHASE1_REPORT.md)
 - [Phase 2 Bericht](docs/PHASE2_REPORT.md)
+- [Phase 3 Bericht](docs/PHASE3_REPORT.md)
+- [Phase 3.5 Bericht — Datenbankintegration](docs/PHASE3_5_REPORT.md)

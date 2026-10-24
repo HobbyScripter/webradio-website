@@ -52,10 +52,12 @@ webradio-website/
 │   │   └── admin/               # Admin panel components
 │   ├── lib/                     # Utility libraries
 │   │   ├── db.ts                # Prisma client singleton
-│   │   ├── auth.ts              # Authentication helpers
+│   │   ├── auth.ts              # NextAuth options (JWT + DB session link)
+│   │   ├── auth-service.ts      # Hashing, sessions, RBAC, audit log
+│   │   ├── server-auth.ts       # Server-side session/role enforcement
 │   │   ├── validations.ts       # Zod schemas
 │   │   └── storage.ts           # Object storage abstraction
-│   └── middleware/              # Middleware for auth, rate limiting, etc.
+│   └── proxy.ts                 # Next.js 16 proxy (optimistic cookie check only)
 ├── docs/                        # Documentation
 ├── .github/workflows/           # GitHub Actions
 └── prisma.config.ts             # Prisma CLI configuration
@@ -78,7 +80,10 @@ webradio-website/
 - Migration workflow uses new Prisma 8 commands
 
 ### 2. Server-Side Authentication with NextAuth.js
-**Decision**: Use NextAuth.js with server-side sessions instead of client-side tokens.
+**Decision**: Use NextAuth.js with a database-backed session authority instead of
+client-side tokens. The JWT cookie only transports the opaque database session id;
+every protected server access validates that row and reads the current role from
+PostgreSQL.
 
 **Rationale**:
 - Secure session management on the server

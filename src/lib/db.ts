@@ -15,6 +15,11 @@
  * uses a connection pool that must live for the entire process lifetime.
  * Do NOT construct `postgres()` inside request handlers.
  */
+// Prisma 8's `pg/timestamptz-temporal@1` codec requires a global `Temporal`.
+// Node 26 provides it natively; Node 22 (CI) and older do not, so install the
+// spec-compliant polyfill before any query runs. `install()` is a no-op when a
+// native implementation already exists.
+import 'temporal-polyfill/global';
 import postgres from '@prisma/orm-postgres/runtime';
 import { contractFromJson } from '@prisma/orm-postgres/static';
 import type { Contract } from '../../prisma/contract.d';

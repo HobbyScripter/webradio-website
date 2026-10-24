@@ -13,11 +13,17 @@ This document outlines the security measures implemented in the WebRadio Website
 - **Reset**: Secure token-based password reset with expiration
 
 ### Session Management
-- **Storage**: Server-side sessions in database (`Session` model)
-- **Transport**: HTTP-only, secure cookies
-- **Expiration**: Sessions expire after configurable time (default: 7 days)
-- **Token**: Cryptographically random session tokens
-- **Invalidation**: Immediate invalidation on logout
+- **Authority**: Server-side session row in PostgreSQL (`Session` model). The
+  NextAuth JWT is transport only and carries the session id.
+- **Transport**: HttpOnly cookie, SameSite=Lax, `Secure` + `__Secure-` prefix when
+  `NEXTAUTH_URL` is HTTPS
+- **Expiration**: 30 days for JWT and database session; expired rows are deleted on
+  validation
+- **Token**: 32 bytes from the CSPRNG, stored as SHA-256 hash only
+- **Invalidation**: Logout deletes the database session immediately; roles are
+  re-read from the database on every protected access
+- **Route Protection**: `src/proxy.ts` (Next.js 16) only redirects requests without a
+  session cookie. Authorization always happens server-side in `src/lib/server-auth.ts`.
 
 ### Multi-Factor Authentication (Future)
 - Support for TOTP-based 2FA
@@ -67,14 +73,19 @@ This document outlines the security measures implemented in the WebRadio Website
 - **HttpOnly Cookies**: Prevents cookie theft via XSS
 
 ### Cross-Site Request Forgery (CSRF)
-- **Prevention**: NextAuth.js built-in CSRF protection
-- **SameSite Cookies**: Strict or Lax mode as appropriate
-- **State-Changing Methods**: POST/PUT/DELETE require valid session
+- **Prevention**: NextAuth.js built-in CSRF protection for its own endpoints
+- **SameSite Cookies**: `Lax`
+- **Custom Mutating Routes**: same-origin check against `Origin`/`Host` (or
+  `NEXTAUTH_URL`) in addition to the session check
+- **State-Changing Methods**: POST/PUT/DELETE require a valid, non-revoked session
 
 ### Rate Limiting
-- **API Endpoints**: Rate limit per user/IP
-- **Authentication Attempts**: Limit failed login attempts
-- **Brute Force Protection**: Exponential backoff
+- **Status**: not implemented in the application yet (see `docs/PHASE3_5_REPORT.md`,
+  open risks). Must be added at the reverse proxy/WAF or with a persistent store
+  before public production use.
+- **API Endpoints**: Rate limit per user/IP (planned)
+- **Authentication Attempts**: Limit failed login attempts (planned)
+- **Brute Force Protection**: Exponential backoff (planned)
 - **DDoS Mitigation**: Vercel's built-in protection
 
 ### File Upload Security

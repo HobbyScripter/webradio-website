@@ -1,29 +1,29 @@
 /**
- * Authentication & Authorization Service Unit Tests
+ * Authentication & Authorization Service — UNIT tests
  *
- * Covers:
- *   - Password hashing and verification
- *   - Duplicate email registration detection
- *   - Invalid login credentials handling
- *   - Session generation and expiration checks
- *   - Role-Based Access Control (RBAC) and unauthorized action prevention
+ * These tests mock the database on purpose: they pin down hashing, token
+ * composition, error mapping and role hierarchy without needing PostgreSQL.
+ * The real database behaviour is covered by `db.integration.test.ts`
+ * (`npm run test:integration`), which is not mocked.
  */
 import {
   hashPassword,
   verifyPassword,
   generateSessionToken,
+  hashSessionToken,
   hasRole,
   assertRole,
+  toPublicError,
   DuplicateEmailError,
   InvalidCredentialsError,
   ForbiddenError,
   registerUser,
   authenticateUser,
   validateDatabaseSession,
+  validateDatabaseSessionById,
 } from '../auth-service';
 import { db } from '../db';
 
-// Mock db.orm.public.* calls for deterministic unit testing without requiring a live Postgres instance
 jest.mock('../db', () => ({
   db: {
     orm: {
@@ -36,7 +36,7 @@ jest.mock('../db', () => ({
           first: jest.fn(),
           create: jest.fn(),
           where: jest.fn().mockReturnValue({
-            delete: jest.fn().mockResolvedValue(true),
+            delete: jest.fn().mockResolvedValue(undefined),
           }),
         },
         AuditLog: {
@@ -50,224 +50,217 @@ jest.mock('../db', () => ({
 type MockCollection = {
   first: jest.Mock;
   create: jest.Mock;
-  where: jest.Mock;
+  where?: jest.Mock;
 };
 
 const mockUser = db.orm.public.User as unknown as MockCollection;
 const mockSession = db.orm.public.Session as unknown as MockCollection;
 
-describe('Auth Service — Password Hashing', () => {
-  it('hashes password with bcrypt and verifies correctly', async () => {
+const activeUser = {
+  id: '00000000-0000-7000-8000-000000000001',
+  email: 'user@webradio.local',
+  passwordHash: '$2b$12$placeholder',
+  name: 'User One',
+  role: 'USER',
+  emailVerified: null,
+  createdAt: Temporal.Now.instant(),
+  updatedAt: Temporal.Now.instant(),
+};
+
+describe('Auth Service — Password hashing', () => {
+  it('hashes with bcrypt and verifies the correct password', async () => {
     const password = 'SuperSecurePassword123!';
     const hash = await hashPassword(password);
 
     expect(hash).not.toBe(password);
     expect(hash.startsWith('$2')).toBe(true);
+    await expect(verifyPassword(password, hash)).resolves.toBe(true);
+    await expect(verifyPassword('WrongPassword!', hash)).resolves.toBe(false);
+  });
 
-    const isValid = await verifyPassword(password, hash);
-    expect(isValid).toBe(true);
-
-    const isInvalid = await verifyPassword('WrongPassword!', hash);
-    expect(isInvalid).toBe(false);
+  it('returns false instead of throwing for a malformed hash', async () => {
+    await expect(verifyPassword('irrelevant', 'not-a-bcrypt-hash')).resolves.toBe(false);
   });
 });
 
-describe('Auth Service — Registration & Duplicate Emails', () => {
+describe('Auth Service — Session token composition', () => {
+  it('generates 256-bit, non-repeating base64url tokens', () => {
+    const first = generateSessionToken();
+    const second = generateSessionToken();
+
+    expect(first).toHaveLength(43);
+    expect(second).toHaveLength(43);
+    expect(first).not.toBe(second);
+    expect(first).toMatch(/^[A-Za-z0-9_-]+$/);
+  });
+
+  it('hashes tokens with SHA-256 so only digests are stored', () => {
+    const token = generateSessionToken();
+    const digest = hashSessionToken(token);
+
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+    expect(digest).not.toBe(token);
+    expect(hashSessionToken(token)).toBe(digest);
+    expect(hashSessionToken(generateSessionToken())).not.toBe(digest);
+  });
+});
+
+describe('Auth Service — Registration & duplicate emails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('rejects registration when email already exists', async () => {
-    mockUser.first.mockResolvedValueOnce({
-      id: 'existing-id',
-      email: 'existing@example.com',
-      passwordHash: 'somehash',
-      name: 'Existing',
-      role: 'USER',
-      emailVerified: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+  it('rejects registration when the email already exists', async () => {
+    mockUser.first.mockResolvedValueOnce(activeUser);
 
     await expect(
       registerUser({
-        email: 'existing@example.com',
+        email: 'user@webradio.local',
         password: 'Password123!',
         confirmPassword: 'Password123!',
-        name: 'Test User',
       }),
     ).rejects.toThrow(DuplicateEmailError);
+
+    expect(mockUser.create).not.toHaveBeenCalled();
   });
 
-  it('successfully registers a new user with unique email', async () => {
-    mockUser.first.mockResolvedValueOnce(null); // No user found
+  it('registers a new user with the default USER role', async () => {
+    mockUser.first.mockResolvedValueOnce(null);
     mockUser.create.mockResolvedValueOnce({
+      ...activeUser,
       id: 'new-uuid',
-      email: 'newuser@example.com',
-      passwordHash: 'hashedpwd',
-      name: 'New User',
-      role: 'USER',
-      emailVerified: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      email: 'newuser@webradio.local',
     });
 
     const user = await registerUser({
-      email: 'newuser@example.com',
+      email: 'NewUser@WebRadio.local',
       password: 'Password123!',
       confirmPassword: 'Password123!',
       name: 'New User',
     });
 
-    expect(user.id).toBe('new-uuid');
-    expect(user.email).toBe('newuser@example.com');
+    expect(user.email).toBe('newuser@webradio.local');
     expect(user.role).toBe('USER');
-    expect(mockUser.create).toHaveBeenCalledTimes(1);
+    expect(mockUser.create).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'USER', email: 'newuser@webradio.local' }),
+    );
   });
 });
 
-describe('Auth Service — Login & Invalid Credentials', () => {
+describe('Auth Service — Login', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('rejects login for non-existent user', async () => {
+  it('rejects an unknown user with InvalidCredentialsError', async () => {
     mockUser.first.mockResolvedValueOnce(null);
-
-    await expect(
-      authenticateUser('unknown@example.com', 'SomePassword123!'),
-    ).rejects.toThrow(InvalidCredentialsError);
+    await expect(authenticateUser('unknown@example.com', 'SomePassword123!')).rejects.toThrow(
+      InvalidCredentialsError,
+    );
   });
 
-  it('rejects login when password does not match', async () => {
-    const realHash = await hashPassword('CorrectPassword123!');
+  it('rejects a wrong password', async () => {
+    const hash = await hashPassword('CorrectPassword123!');
+    mockUser.first.mockResolvedValueOnce({ ...activeUser, passwordHash: hash });
 
-    mockUser.first.mockResolvedValueOnce({
-      id: 'user-1',
-      email: 'user@example.com',
-      passwordHash: realHash,
-      name: 'User One',
-      role: 'USER',
-      emailVerified: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    await expect(
-      authenticateUser('user@example.com', 'IncorrectPassword!'),
-    ).rejects.toThrow(InvalidCredentialsError);
+    await expect(authenticateUser('user@webradio.local', 'IncorrectPassword!')).rejects.toThrow(
+      InvalidCredentialsError,
+    );
   });
 
-  it('authenticates user when credentials are correct', async () => {
-    const realHash = await hashPassword('CorrectPassword123!');
-
+  it('accepts the correct password and returns the database role', async () => {
+    const hash = await hashPassword('CorrectPassword123!');
     mockUser.first.mockResolvedValueOnce({
-      id: 'user-1',
-      email: 'user@example.com',
-      passwordHash: realHash,
-      name: 'User One',
+      ...activeUser,
+      passwordHash: hash,
       role: 'DEVELOPER',
-      emailVerified: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
-    const user = await authenticateUser('user@example.com', 'CorrectPassword123!');
-    expect(user.id).toBe('user-1');
+    const user = await authenticateUser('user@webradio.local', 'CorrectPassword123!');
+    expect(user.id).toBe(activeUser.id);
     expect(user.role).toBe('DEVELOPER');
   });
 });
 
-describe('Auth Service — Session Management', () => {
+describe('Auth Service — Session validation (mocked DB)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('generates a cryptographically strong session token', () => {
-    const token1 = generateSessionToken();
-    const token2 = generateSessionToken();
-
-    expect(token1).toHaveLength(43); // 32 bytes base64url length
-    expect(token2).toHaveLength(43);
-    expect(token1).not.toBe(token2);
-  });
-
-  it('rejects expired database session', async () => {
-    const pastDate = new Date(Date.now() - 3600 * 1000); // 1 hour ago
-
+  it('rejects and cleans up an expired session', async () => {
     mockSession.first.mockResolvedValueOnce({
       id: 'session-old',
-      userId: 'user-1',
-      token: 'expired-token',
-      expiresAt: pastDate,
-      ipAddress: null,
-      userAgent: null,
-      createdAt: new Date(),
+      userId: activeUser.id,
+      expiresAt: Temporal.Now.instant().subtract({ hours: 1 }),
     });
 
-    const result = await validateDatabaseSession('expired-token');
-    expect(result).toBeNull();
+    await expect(validateDatabaseSession('expired-token')).resolves.toBeNull();
   });
 
-  it('validates active session and loads user role', async () => {
-    const futureDate = new Date(Date.now() + 86400 * 1000); // tomorrow
-
+  it('loads the current role for a live session', async () => {
     mockSession.first.mockResolvedValueOnce({
-      id: 'session-active',
-      userId: 'user-admin',
-      token: 'valid-token',
-      expiresAt: futureDate,
-      ipAddress: null,
-      userAgent: null,
-      createdAt: new Date(),
+      id: 'session-live',
+      userId: activeUser.id,
+      expiresAt: Temporal.Now.instant().add({ hours: 1 }),
     });
+    mockUser.first.mockResolvedValueOnce({ ...activeUser, role: 'ADMIN' });
 
-    mockUser.first.mockResolvedValueOnce({
-      id: 'user-admin',
-      email: 'admin@webradio.local',
-      passwordHash: 'hash',
-      name: 'Root Admin',
-      role: 'ADMIN',
-      emailVerified: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    const result = await validateDatabaseSession('valid-token');
-    expect(result).not.toBeNull();
+    const result = await validateDatabaseSession('live-token');
     expect(result?.user.role).toBe('ADMIN');
-    expect(result?.user.email).toBe('admin@webradio.local');
+    expect(result?.session.id).toBe('session-live');
+    // The raw token / stored hash must never be exposed to callers.
+    expect(result?.session).not.toHaveProperty('token');
+  });
+
+  it('resolves a session by opaque id for the NextAuth glue', async () => {
+    mockSession.first.mockResolvedValueOnce({
+      id: 'session-by-id',
+      userId: activeUser.id,
+      expiresAt: Temporal.Now.instant().add({ hours: 1 }),
+    });
+    mockUser.first.mockResolvedValueOnce(activeUser);
+
+    const result = await validateDatabaseSessionById('session-by-id');
+    expect(result?.user.id).toBe(activeUser.id);
   });
 });
 
-describe('Auth Service — Role-Based Access Control (RBAC) & Unauthorized Actions', () => {
-  it('correctly calculates role hierarchy', () => {
-    // USER role
+describe('Auth Service — Role hierarchy and forbidden actions', () => {
+  it('computes the role hierarchy', () => {
     expect(hasRole('USER', 'USER')).toBe(true);
     expect(hasRole('USER', 'DEVELOPER')).toBe(false);
     expect(hasRole('USER', 'ADMIN')).toBe(false);
-
-    // DEVELOPER role
     expect(hasRole('DEVELOPER', 'USER')).toBe(true);
     expect(hasRole('DEVELOPER', 'DEVELOPER')).toBe(true);
     expect(hasRole('DEVELOPER', 'ADMIN')).toBe(false);
-
-    // ADMIN role
     expect(hasRole('ADMIN', 'USER')).toBe(true);
     expect(hasRole('ADMIN', 'DEVELOPER')).toBe(true);
     expect(hasRole('ADMIN', 'ADMIN')).toBe(true);
   });
 
-  it('prevents regular USER from executing ADMIN action', () => {
+  it('prevents USER and DEVELOPER from executing ADMIN actions', () => {
     expect(() => assertRole('USER', 'ADMIN')).toThrow(ForbiddenError);
-  });
-
-  it('prevents DEVELOPER from executing ADMIN action', () => {
     expect(() => assertRole('DEVELOPER', 'ADMIN')).toThrow(ForbiddenError);
+    expect(() => assertRole('ADMIN', 'ADMIN')).not.toThrow();
+  });
+});
+
+describe('Auth Service — Error sanitization', () => {
+  it('hides internal details for unexpected errors', () => {
+    const internal = new Error(
+      'relation "User" does not exist; passwordHash=$2b$12$leaked',
+    );
+
+    const response = toPublicError(internal);
+    expect(response.status).toBe(500);
+    expect(response.body.error).toBe('INTERNAL_ERROR');
+    expect(JSON.stringify(response.body)).not.toMatch(/relation|passwordHash|leaked/);
   });
 
-  it('allows ADMIN to execute ADMIN and DEVELOPER actions', () => {
-    expect(() => assertRole('ADMIN', 'ADMIN')).not.toThrow();
-    expect(() => assertRole('ADMIN', 'DEVELOPER')).not.toThrow();
+  it('keeps auth status codes and messages', () => {
+    expect(toPublicError(new InvalidCredentialsError())).toEqual({
+      status: 401,
+      body: { error: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' },
+    });
   });
 });

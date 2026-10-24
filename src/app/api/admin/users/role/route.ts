@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { requireAdminSession } from '@/lib/server-auth';
 import { changeUserRole } from '@/lib/auth-service';
 import { roleSchema } from '@/lib/validations';
-import { errorResponse } from '@/lib/api-response';
+import { errorResponse, isSameOriginRequest } from '@/lib/api-response';
 
 const bodySchema = z.object({
   userId: z.string().min(1),
@@ -24,6 +24,13 @@ const bodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOriginRequest(request)) {
+      return NextResponse.json(
+        { error: 'FORBIDDEN', message: 'Cross-origin request rejected.' },
+        { status: 403 },
+      );
+    }
+
     const admin = await requireAdminSession();
 
     const json = await request.json();

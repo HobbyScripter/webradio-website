@@ -4,8 +4,6 @@ import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
-
 async function AdminContent() {
   // Database-backed: the linked session must still exist and be unexpired.
   const session = await getServerAuthSession();

@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import { registerSchema } from '@/lib/validations';
 import { registerUser, DuplicateEmailError } from '@/lib/auth-service';
-import { errorResponse } from '@/lib/api-response';
+import { errorResponse, isSameOriginRequest } from '@/lib/api-response';
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOriginRequest(request)) {
+      return NextResponse.json(
+        { error: 'FORBIDDEN', message: 'Cross-origin request rejected.' },
+        { status: 403 },
+      );
+    }
+
     const json = await request.json();
     const result = registerSchema.safeParse(json);
 

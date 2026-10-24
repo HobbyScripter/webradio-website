@@ -1,0 +1,35 @@
+# Optional local PostgreSQL for development.
+#
+# NOTE: Docker was NOT available on the machine this project was verified on,
+# so this file is provided for developers who do have Docker and is explicitly
+# unverified here. The verified path is a local PostgreSQL 18 installation —
+# see docs/PHASE3_5_REPORT.md.
+#
+# Usage:
+#   POSTGRES_PASSWORD="$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))")" \
+#     docker compose up -d
+#   docker compose exec postgres createdb -U postgres webradio_test
+#
+# Then set DATABASE_URL / TEST_DATABASE_URL accordingly. The port is bound to
+# 127.0.0.1 only: the database is not reachable from the network.
+services:
+  postgres:
+    image: postgres:18.4-alpine
+    container_name: webradio-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD for the local dev database}
+      POSTGRES_DB: webradio_dev
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - webradio_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d webradio_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  webradio_pgdata:
