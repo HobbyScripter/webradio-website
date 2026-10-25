@@ -55,8 +55,10 @@ async function main(): Promise<void> {
   if (password.toLowerCase() === rawEmail) {
     fail('The password must not be the email address.');
   }
-  if (!process.env['DATABASE_URL']) {
-    fail('DATABASE_URL is not set.');
+  if (!process.env['DATABASE_URL_POOLED'] && !process.env['DATABASE_URL']) {
+    fail(
+      'No database connection configured. Set DATABASE_URL_POOLED (or a loopback DATABASE_URL for local development).',
+    );
   }
 
   const email = rawEmail.toLowerCase();
@@ -135,7 +137,7 @@ main()
   .catch((error: unknown) => {
     // Never echo the password, hash or connection string.
     const name = error instanceof Error ? error.name : 'UnknownError';
-    console.error(`✖ Bootstrap failed (${name}). Check DATABASE_URL and the server log.`);
+    console.error(`✖ Bootstrap failed (${name}). Check DATABASE_URL_POOLED and the server log.`);
     process.exitCode = 1;
   })
   .finally(async () => {

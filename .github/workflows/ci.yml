@@ -40,6 +40,11 @@ jobs:
 
       - name: Emit Prisma contract
         run: npm run prisma:contract:emit
+        env:
+          # prisma.config.ts resolves DIRECT_URL for every CLI invocation. The
+          # local placeholder is not contacted: `contract emit` only reads the
+          # contract source.
+          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
 
       - name: Run ESLint
         run: npm run lint
@@ -68,6 +73,10 @@ jobs:
 
       - name: Emit Prisma contract
         run: npm run prisma:contract:emit
+        env:
+          # See the lint job: DIRECT_URL is required to load prisma.config.ts,
+          # the placeholder is never connected to.
+          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
 
       - name: Run TypeScript check
         run: npm run type-check
@@ -98,13 +107,17 @@ jobs:
 
       - name: Emit Prisma contract
         run: npm run prisma:contract:emit
+        env:
+          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
 
       - name: Run tests
         run: npm test
         env:
-          # DATABASE_URL is set to a placeholder for unit tests that don't
-          # need a real database. Integration tests in Phase 3 will use a
-          # PostgreSQL service container.
+          # DATABASE_URL is a loopback placeholder for unit tests that don't
+          # need a real database (the documented local fallback; it is only
+          # accepted outside production). DATABASE_URL_POOLED stays unset, so
+          # the production path is not simulated here. Integration tests use
+          # the PostgreSQL service container below.
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/webradio_test
           NEXTAUTH_SECRET: ci-test-secret-not-for-production
           NEXTAUTH_URL: http://localhost:3000
@@ -140,6 +153,9 @@ jobs:
       # Disposable database for this job only; never a preview/production URL.
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
       TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
+      # Prisma CLI operations (migrate, db verify, contract emit) use DIRECT_URL;
+      # CI has no Prisma Postgres instance, so it points at the service container.
+      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
       NEXTAUTH_SECRET: ci-integration-secret-not-for-production
       NEXTAUTH_URL: http://localhost:3000
     steps:
@@ -196,13 +212,22 @@ jobs:
 
       - name: Emit Prisma contract
         run: npm run prisma:contract:emit
+        env:
+          # `prebuild` runs this again during `npm run build`; prisma.config.ts
+          # requires DIRECT_URL. It is not contacted.
+          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
 
       - name: Build
         run: npm run build
         env:
           # The build uses prebuild (prisma contract emit), which already ran.
-          # DATABASE_URL is required by prisma.config.ts loader but not used
-          # during static analysis — set a placeholder.
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/webradio_test
+          # DIRECT_URL is required by the prisma.config.ts loader but not used
+          # during static analysis — set a loopback placeholder.
+          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
+          # Exercise the production resolution path: only the hostname is
+          # validated and the Prisma 8 pool is created lazily, so the build
+          # never contacts this mock host. DATABASE_URL stays unset to prove
+          # there is no fallback.
+          DATABASE_URL_POOLED: postgresql://placeholder:placeholder@pooled.db.prisma.io:5432/webradio_placeholder?sslmode=require
           NEXTAUTH_SECRET: ci-build-secret-not-for-production
           NEXTAUTH_URL: http://localhost:3000

@@ -42,8 +42,10 @@ function fail(message: string): never {
 }
 
 async function main(): Promise<void> {
-  if (!process.env['DATABASE_URL']) {
-    fail('DATABASE_URL is not set.');
+  if (!process.env['DATABASE_URL_POOLED'] && !process.env['DATABASE_URL']) {
+    fail(
+      'No database connection configured. Set DATABASE_URL_POOLED (or a loopback DATABASE_URL for local development).',
+    );
   }
 
   const recovery = process.env['SYSTEM_ADMIN_RECOVERY'] === '1';
@@ -147,7 +149,7 @@ main()
     } else {
       const name = error instanceof Error ? error.name : 'UnknownError';
       console.error(
-        `✖ System-admin bootstrap failed (${name}). Check DATABASE_URL and the server log.`,
+        `✖ System-admin bootstrap failed (${name}). Check DATABASE_URL_POOLED and the server log.`,
       );
     }
     process.exitCode = 1;

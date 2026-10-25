@@ -14,6 +14,22 @@
  * NOTE: This module-level singleton is intentional. The Prisma 8 runtime
  * uses a connection pool that must live for the entire process lifetime.
  * Do NOT construct `postgres()` inside request handlers.
+ *
+ * Connection Configuration:
+ * - Production/Vercel runtime: `DATABASE_URL_POOLED` (pooled.db.prisma.io)
+ * - Local development/tests:   `DATABASE_URL` (loopback PostgreSQL only)
+ * - Prisma CLI operations:     `DIRECT_URL` (db.prisma.io) - prisma.config.ts
+ *
+ * The rules live in `src/lib/db-connection.ts` so the runtime and the CLI can
+ * not drift apart. In production there is no fallback from the pooled runtime
+ * URL to a direct one; a missing or mismatched variable aborts with a message
+ * that never contains the connection string itself.
+ *
+ * `postgres()` creates the pool lazily — "The static query surfaces are
+ * available at once; the pool is created on the first query or `connect()`"
+ * (@prisma/orm-postgres 8.0.0-rc.20, runtime.d.mts). Importing this module
+ * during prerendering or `next build` therefore opens no connection, and the
+ * build phase uses a loopback placeholder.
  */
 // Prisma 8's `pg/timestamptz-temporal@1` codec requires a global `Temporal`.
 // Node 26 provides it natively; Node 22 (CI) and older do not, so install the
@@ -24,6 +40,9 @@ import postgres from '@prisma/orm-postgres/runtime';
 import { contractFromJson } from '@prisma/orm-postgres/static';
 import type { Contract } from '../../prisma/contract.d';
 import contractJson from '../../prisma/contract.json' with { type: 'json' };
+// Explicit `.ts` extension: the operator CLI scripts import this module with
+// Node's native TypeScript support, where extensionless relative imports fail.
+import { resolveRuntimeDatabaseUrl } from './db-connection.ts';
 
 /**
  * The typed contract value.
@@ -31,30 +50,18 @@ import contractJson from '../../prisma/contract.json' with { type: 'json' };
 export const contract = contractFromJson<Contract>(contractJson);
 
 /**
- * Database connection URL resolution:
- * Uses DATABASE_URL if non-empty, or a placeholder during build/evaluation time
- * so static analysis and Next.js page collection succeed before live credentials are provided.
+ * The resolved runtime connection.
  *
- * The placeholder is build-time only. At runtime in production a missing
- * DATABASE_URL must fail loudly: silently dialling a local placeholder would
- * turn a configuration mistake into a confusing connection error on the first
- * request. `next build` runs with NODE_ENV=production, so the build phase is
- * detected separately (Next sets NEXT_PHASE itself).
+ * Throws `DatabaseConfigError` (secret-safe message) in a production runtime
+ * when `DATABASE_URL_POOLED` is missing or does not point at the pooled host.
  */
-const rawUrl = process.env['DATABASE_URL'];
-const hasDatabaseUrl = Boolean(rawUrl && rawUrl.trim() !== '');
-const isBuildPhase = process.env['NEXT_PHASE'] === 'phase-production-build';
+const runtimeConnection = resolveRuntimeDatabaseUrl();
 
-if (!hasDatabaseUrl && process.env['NODE_ENV'] === 'production' && !isBuildPhase) {
-  throw new Error(
-    'DATABASE_URL must be set at runtime in production.\n' +
-      'Configure it in the deployment environment; see docs/DEPLOYMENT.md.',
-  );
-}
-
-const connectionUrl = hasDatabaseUrl
-  ? (rawUrl as string)
-  : 'postgresql://placeholder:placeholder@localhost:5432/webradio_placeholder';
+/**
+ * Source of the resolved connection, exposed for diagnostics/health checks.
+ * Never contains the URL or its credentials.
+ */
+export const databaseConnectionSource = runtimeConnection.source;
 
 /**
  * The Prisma 8 database client.
@@ -65,11 +72,10 @@ const connectionUrl = hasDatabaseUrl
  */
 export const db = postgres({
   contract,
-  url: connectionUrl,
+  url: runtimeConnection.url,
   // Each serverless instance owns one module-level pool. Keep bad connections
-  // from hanging a request indefinitely and release idle ones early. A
-  // production deployment behind Vercel should additionally use a pooled
-  // connection string; see docs/DEPLOYMENT.md.
+  // from hanging a request indefinitely and release idle ones early. The URL
+  // itself must be the pooled endpoint in production; see docs/DEPLOYMENT.md.
   poolOptions: {
     connectionTimeoutMillis: 10_000,
     idleTimeoutMillis: 30_000,

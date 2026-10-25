@@ -54,17 +54,22 @@ npm run start
 - Dev: `devCommand` ist nur für `vercel dev` relevant und wurde entfernt; das
   Next.js-Preset liefert `next dev`.
 
-Der Build benötigt **keine** erreichbare und auch **keine gesetzte**
-`DATABASE_URL`: `prisma contract emit` liest nur den Contract-Quelltext, und
-`src/lib/db.ts` verwendet während der Build-Phase einen Platzhalter. Lokal
-verifiziert mit `DATABASE_URL="" npm run build` (Exit 0, Contract emittiert).
-Ein Vercel-Build darf daher keine Produktionsdatenbank erreichen — und führt
-keine Migration aus (§10).
+Der Build benötigt **keine** erreichbare Datenbank: `prisma contract emit`
+liest nur den Contract-Quelltext, und `src/lib/db.ts` verwendet während der
+Build-Phase einen Loopback-Platzhalter (der Prisma-8-Client legt seinen Pool
+erst bei der ersten Query an).
 
-Zur Laufzeit gilt das Gegenteil: Fehlt `DATABASE_URL` in Produktion, bricht
-`src/lib/db.ts` mit einer klaren Fehlermeldung ab, statt still eine lokale
-Platzhalterverbindung zu öffnen. Verifiziert mit `next start` bei leerer
-Variable (HTTP 500 plus `DATABASE_URL must be set at runtime in production`).
+`prisma.config.ts` wird jedoch bei **jedem** Prisma-CLI-Aufruf geladen — auch
+beim `prebuild`-Schritt `prisma contract emit`. Es verlangt `DIRECT_URL`
+(db.prisma.io für Deployments, Loopback für lokale Entwicklung/CI), auch wenn
+`contract emit` selbst keine Verbindung öffnet. Fehlt `DIRECT_URL`, bricht der
+Build mit einer klaren Meldung ab. Vercel muss daher **beide**
+Datenbankvariablen gesetzt haben, bevor der erste Build läuft.
+
+Zur Laufzeit gilt: Fehlt `DATABASE_URL_POOLED` in Produktion, bricht
+`src/lib/db.ts` mit einer klaren Fehlermeldung ab, statt still auf
+`DATABASE_URL` oder `DIRECT_URL` zurückzufallen. Ein Vercel-Build darf keine
+Produktionsdatenbank erreichen — und führt keine Migration aus (§10).
 
 ### Node.js-Version
 
@@ -91,7 +96,9 @@ Client-Bundle landet (öffentliche Basis-URL, kein Geheimnis).
 
 | Variable | Zweck | Build | Runtime | Vercel-Umgebungen | Geheim? | Format / sichere Erzeugung |
 |---|---|---|---|---|---|---|
-| `DATABASE_URL` | PostgreSQL-Verbindung der Anwendung | optional (Platzhalter greift) | **zwingend** | Production **und** Preview, je eigene Datenbank | ja (enthält Zugangsdaten) | `postgresql://USER:PASS@HOST:5432/DB?sslmode=require`; für Serverless den Pooler-String des Anbieters verwenden. Fehlt sie zur Laufzeit, bricht die App mit klarer Meldung ab. |
+| `DATABASE_URL_POOLED` | Pooled-Verbindung des Anwendungstraffic | optional (Build-Platzhalter greift) | **zwingend** | Production **und** Preview, je eigene Datenbank | ja (enthält Zugangsdaten) | `postgresql://USER:PASS@pooled.db.prisma.io:5432/DB?sslmode=require`. Nur der Pooled-Host wird akzeptiert; ein direkter Host oder ein Loopback-Host in Produktion bricht mit klarer Meldung ab. Kein Fallback auf `DATABASE_URL`/`DIRECT_URL`. |
+| `DIRECT_URL` | Direktverbindung für Prisma-CLI-Operationen (Migrationen, `db verify`, `migration status`, `contract emit`) | **zwingend** (`prisma.config.ts` lädt bei jedem CLI-Aufruf, auch im `prebuild`) | nicht gelesen | Production **und** Preview, je eigene Datenbank | ja (enthält Zugangsdaten) | `postgresql://USER:PASS@db.prisma.io:5432/DB?sslmode=require`. Der Pooled-Host wird abgelehnt (Migrationen benötigen die Direktverbindung); kein Fallback auf andere Variablen in Produktion. |
+| `DATABASE_URL` | lokaler Entwicklungs-Fallback | – | nur außerhalb Production | **nicht auf Vercel** | ja | nur Loopback-Hosts (`localhost`, `127.0.0.1`, `::1`); dient `next dev`, lokalen CLI-Aufrufen und den Integrationstests. |
 | `NEXTAUTH_SECRET` | Signiert die NextAuth-JWTs (Transport der DB-Session-ID) | **zwingend** (wird beim Import von `src/lib/auth.ts` in Produktion geprüft) | **zwingend** | Production und Preview, **je eigener Wert** | ja | 32 zufällige Bytes, base64url: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
 | `NEXTAUTH_URL` | Maßgebliche Origin für Cookies (`__Secure-`-Präfix), E-Mail-Links und Origin-Prüfung; wird nie aus dem Request-Host abgeleitet | **zwingend** | **zwingend** | Production und Preview **getrennt** | nein, aber exakt und öffentlich bekannt | `https://<origin>` ohne Pfad, ohne Trailing Slash. Produktion ausschließlich HTTPS; Loopback-HTTP nur für lokale `next start`-Prüfungen. |
 | `NEXT_PUBLIC_SITE_URL` | Canonical-URLs, Open Graph, Sitemap | **wirksam** (Metadaten) | gelesen | Production; Preview optional | nein (öffentlich) | `https://<origin>` ohne Pfad. Ohne Wert werden die Tags weggelassen (kein Fallback auf eine erfundene Domain). |
@@ -134,7 +141,8 @@ nicht die explizite, verifizierte Origin.
 - Development, Preview und Production brauchen getrennte Datenbanken und
   getrennte Secrets.
 - Migrationen laufen mit dem Prisma-8-Workflow, nicht mit
-  `prisma migrate deploy`:
+  `prisma migrate deploy`. Alle CLI-Aufrufe verbinden sich über `DIRECT_URL`
+  (zentral validiert in `src/lib/db-connection.ts`):
 
 ```bash
 npm run prisma:contract:emit
@@ -298,11 +306,11 @@ frühere `@secret`-Referenzen bleiben entfernt.
 - `vercel.json` setzt nur `installCommand` und `framework`; dort ist kein
   Migrationsbefehl verdrahtet, und es existiert kein Vercel-Cron.
 - Migrationen sind ein separater, freizugebender Schritt mit einer explizit
-  gesetzten `DATABASE_URL` der Zielumgebung:
+  gesetzten `DIRECT_URL` der Zielumgebung:
 
 ```bash
 # Ziel-URL bewusst prüfen, niemals aus einer lokalen .env übernehmen
-export DATABASE_URL="postgresql://…/webradio_production"
+export DIRECT_URL="postgresql://…/webradio_production"
 npm run prisma:contract:emit
 npm run db:migrate
 npm run db:verify
