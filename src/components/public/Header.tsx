@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { connection } from 'next/server';
 import Link from 'next/link';
 import { getServerAuthSession } from '@/lib/server-auth';
@@ -35,67 +34,23 @@ function SignedOutControls() {
 }
 
 /**
- * Neutral placeholder while the session streams in.
+ * Server Component.
  *
- * It deliberately does not render the signed-out buttons: a logged-in visitor
- * would otherwise see "Anmelden" for a moment on every page load. It keeps the
- * same footprint so the header does not shift when the real controls arrive.
+ * The session is resolved once, before the header is sent, and the resulting
+ * controls are rendered inline. Deferring them into a Suspense boundary kept
+ * the fallback on screen for signed-in visitors, so the account menu never
+ * appeared. Reading the session here makes every page that renders the header
+ * dynamic; that is the price of always showing the correct controls, and it
+ * keeps the public pages free of a permanent loading state.
  */
-function AccountControlsPlaceholder() {
-  return (
-    <div className="flex items-center gap-2" aria-hidden="true">
-      <div className="h-8 w-20 animate-pulse rounded-lg bg-white/[0.05]" />
-      <div className="h-8 w-24 animate-pulse rounded-lg bg-white/[0.07]" />
-    </div>
-  );
-}
-
-function MobileMenuPlaceholder() {
-  return (
-    <div className="md:hidden" aria-hidden="true">
-      <div className="h-9 w-9 animate-pulse rounded-lg bg-white/[0.05]" />
-    </div>
-  );
-}
-
-/**
- * Session-dependent desktop controls. Reading cookies here would otherwise make
- * every page that renders the header dynamic, so the lookup sits behind the
- * Suspense boundary in `Header` and only this subtree streams.
- */
-async function HeaderAccountControls() {
-  // next-auth builds a CSRF token from crypto randomness on every session read,
-  // which is only allowed at request time. `connection()` marks this subtree as
-  // dynamic so the random value is never produced during prerendering.
+export default async function Header() {
+  // next-auth derives a CSRF token from crypto randomness on every session
+  // read, which is only allowed at request time. `connection()` marks the
+  // render as dynamic so that value is never produced during prerendering.
   await connection();
   const session = await getServerAuthSession();
+  const isAuthenticated = Boolean(session?.user);
 
-  if (!session?.user) {
-    return <SignedOutControls />;
-  }
-
-  return (
-    <AccountDropdown email={session.user.email ?? ''} role={session.user.role ?? 'USER'} />
-  );
-}
-
-/** Session-aware mobile menu; renders nothing account-specific while loading. */
-async function HeaderMobileMenu() {
-  await connection();
-  const session = await getServerAuthSession();
-
-  return (
-    <MobileMenu
-      items={NAV_ITEMS}
-      isAuthenticated={Boolean(session?.user)}
-      userEmail={session?.user.email ?? ''}
-      userRole={session?.user.role ?? 'USER'}
-    />
-  );
-}
-
-// Server Component: the static shell renders immediately, session controls stream in.
-export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#07070a]/85 backdrop-blur-xl supports-[backdrop-filter]:bg-[#07070a]/70">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -126,15 +81,23 @@ export default function Header() {
             <GitHubIcon className="h-[18px] w-[18px]" />
           </a>
 
-          <Suspense fallback={<AccountControlsPlaceholder />}>
-            <HeaderAccountControls />
-          </Suspense>
+          {isAuthenticated ? (
+            <AccountDropdown
+              email={session?.user.email ?? ''}
+              role={session?.user.role ?? 'USER'}
+            />
+          ) : (
+            <SignedOutControls />
+          )}
         </div>
 
         {/* Mobile Menu */}
-        <Suspense fallback={<MobileMenuPlaceholder />}>
-          <HeaderMobileMenu />
-        </Suspense>
+        <MobileMenu
+          items={NAV_ITEMS}
+          isAuthenticated={isAuthenticated}
+          userEmail={session?.user.email ?? ''}
+          userRole={session?.user.role ?? 'USER'}
+        />
       </div>
     </header>
   );
