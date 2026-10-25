@@ -58,7 +58,8 @@ export default async function CreateDeveloperProfilePage({
     if (!parsed.success) {
       redirect(
         `/developer/profile/create?error=${encodeURIComponent(
-          parsed.error.issues.map((i) => i.message).join(', '),
+          // The same broken URL can produce two issues; show each text once.
+          [...new Set(parsed.error.issues.map((issue) => issue.message))].join(' '),
         )}`,
       );
     }

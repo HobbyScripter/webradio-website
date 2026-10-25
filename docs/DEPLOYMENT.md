@@ -1,12 +1,16 @@
 # Deployment & Vercel-Readiness
 
-**Stand:** 2026-10-24 (Phase 4.6)
+**Stand:** 2026-10-25 (Phase 4.6, aktualisiert in Phase 5.2)
 
 **Status:** vorbereitet, **nicht deployt** und **nicht gegen Vercel verifiziert**.
 
 Dieses Dokument beschreibt, was für einen späteren Vercel-Betrieb geprüft wurde.
 Es ersetzt keinen Deployment-Test. Es wurden keine produktiven Ressourcen,
 Datenbanken oder Zugangsdaten angelegt oder verändert.
+
+Die konkrete Konfigurationsänderung aus Phase 5.2 (minimale `vercel.json`,
+Env-Variablen-Matrix, Build- ohne Datenbank-Nachweis) ist in
+[`VERCEL_DEPLOYMENT_REPORT.md`](VERCEL_DEPLOYMENT_REPORT.md) dokumentiert.
 
 ## 1. Laufzeit und Framework
 
@@ -32,31 +36,75 @@ Quellen:
 
 ```bash
 npm ci
-npm run prisma:contract:emit
-npm run build
+npm run build   # führt prebuild → prisma contract emit aus
 npm run start
 ```
 
-`prebuild` führt `prisma contract emit` bereits aus. Der Build benötigt eine
-gesetzte, aber nicht zwingend erreichbare `DATABASE_URL`; die öffentlichen
-Seiten werden als statische Shell mit dynamischen Datenlücken gerendert.
+`prebuild` führt `prisma contract emit` bereits aus; ein zusätzlicher
+`contract emit`-Schritt ist weder lokal noch auf Vercel nötig.
+
+**Vercel-Auflösung der Befehle (laut Vercel-Doku):**
+
+- Install: Vercel nutzt bei vorhandenem `package-lock.json` standardmäßig
+  `npm install`. Deshalb setzt `vercel.json` explizit `installCommand: "npm ci"`
+  (lockfile-exakt, identisch zu CI).
+- Build: Vercel verwendet das `build`-Script aus `package.json`, wenn es
+  existiert — also `npm run build` inklusive `prebuild`. Ein
+  `buildCommand`-Override wäre redundant und ist deshalb nicht gesetzt.
+- Dev: `devCommand` ist nur für `vercel dev` relevant und wurde entfernt; das
+  Next.js-Preset liefert `next dev`.
+
+Der Build benötigt **keine** erreichbare und auch **keine gesetzte**
+`DATABASE_URL`: `prisma contract emit` liest nur den Contract-Quelltext, und
+`src/lib/db.ts` verwendet während der Build-Phase einen Platzhalter. Lokal
+verifiziert mit `DATABASE_URL="" npm run build` (Exit 0, Contract emittiert).
+Ein Vercel-Build darf daher keine Produktionsdatenbank erreichen — und führt
+keine Migration aus (§10).
+
+Zur Laufzeit gilt das Gegenteil: Fehlt `DATABASE_URL` in Produktion, bricht
+`src/lib/db.ts` mit einer klaren Fehlermeldung ab, statt still eine lokale
+Platzhalterverbindung zu öffnen. Verifiziert mit `next start` bei leerer
+Variable (HTTP 500 plus `DATABASE_URL must be set at runtime in production`).
+
+### Node.js-Version
+
+- Projektanforderung: `engines.node: ">=24.11.0"` (Prisma 8 RC, Next.js 16).
+- Vercel bietet laut Doku die Major-Versionen 22.x und 24.x an und wertet
+  `engines.node` aus; ein Bereich wie `>=22.0.0` wird auf die neueste 24.x
+  abgebildet. Ob **genau** `>=24.11.0` akzeptiert wird, ist der Doku nicht zu
+  entnehmen und wurde nicht gegen Vercel geprüft.
+- Verbindliche Maßnahme beim Anlegen des Projekts: in den
+  Vercel-Projekteinstellungen **Node.js Version 24.x** wählen und den ersten
+  Build-Log auf die tatsächlich verwendete Version prüfen.
+
+Quellen:
+- <https://vercel.com/docs/functions/runtimes/node-js/node-js-versions>
+- <https://vercel.com/docs/package-managers>
+- <https://vercel.com/docs/builds/configure-a-build>
 
 ## 3. Umgebungsvariablen (Namen, keine Werte)
 
-| Variable | Development | Preview | Production | Zweck |
-|---|---|---|---|---|
-| `DATABASE_URL` | lokale DB `127.0.0.1:5433` | eigene Preview-DB | eigene Prod-DB | PostgreSQL |
-| `TEST_DATABASE_URL` | `_test`-DB | nicht nötig | nicht nötig | nur Integrationstests |
-| `NEXTAUTH_SECRET` | Pflicht | Pflicht | Pflicht | JWT-/Cookie-Signierung |
-| `NEXTAUTH_URL` | `http://localhost:3000` | z. B. `https://<preview-host>` | `https://<produktions-domain>` | Cookies, E-Mail-Links, Origin |
-| `NEXT_PUBLIC_SITE_URL` | optional | optional | Produktionsdomain | Canonical, OG, Sitemap |
-| `GITHUB_TOKEN` | optional | optional | optional | serverseitiger GitHub-API-Token; niemals `NEXT_PUBLIC_*` |
-| `TRUST_PROXY` | leer | automatisch via `VERCEL=1` | automatisch via `VERCEL=1` | IP-Limits/Audit-IP |
-| `EMAIL_FROM` | optional | Pflicht für Versand | Pflicht für Versand | Absender |
-| `EMAIL_SERVER_HOST` | optional | Pflicht für Versand | Pflicht für Versand | SMTP |
-| `EMAIL_SERVER_PORT` | `587` | `587`/`465` | `587`/`465` | SMTP |
-| `EMAIL_SERVER_USER` | optional | meist Pflicht | meist Pflicht | SMTP |
-| `EMAIL_SERVER_PASSWORD` | optional | geheim | geheim | SMTP |
+Alle Werte werden ausschließlich in den Vercel-Projekteinstellungen gepflegt —
+nie in `vercel.json`, im Repository oder in einem `NEXT_PUBLIC_*`-Bundle.
+`NEXT_PUBLIC_SITE_URL` ist die einzige Variable, deren Wert bewusst im
+Client-Bundle landet (öffentliche Basis-URL, kein Geheimnis).
+
+| Variable | Zweck | Build | Runtime | Vercel-Umgebungen | Geheim? | Format / sichere Erzeugung |
+|---|---|---|---|---|---|---|
+| `DATABASE_URL` | PostgreSQL-Verbindung der Anwendung | optional (Platzhalter greift) | **zwingend** | Production **und** Preview, je eigene Datenbank | ja (enthält Zugangsdaten) | `postgresql://USER:PASS@HOST:5432/DB?sslmode=require`; für Serverless den Pooler-String des Anbieters verwenden. Fehlt sie zur Laufzeit, bricht die App mit klarer Meldung ab. |
+| `NEXTAUTH_SECRET` | Signiert die NextAuth-JWTs (Transport der DB-Session-ID) | **zwingend** (wird beim Import von `src/lib/auth.ts` in Produktion geprüft) | **zwingend** | Production und Preview, **je eigener Wert** | ja | 32 zufällige Bytes, base64url: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
+| `NEXTAUTH_URL` | Maßgebliche Origin für Cookies (`__Secure-`-Präfix), E-Mail-Links und Origin-Prüfung; wird nie aus dem Request-Host abgeleitet | **zwingend** | **zwingend** | Production und Preview **getrennt** | nein, aber exakt und öffentlich bekannt | `https://<origin>` ohne Pfad, ohne Trailing Slash. Produktion ausschließlich HTTPS; Loopback-HTTP nur für lokale `next start`-Prüfungen. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical-URLs, Open Graph, Sitemap | **wirksam** (Metadaten) | gelesen | Production; Preview optional | nein (öffentlich) | `https://<origin>` ohne Pfad. Ohne Wert werden die Tags weggelassen (kein Fallback auf eine erfundene Domain). |
+| `TRUST_PROXY` | Erlaubt `x-forwarded-for` für IP-Limits und Audit-IPs | – | gelesen | auf Vercel **nicht setzen** | nein | Vercel setzt `VERCEL=1` selbst; ohne Vertrauen bleiben IP-basierte Limits aus. |
+| `EMAIL_FROM` | Absenderadresse für Reset-/Verifizierungsmails | – | gelesen | Production (Preview nur für Versandtests) | nein | gültige Absenderadresse des tatsächlichen Mailproviders |
+| `EMAIL_SERVER_HOST` | SMTP-Host | – | gelesen | Production | nein | Hostname des Providers |
+| `EMAIL_SERVER_PORT` | SMTP-Port | – | gelesen | Production | nein | `587` (STARTTLS) oder `465` (SMTPS), Default `587` |
+| `EMAIL_SERVER_USER` | SMTP-Benutzer | – | gelesen | Production | meist ja | Provider-Vorgabe |
+| `EMAIL_SERVER_PASSWORD` | SMTP-Passwort | – | gelesen | Production | ja | Provider-Vorgabe; nur in Vercel-Secrets |
+| `GITHUB_TOKEN` | Höheres Rate-Limit der öffentlichen GitHub-REST-API | – | gelesen (nur serverseitig) | Production, optional Preview | ja | Fine-grained Token **ohne** Schreibrechte; niemals `NEXT_PUBLIC_*` und nie im Client-Bundle |
+| `TEST_DATABASE_URL` | Datenbank der Integrationstests | – | – | **nicht auf Vercel** | ja | DB-Name muss auf `_test` enden; `test:integration` verweigert alles andere |
+| `ADMIN_BOOTSTRAP_*`, `SYSTEM_ADMIN_*` | einmalige CLI-Bootstraps/Recovery | – | – | **nicht auf Vercel** | ja | nur lokal/CI mit Shell- und DB-Zugriff; siehe README |
+| `STORAGE_*`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_WEBHOOK_SECRET` | derzeit von **keinem** Codepfad gelesen (nur in `src/lib/env.ts` deklariert) | – | – | nicht setzen | – | erst konfigurieren, wenn eine Funktion sie tatsächlich nutzt |
 
 `ADMIN_BOOTSTRAP_*` und `SYSTEM_ADMIN_*` gehören **nicht** in Vercel. Beide
 Bootstraps sind einmalige, lokale CLI-Vorgänge mit Datenbankzugriff auf die
@@ -211,24 +259,44 @@ Aufbewahrungsrichtlinie nötig; die Korrektheit hängt nicht davon ab.
    API-`no-store`, geschützte Bereiche, fremde Origin.
 7. Erst danach Production veröffentlichen.
 
-`vercel.json` enthält nur Build-/Framework-Konfiguration. Die früheren
-`@secret`-Referenzen wurden entfernt, weil Secrets über die Vercel-
-Projekteinstellungen verwaltet werden.
+`vercel.json` enthält nur noch Framework und Installationsbefehl:
 
-**Offene Regionsentscheidung:** `vercel.json` pinnt derzeit `regions: ["iad1"]`
-(US). Für eine deutschsprachige Website mit EU-Datenverarbeitung sind
-Datenresidenz, Latenz und die Angaben in der Datenschutzerklärung zu prüfen;
-`fra1` wäre eine naheliegende Alternative. Die Region wurde in Phase 4.6
-**nicht** eigenmächtig geändert, weil sie von Betreiber- und Rechtsentscheidungen
-abhängt.
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm ci"
+}
+```
+
+Begründung (Phase 5.2):
+
+- `installCommand: "npm ci"` — ohne Override nutzt Vercel `npm install`; `npm ci`
+  installiert exakt das Lockfile und entspricht der CI.
+- Kein `buildCommand` — Vercel führt das `build`-Script aus, `prebuild`
+  (`prisma contract emit`) läuft damit automatisch. Ein Override würde einen
+  doppelten oder ausgelassenen Prisma-Schritt riskieren.
+- Kein `devCommand` — nur für `vercel dev` relevant; das Next.js-Preset liefert
+  `next dev`.
+- Keine `regions` — der frühere Pin auf `iad1` (US) war eine unbelegte
+  Produktionsannahme. Für eine deutschsprachige Website mit EU-Datenverarbeitung
+  sind Datenresidenz, Latenz und die Angaben in der Datenschutzerklärung zu
+  prüfen (`fra1` wäre naheliegend). Die Region wird **bewusst im Vercel-Projekt**
+  gesetzt und nicht im Repository vorweggenommen.
+- Keine `headers`/`redirects`/`rewrites`/`crons` — bestehende Cache-, Cookie- und
+  Origin-Schutzmechanismen bleiben unangetastet.
+- Keine Secrets, keine Domains, keine Datenbankverbindungen.
+
+Secrets werden ausschließlich über die Vercel-Projekteinstellungen verwaltet;
+frühere `@secret`-Referenzen bleiben entfernt.
 
 ## 10. Build, Migration und Produktionsschutz
 
 - `npm run build` führt **keine** Datenbankmigration und keinen
   `prisma db migrate`-Aufruf aus. Der `prebuild`-Schritt ist ausschließlich
   `prisma contract emit` (Contract-Artefakte, kein Datenbankzugriff).
-- `vercel.json` setzt nur `installCommand`, `buildCommand`, `devCommand`,
-  `framework` und `regions`; dort ist kein Migrationsbefehl verdrahtet.
+- `vercel.json` setzt nur `installCommand` und `framework`; dort ist kein
+  Migrationsbefehl verdrahtet, und es existiert kein Vercel-Cron.
 - Migrationen sind ein separater, freizugebender Schritt mit einer explizit
   gesetzten `DATABASE_URL` der Zielumgebung:
 

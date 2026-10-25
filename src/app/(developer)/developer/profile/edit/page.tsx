@@ -56,7 +56,8 @@ export default async function EditDeveloperProfilePage({
     if (!parsed.success) {
       redirect(
         `/developer/profile/edit?error=${encodeURIComponent(
-          parsed.error.issues.map((i) => i.message).join(', '),
+          // The same broken URL can produce two issues; show each text once.
+          [...new Set(parsed.error.issues.map((issue) => issue.message))].join(' '),
         )}`,
       );
     }

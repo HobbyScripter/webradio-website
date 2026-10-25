@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import {
   ChevronDownIcon,
@@ -54,6 +54,9 @@ function NavIcon({ name }: { name: AccountNavIcon }) {
 
 export default function AccountDropdown({ email, role }: AccountDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  // Roving tabindex: exactly one menu item is tabbable, so Tab from the trigger
+  // reaches the menu instead of skipping it.
+  const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -61,17 +64,47 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
 
   const links = getAccountNavItems(role);
 
-  const focusableItems = () =>
-    Array.from(
-      menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
-    );
+  const focusableItems = useCallback(
+    () =>
+      Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
+      ),
+    [],
+  );
 
-  const close = (restoreFocus = false) => {
+  const focusItem = useCallback(
+    (index: number) => {
+      const items = focusableItems();
+      if (items.length === 0) {
+        return;
+      }
+      const normalised = ((index % items.length) + items.length) % items.length;
+      setActiveIndex(normalised);
+      items[normalised]?.focus();
+    },
+    [focusableItems],
+  );
+
+  const close = useCallback((restoreFocus = false) => {
     setIsOpen(false);
     if (restoreFocus) {
       buttonRef.current?.focus();
     }
-  };
+  }, []);
+
+  /**
+   * Open the menu and move focus to one item, as the ARIA menu-button pattern
+   * expects. Called from event handlers (never from an effect), so the state
+   * update stays out of the render/effect cascade.
+   */
+  const openMenu = useCallback(
+    (index = 0) => {
+      setActiveIndex(index >= 0 ? index : -1);
+      setIsOpen(true);
+      window.setTimeout(() => focusItem(index), 0);
+    },
+    [focusItem],
+  );
 
   // Click outside closes the menu without stealing focus.
   useEffect(() => {
@@ -111,28 +144,23 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
 
       if (event.key === 'ArrowDown') {
         event.preventDefault();
-        const next = currentIndex < 0 ? 0 : (currentIndex + 1) % items.length;
-        items[next]?.focus();
+        focusItem(currentIndex < 0 ? 0 : currentIndex + 1);
       } else if (event.key === 'ArrowUp') {
         event.preventDefault();
-        const previous =
-          currentIndex < 0 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
-        items[previous]?.focus();
+        focusItem(currentIndex < 0 ? items.length - 1 : currentIndex - 1);
       } else if (event.key === 'Home') {
         event.preventDefault();
-        items[0]?.focus();
+        focusItem(0);
       } else if (event.key === 'End') {
         event.preventDefault();
-        items[items.length - 1]?.focus();
-      } else if (event.key === 'Tab') {
-        // Let Tab continue through the page, but close the menu first.
-        setIsOpen(false);
+        focusItem(items.length - 1);
       }
+      // Tab keeps its native behaviour; leaving the container closes the menu.
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, close, focusItem, focusableItems]);
 
   const handleLogout = async () => {
     // Full navigation after the session is revoked, so every server component
@@ -141,17 +169,28 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
   };
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div
+      className="relative"
+      ref={containerRef}
+      onBlur={(event) => {
+        // Focus leaving the trigger/menu pair closes the popup (Tab out).
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsOpen(false);
+        }
+      }}
+    >
       <button
         ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen((previous) => !previous)}
+        onClick={() => (isOpen ? setIsOpen(false) : openMenu(0))}
         onKeyDown={(event) => {
-          if (event.key === 'ArrowDown' && !isOpen) {
+          // Arrow keys open the menu with the first/last item focused.
+          if (event.key === 'ArrowDown') {
             event.preventDefault();
-            setIsOpen(true);
-            // Focus moves to the first item after the menu renders.
-            window.setTimeout(() => focusableItems()[0]?.focus(), 0);
+            openMenu(0);
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            openMenu(-1);
           }
         }}
         aria-expanded={isOpen}
@@ -166,10 +205,10 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
           >
             <UserIcon className="h-4 w-4" />
           </span>
-          <span className="hidden max-w-[120px] truncate sm:inline">{email}</span>
+          <span className="hidden max-w-[120px] truncate lg:inline">{email}</span>
         </span>
         <span
-          className={`hidden rounded-md px-1.5 py-0.5 text-xs font-medium sm:inline ${ROLE_COLORS[role]}`}
+          className={`hidden rounded-md px-1.5 py-0.5 text-xs font-medium lg:inline ${ROLE_COLORS[role]}`}
         >
           {ROLE_LABELS[role]}
         </span>
@@ -203,12 +242,13 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
           </div>
 
           <nav aria-label="Konto-Navigation" className="py-1">
-            {links.map((link) => (
+            {links.map((link, index) => (
               <Link
                 key={link.key}
                 href={link.href}
                 role="menuitem"
-                tabIndex={-1}
+                tabIndex={index === activeIndex ? 0 : -1}
+                onFocus={() => setActiveIndex(index)}
                 onClick={() => close()}
                 className="flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white focus-visible:bg-white/[0.06] focus-visible:text-white focus-visible:outline-none"
               >
@@ -222,7 +262,8 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
             <button
               type="button"
               role="menuitem"
-              tabIndex={-1}
+              tabIndex={links.length === activeIndex ? 0 : -1}
+              onFocus={() => setActiveIndex(links.length)}
               onClick={handleLogout}
               className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-rose-300 transition-colors hover:bg-rose-500/5 hover:text-rose-200 focus-visible:bg-rose-500/10 focus-visible:text-rose-100 focus-visible:outline-none"
             >

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { ButtonLink } from '@/components/ui/button';
 import {
@@ -44,6 +44,7 @@ export default function MobileMenu({
 }: MobileMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -54,6 +55,8 @@ export default function MobileMenu({
       if (event.key === 'Escape') {
         setMenuOpen(false);
         setAccountOpen(false);
+        // Return focus to the button that opened the panel instead of the body.
+        toggleRef.current?.focus();
       }
     };
 
@@ -86,6 +89,7 @@ export default function MobileMenu({
   return (
     <div className="md:hidden">
       <button
+        ref={toggleRef}
         type="button"
         onClick={() => {
           setAccountOpen(false);

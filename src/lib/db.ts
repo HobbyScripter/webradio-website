@@ -34,12 +34,27 @@ export const contract = contractFromJson<Contract>(contractJson);
  * Database connection URL resolution:
  * Uses DATABASE_URL if non-empty, or a placeholder during build/evaluation time
  * so static analysis and Next.js page collection succeed before live credentials are provided.
+ *
+ * The placeholder is build-time only. At runtime in production a missing
+ * DATABASE_URL must fail loudly: silently dialling a local placeholder would
+ * turn a configuration mistake into a confusing connection error on the first
+ * request. `next build` runs with NODE_ENV=production, so the build phase is
+ * detected separately (Next sets NEXT_PHASE itself).
  */
 const rawUrl = process.env['DATABASE_URL'];
-const connectionUrl =
-  rawUrl && rawUrl.trim() !== ''
-    ? rawUrl
-    : 'postgresql://placeholder:placeholder@localhost:5432/webradio_placeholder';
+const hasDatabaseUrl = Boolean(rawUrl && rawUrl.trim() !== '');
+const isBuildPhase = process.env['NEXT_PHASE'] === 'phase-production-build';
+
+if (!hasDatabaseUrl && process.env['NODE_ENV'] === 'production' && !isBuildPhase) {
+  throw new Error(
+    'DATABASE_URL must be set at runtime in production.\n' +
+      'Configure it in the deployment environment; see docs/DEPLOYMENT.md.',
+  );
+}
+
+const connectionUrl = hasDatabaseUrl
+  ? (rawUrl as string)
+  : 'postgresql://placeholder:placeholder@localhost:5432/webradio_placeholder';
 
 /**
  * The Prisma 8 database client.

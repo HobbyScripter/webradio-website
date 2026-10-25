@@ -8,6 +8,7 @@ import Footer from '@/components/public/Footer';
 import Link from 'next/link';
 import DashboardNav, { type DashboardNavItem } from '@/components/dashboard/DashboardNav';
 import DashboardBreadcrumbs from '@/components/dashboard/DashboardBreadcrumbs';
+import AccessDenied from '@/components/dashboard/AccessDenied';
 import {
   CodeIcon,
   PlugIcon,
@@ -73,8 +74,18 @@ export default async function DeveloperLayout({
     redirect('/auth/login?callbackUrl=/developer');
   }
 
+  // Same access-denied surface as /admin and /system-admin: a signed-in user
+  // without the role gets an explanation, not a silent redirect home.
   if (!hasRole(session.user.role, 'DEVELOPER')) {
-    redirect('/');
+    return (
+      <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100">
+        <Header />
+        <main id="main-content" className="flex-1">
+          <AccessDenied area="Der Entwicklerbereich" requiredRole="Entwickler" />
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   const profile = await db.orm.public.DeveloperProfile.where({
