@@ -294,3 +294,47 @@ export function resolveCliDatabaseUrl(env: DatabaseEnv = process.env): ResolvedC
       'See docs/VERCEL_DATABASE_INITIALIZATION_REPORT.md.',
   );
 }
+
+/** Result of the non-throwing CLI resolution used by `prisma.config.ts`. */
+export type CliDatabaseProbe =
+  | { readonly status: 'resolved'; readonly connection: ResolvedConnection<CliConnectionSource> }
+  /** Nothing usable configured: the normal state for builds and `contract emit`. */
+  | { readonly status: 'unconfigured' }
+  /** `DIRECT_URL` is set but unusable; the reason is secret-free. */
+  | { readonly status: 'invalid'; readonly reason: string };
+
+/**
+ * Non-throwing variant of {@link resolveCliDatabaseUrl} for `prisma.config.ts`.
+ *
+ * The Prisma CLI evaluates the config file for *every* command — including
+ * `prisma contract emit`, which runs in `prebuild` and is offline by design.
+ * The 8.0.0-rc config loader validates (`db.connection` eagerly, so a getter is
+ * not an option), therefore the config may only hand over a connection it can
+ * actually resolve. This probe never throws:
+ *
+ * - `resolved`     a valid direct (or documented local-loopback) URL exists,
+ * - `unconfigured` nothing to use (build without credentials, `contract emit`),
+ * - `invalid`      `DIRECT_URL` is set but wrong; callers log the reason and
+ *                  omit the connection, and DB commands still refuse to run.
+ */
+export function probeCliDatabaseUrl(env: DatabaseEnv = process.env): CliDatabaseProbe {
+  const directConfigured = readEnvValue(env, 'DIRECT_URL') !== undefined;
+
+  try {
+    return { status: 'resolved', connection: resolveCliDatabaseUrl(env) };
+  } catch (error) {
+    // Silent only when the operator configured nothing for the CLI: a legacy
+    // remote DATABASE_URL must not turn a build into a warning storm.
+    if (!directConfigured) {
+      return { status: 'unconfigured' };
+    }
+
+    return {
+      status: 'invalid',
+      reason:
+        error instanceof DatabaseConfigError
+          ? error.message
+          : 'DIRECT_URL could not be resolved.',
+    };
+  }
+}

@@ -59,6 +59,13 @@ npm run db:verify
 `npm run prisma:db:init` baseline-t eine bereits existierende Datenbank und
 ist für eine leere Datenbank mit Migrationspaket **nicht** nötig.
 
+Die DB-Kommandos (`db:migrate`, `db:verify`, `db:schema`, `db:status`,
+`prisma:db:*`, `prisma:studio`) benötigen `DIRECT_URL` — lokal genügt eine
+Loopback-`DATABASE_URL`. Fehlt oder passt sie nicht, bricht das Kommando mit
+einer Meldung ab, die Variable und erwarteten Host nennt, aber nie die
+Verbindungszeichenfolge. `npm run build` und `prisma contract emit` brauchen
+**keine** Datenbankverbindung.
+
 `prisma db migrate` setzt den Live-Marker, aber nicht den `db`-Ref in
 `migrations/app/refs/db.json`. Nach einer neu angewendeten Migration lokal
 entweder mit `npx prisma db migrate --advance-ref db` arbeiten oder den Ref

@@ -59,12 +59,20 @@ liest nur den Contract-Quelltext, und `src/lib/db.ts` verwendet während der
 Build-Phase einen Loopback-Platzhalter (der Prisma-8-Client legt seinen Pool
 erst bei der ersten Query an).
 
-`prisma.config.ts` wird jedoch bei **jedem** Prisma-CLI-Aufruf geladen — auch
-beim `prebuild`-Schritt `prisma contract emit`. Es verlangt `DIRECT_URL`
-(db.prisma.io für Deployments, Loopback für lokale Entwicklung/CI), auch wenn
-`contract emit` selbst keine Verbindung öffnet. Fehlt `DIRECT_URL`, bricht der
-Build mit einer klaren Meldung ab. Vercel muss daher **beide**
-Datenbankvariablen gesetzt haben, bevor der erste Build läuft.
+`prisma.config.ts` wird bei **jedem** Prisma-CLI-Aufruf geladen, auch beim
+`prebuild`-Schritt `prisma contract emit`. Deshalb darf es nicht abbrechen, wenn
+keine Datenbank konfiguriert ist: `contract emit` ist laut CLI-Hilfe ausdrücklich
+offline („Offline — does not consult the database“). Die Konfiguration gibt
+`db.connection` nur weiter, wenn sie eine gültige Verbindung auflösen kann
+(`probeCliDatabaseUrl`); sonst bleibt das optionale `db`-Feld weg. Ein Build
+benötigt damit **weder** `DATABASE_URL_POOLED` **noch** `DIRECT_URL`.
+
+DB-Kommandos prüfen dagegen streng: `db:migrate`, `db:verify`, `db:schema`,
+`db:status`, `prisma:db:*` und `prisma:studio` laufen über
+`scripts/prisma-db.mts`, das die URL mit `resolveCliDatabaseUrl()` auflöst und
+bei fehlender, falscher oder gepoolter `DIRECT_URL` mit einer klaren,
+secretsicheren Meldung abbricht, bevor die CLI startet. Eine Migration ist
+weder Teil von `prebuild` noch von `build` (§10).
 
 Zur Laufzeit gilt: Fehlt `DATABASE_URL_POOLED` in Produktion, bricht
 `src/lib/db.ts` mit einer klaren Fehlermeldung ab, statt still auf
@@ -97,7 +105,7 @@ Client-Bundle landet (öffentliche Basis-URL, kein Geheimnis).
 | Variable | Zweck | Build | Runtime | Vercel-Umgebungen | Geheim? | Format / sichere Erzeugung |
 |---|---|---|---|---|---|---|
 | `DATABASE_URL_POOLED` | Pooled-Verbindung des Anwendungstraffic | optional (Build-Platzhalter greift) | **zwingend** | Production **und** Preview, je eigene Datenbank | ja (enthält Zugangsdaten) | `postgresql://USER:PASS@pooled.db.prisma.io:5432/DB?sslmode=require`. Nur der Pooled-Host wird akzeptiert; ein direkter Host oder ein Loopback-Host in Produktion bricht mit klarer Meldung ab. Kein Fallback auf `DATABASE_URL`/`DIRECT_URL`. |
-| `DIRECT_URL` | Direktverbindung für Prisma-CLI-Operationen (Migrationen, `db verify`, `migration status`, `contract emit`) | **zwingend** (`prisma.config.ts` lädt bei jedem CLI-Aufruf, auch im `prebuild`) | nicht gelesen | Production **und** Preview, je eigene Datenbank | ja (enthält Zugangsdaten) | `postgresql://USER:PASS@db.prisma.io:5432/DB?sslmode=require`. Der Pooled-Host wird abgelehnt (Migrationen benötigen die Direktverbindung); kein Fallback auf andere Variablen in Produktion. |
+| `DIRECT_URL` | Direktverbindung für DB-Kommandos der Prisma-CLI (`db migrate`, `db verify`, `db schema`, `migration status`, `studio`) | nicht benötigt (`contract emit` ist offline) | nur von DB-Kommandos gelesen | Production **und** Preview, je eigene Datenbank | ja (enthält Zugangsdaten) | `postgresql://USER:PASS@db.prisma.io:5432/DB?sslmode=require`. Der Pooled-Host wird abgelehnt (Migrationen benötigen die Direktverbindung); kein Fallback auf andere Variablen in Produktion. Eine falsch gesetzte `DIRECT_URL` bricht den Build **nicht** ab, sondern erzeugt nur eine Warnung; `npm run db:migrate`/`db:verify` verweigern dann den Start. |
 | `DATABASE_URL` | lokaler Entwicklungs-Fallback | – | nur außerhalb Production | **nicht auf Vercel** | ja | nur Loopback-Hosts (`localhost`, `127.0.0.1`, `::1`); dient `next dev`, lokalen CLI-Aufrufen und den Integrationstests. |
 | `NEXTAUTH_SECRET` | Signiert die NextAuth-JWTs (Transport der DB-Session-ID) | **zwingend** (wird beim Import von `src/lib/auth.ts` in Produktion geprüft) | **zwingend** | Production und Preview, **je eigener Wert** | ja | 32 zufällige Bytes, base64url: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
 | `NEXTAUTH_URL` | Maßgebliche Origin für Cookies (`__Secure-`-Präfix), E-Mail-Links und Origin-Prüfung; wird nie aus dem Request-Host abgeleitet | **zwingend** | **zwingend** | Production und Preview **getrennt** | nein, aber exakt und öffentlich bekannt | `https://<origin>` ohne Pfad, ohne Trailing Slash. Produktion ausschließlich HTTPS; Loopback-HTTP nur für lokale `next start`-Prüfungen. |
@@ -141,8 +149,9 @@ nicht die explizite, verifizierte Origin.
 - Development, Preview und Production brauchen getrennte Datenbanken und
   getrennte Secrets.
 - Migrationen laufen mit dem Prisma-8-Workflow, nicht mit
-  `prisma migrate deploy`. Alle CLI-Aufrufe verbinden sich über `DIRECT_URL`
-  (zentral validiert in `src/lib/db-connection.ts`):
+  `prisma migrate deploy`. Alle DB-Kommandos verbinden sich über `DIRECT_URL`
+  (zentral validiert in `src/lib/db-connection.ts`, erzwungen von
+  `scripts/prisma-db.mts`):
 
 ```bash
 npm run prisma:contract:emit

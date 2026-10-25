@@ -40,11 +40,8 @@ jobs:
 
       - name: Emit Prisma contract
         run: npm run prisma:contract:emit
-        env:
-          # prisma.config.ts resolves DIRECT_URL for every CLI invocation. The
-          # local placeholder is not contacted: `contract emit` only reads the
-          # contract source.
-          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
+        # Deliberately no database variables: `prisma contract emit` is offline
+        # and prisma.config.ts must load without DIRECT_URL (regression guard).
 
       - name: Run ESLint
         run: npm run lint
@@ -73,10 +70,7 @@ jobs:
 
       - name: Emit Prisma contract
         run: npm run prisma:contract:emit
-        env:
-          # See the lint job: DIRECT_URL is required to load prisma.config.ts,
-          # the placeholder is never connected to.
-          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
+        # See the lint job: the config loads without credentials.
 
       - name: Run TypeScript check
         run: npm run type-check
@@ -107,8 +101,7 @@ jobs:
 
       - name: Emit Prisma contract
         run: npm run prisma:contract:emit
-        env:
-          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
+        # No DIRECT_URL on purpose: unit tests and contract emission stay offline.
 
       - name: Run tests
         run: npm test
@@ -153,8 +146,9 @@ jobs:
       # Disposable database for this job only; never a preview/production URL.
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
       TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
-      # Prisma CLI operations (migrate, db verify, contract emit) use DIRECT_URL;
+      # DB-connected Prisma CLI operations (db migrate, db verify) use DIRECT_URL;
       # CI has no Prisma Postgres instance, so it points at the service container.
+      # `contract emit` does not need it.
       DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
       NEXTAUTH_SECRET: ci-integration-secret-not-for-production
       NEXTAUTH_URL: http://localhost:3000
@@ -210,24 +204,19 @@ jobs:
       - name: Sync Prisma skills
         run: npx prisma skills sync
 
-      - name: Emit Prisma contract
+      - name: Emit Prisma contract without credentials
         run: npm run prisma:contract:emit
-        env:
-          # `prebuild` runs this again during `npm run build`; prisma.config.ts
-          # requires DIRECT_URL. It is not contacted.
-          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
+        # No DIRECT_URL and no DATABASE_URL_POOLED: this is the exact state that
+        # broke the Vercel build before the config stopped resolving eagerly.
 
       - name: Build
         run: npm run build
         env:
-          # The build uses prebuild (prisma contract emit), which already ran.
-          # DIRECT_URL is required by the prisma.config.ts loader but not used
-          # during static analysis — set a loopback placeholder.
-          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/webradio_ci_test
-          # Exercise the production resolution path: only the hostname is
-          # validated and the Prisma 8 pool is created lazily, so the build
-          # never contacts this mock host. DATABASE_URL stays unset to prove
-          # there is no fallback.
+          # `prebuild` (prisma contract emit) runs again here and stays offline.
+          # Exercise the production resolution path of the runtime client: only
+          # the hostname is validated and the Prisma 8 pool is created lazily, so
+          # the build never contacts this mock host. DATABASE_URL and DIRECT_URL
+          # stay unset to prove there is no fallback and no build-time coupling.
           DATABASE_URL_POOLED: postgresql://placeholder:placeholder@pooled.db.prisma.io:5432/webradio_placeholder?sslmode=require
           NEXTAUTH_SECRET: ci-build-secret-not-for-production
           NEXTAUTH_URL: http://localhost:3000

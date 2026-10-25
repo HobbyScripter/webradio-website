@@ -12,6 +12,7 @@ import {
   isBuildPhase,
   isProductionRuntime,
   parsePostgresHostname,
+  probeCliDatabaseUrl,
   resolveCliDatabaseUrl,
   resolveRuntimeDatabaseUrl,
   type DatabaseEnv,
@@ -309,5 +310,71 @@ describe('resolveCliDatabaseUrl', () => {
 
   it('throws when nothing is configured', () => {
     expectConfigError(() => resolveCliDatabaseUrl({ NODE_ENV: 'test' }), /DIRECT_URL must be set/);
+  });
+});
+
+describe('probeCliDatabaseUrl (used by prisma.config.ts)', () => {
+  it('reports unconfigured without throwing, so the build needs no credentials', () => {
+    for (const env of [
+      { NODE_ENV: 'production' } satisfies DatabaseEnv,
+      { NODE_ENV: 'production', NEXT_PHASE: 'phase-production-build' },
+      { NODE_ENV: 'test' },
+      // Empty strings count as "not configured".
+      { NODE_ENV: 'production', DIRECT_URL: '   ' },
+    ]) {
+      expect(probeCliDatabaseUrl(env as DatabaseEnv)).toEqual({ status: 'unconfigured' });
+    }
+  });
+
+  it('resolves a valid direct connection', () => {
+    const probe = probeCliDatabaseUrl({ NODE_ENV: 'development', DIRECT_URL: DIRECT_URL_VALUE });
+
+    expect(probe.status).toBe('resolved');
+    if (probe.status !== 'resolved') throw new Error('unreachable');
+    expect(probe.connection.url).toBe(DIRECT_URL_VALUE);
+    expect(probe.connection.hostname).toBe(DIRECT_HOST);
+  });
+
+  it('still resolves the documented local loopback fallback', () => {
+    for (const [env, source] of [
+      [
+        { NODE_ENV: 'development', DATABASE_URL: LOCAL_URL },
+        'DATABASE_URL (local development fallback)',
+      ],
+      [{ NODE_ENV: 'test', DATABASE_URL: LOCAL_TEST_URL }, 'DATABASE_URL (local development fallback)'],
+      [{ NODE_ENV: 'development', DIRECT_URL: LOCAL_URL }, 'DIRECT_URL'],
+    ] as const) {
+      const probe = probeCliDatabaseUrl(env as DatabaseEnv);
+      expect(probe.status).toBe('resolved');
+      if (probe.status !== 'resolved') throw new Error('unreachable');
+      expect(probe.connection.source).toBe(source);
+      expect(probe.connection.hostname).toMatch(/^(127\.0\.0\.1|localhost)$/);
+    }
+  });
+
+  it('reports a configured but unusable DIRECT_URL without leaking it', () => {
+    for (const [directUrl, pattern] of [
+      [POOLED_URL, /pooled\.db\.prisma\.io/],
+      ['postgresql://app:direct-secret@db.example.com:5432/app', /unexpected hostname: db\.example\.com/],
+      ['postgresql://app:direct-secret@db.prisma.io:not-a-port/app', /not a valid PostgreSQL/],
+    ] as const) {
+      const probe = probeCliDatabaseUrl({ NODE_ENV: 'production', DIRECT_URL: directUrl });
+
+      expect(probe.status).toBe('invalid');
+      if (probe.status !== 'invalid') throw new Error('unreachable');
+      expect(probe.reason).toMatch(pattern);
+      expect(probe.reason).not.toMatch(/pool-secret|direct-secret/);
+    }
+  });
+
+  it('stays silent for a legacy remote DATABASE_URL in production', () => {
+    // Nothing usable for the CLI, but the operator did not configure DIRECT_URL:
+    // no warning during the build. Runtime resolution is unaffected.
+    const probe = probeCliDatabaseUrl({
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgresql://user:pass@db.example.com:5432/app',
+    });
+
+    expect(probe.status).toBe('unconfigured');
   });
 });
