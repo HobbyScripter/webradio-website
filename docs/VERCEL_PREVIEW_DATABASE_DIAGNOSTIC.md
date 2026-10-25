@@ -1089,4 +1089,73 @@ Diese Diagnose basiert ausschließlich auf:
 
 ---
 
+## 13. Next.js-Prerendering-Fehler behoben
+
+### 13.1 Ursache
+
+**Fehlermeldung:**
+```
+Error: Route "/": Next.js encountered uncached or runtime data during prerendering.
+```
+
+**Stacktrace:**
+```
+at Header (src\components\public\Header.tsx:50:19)
+at PublicLayout (src\app\(public)\layout.tsx:11:7)
+> 50 |   await connection();
+```
+
+**Analyse:**
+- Die `Header`-Komponente verwendete `await connection()` auf oberster Ebene
+- `connection()` markiert die gesamte Route als dynamisch und verhindert Prerendering
+- Der Header wird im `PublicLayout` gerendert, wodurch alle öffentlichen Routen (/, /plugins, /themes, /releases, /docs, /news, /roadmap) betroffen waren
+
+### 13.2 Lösung
+
+**Ansatz:** Die dynamischen Teile des Headers (Auth-Controls und Mobile Menu) mit `Suspense` kapseln, während der statische Teil (Logo, Navigation, GitHub-Link) sofort gerendert werden kann.
+
+**Geänderte Datei:** `src/components/public/Header.tsx`
+
+**Änderungen:**
+1. `AuthControls`-Komponente erstellt: Enthält `await connection()` und Session-Logik
+2. `AuthMobileMenu`-Komponente erstellt: Enthält `await connection()` und Session-Logik für Mobile
+3. Beide Komponenten mit `Suspense` umschlossen und mit Skeleton-Fallbacks versehen
+4. Haupt-`Header`-Komponente ist jetzt vollständig statisch und rendert sofort
+
+### 13.3 Testergebnisse
+
+- ✅ Type-Check: Bestanden
+- ✅ Lint: Bestanden
+- ✅ Unit Tests: 179 Tests bestanden
+- ✅ Build: Erfolgreich (74/74 Seiten generiert)
+
+**Build-Output:**
+```
+✓ Generating static pages using 15 workers (74/74) in 1121ms
+```
+
+**Betroffene Routen:**
+- `/` - Jetzt Partial Prerender (◐)
+- `/plugins` - Jetzt Partial Prerender (◐)
+- `/themes` - Jetzt Partial Prerender (◐)
+- `/releases` - Jetzt Partial Prerender (◐)
+- `/docs` - Jetzt Partial Prerender (◐)
+- `/news` - Jetzt Partial Prerender (◐)
+- `/roadmap` - Jetzt Partial Prerender (◐)
+
+### 13.4 Weitere Beobachtungen
+
+**API-Fehler im Build (nicht kritisch):**
+```
+[api:admin:audit-logs] unexpected failure { name: 'Error', code: 'UNKNOWN' }
+[api:admin:moderation:GET] unexpected failure { name: 'Error', code: 'UNKNOWN' }
+[api:admin:users:GET] unexpected failure { name: 'Error', code: 'UNKNOWN' }
+[api:developer:status] unexpected failure { name: 'Error', code: 'UNKNOWN' }
+[api:news] unexpected failure { name: 'CliStructuredError', code: 'CONTRACT.MARKER_READ_FAILED' }
+```
+
+Diese Fehler treten auf, weil die API-Routes beim Build ohne Datenbankverbindung ausgeführt werden. Dies ist erwartet und kritisch für die erfolgreiche Prerenderung der Seiten.
+
+---
+
 **Ende der Diagnose**

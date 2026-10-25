@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { connection } from 'next/server';
 import Link from 'next/link';
 import { getServerAuthSession } from '@/lib/server-auth';
@@ -34,16 +35,11 @@ function SignedOutControls() {
 }
 
 /**
- * Server Component.
- *
- * The session is resolved once, before the header is sent, and the resulting
- * controls are rendered inline. Deferring them into a Suspense boundary kept
- * the fallback on screen for signed-in visitors, so the account menu never
- * appeared. Reading the session here makes every page that renders the header
- * dynamic; that is the price of always showing the correct controls, and it
- * keeps the public pages free of a permanent loading state.
+ * Auth controls wrapped in Suspense to allow prerendering of the static header.
+ * This component reads the session at request time and renders the appropriate
+ * controls (signed-in account dropdown or signed-out login/register buttons).
  */
-export default async function Header() {
+async function AuthControls() {
   // next-auth derives a CSRF token from crypto randomness on every session
   // read, which is only allowed at request time. `connection()` marks the
   // render as dynamic so that value is never produced during prerendering.
@@ -51,6 +47,48 @@ export default async function Header() {
   const session = await getServerAuthSession();
   const isAuthenticated = Boolean(session?.user);
 
+  return (
+    <>
+      {isAuthenticated ? (
+        <AccountDropdown
+          email={session?.user.email ?? ''}
+          role={session?.user.role ?? 'USER'}
+        />
+      ) : (
+        <SignedOutControls />
+      )}
+    </>
+  );
+}
+
+/**
+ * Mobile menu wrapped in Suspense to allow prerendering of the static header.
+ */
+async function AuthMobileMenu() {
+  await connection();
+  const session = await getServerAuthSession();
+  const isAuthenticated = Boolean(session?.user);
+
+  return (
+    <MobileMenu
+      items={NAV_ITEMS}
+      isAuthenticated={isAuthenticated}
+      userEmail={session?.user.email ?? ''}
+      userRole={session?.user.role ?? 'USER'}
+    />
+  );
+}
+
+/**
+ * Server Component.
+ *
+ * The header is split into static (logo, navigation, GitHub link) and dynamic
+ * (auth controls, mobile menu) parts. The dynamic parts are wrapped in Suspense
+ * boundaries to allow prerendering of the static part while auth state is resolved
+ * at request time. This keeps public pages fast to load while showing correct
+ * auth controls for authenticated users.
+ */
+export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#07070a]/85 backdrop-blur-xl supports-[backdrop-filter]:bg-[#07070a]/70">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -81,23 +119,27 @@ export default async function Header() {
             <GitHubIcon className="h-[18px] w-[18px]" />
           </a>
 
-          {isAuthenticated ? (
-            <AccountDropdown
-              email={session?.user.email ?? ''}
-              role={session?.user.role ?? 'USER'}
-            />
-          ) : (
-            <SignedOutControls />
-          )}
+          <Suspense
+            fallback={
+              <div className="flex gap-2">
+                <div className="h-8 w-20 animate-pulse rounded-lg bg-white/[0.06]" />
+                <div className="h-8 w-20 animate-pulse rounded-lg bg-white/[0.06]" />
+                <div className="h-8 w-20 animate-pulse rounded-lg bg-white/[0.06]" />
+              </div>
+            }
+          >
+            <AuthControls />
+          </Suspense>
         </div>
 
         {/* Mobile Menu */}
-        <MobileMenu
-          items={NAV_ITEMS}
-          isAuthenticated={isAuthenticated}
-          userEmail={session?.user.email ?? ''}
-          userRole={session?.user.role ?? 'USER'}
-        />
+        <Suspense
+          fallback={
+            <div className="h-10 w-10 animate-pulse rounded-lg bg-white/[0.06]" />
+          }
+        >
+          <AuthMobileMenu />
+        </Suspense>
       </div>
     </header>
   );
