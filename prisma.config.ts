@@ -58,6 +58,6 @@ const orm = ormConfig({
 export default definePrismaConfig({
   orm,
   skills: {
-    agents: ['claude', 'cursor', 'agents', 'devin'],
+    agents: ['cursor', 'agents', 'devin'],
   },
 });

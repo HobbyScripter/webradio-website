@@ -42,7 +42,15 @@ export async function POST(request: Request) {
       });
     }
 
-    await requestEmailVerification(user.id);
+    const result = await requestEmailVerification(user.id);
+    if (result.sent && !result.delivery.delivered) {
+      // Operator visibility only: the response stays generic so a caller can
+      // not tell a delivery outage from a configured mailbox.
+      console.warn('[api:auth:verify-email:resend] delivery failed', {
+        mode: result.delivery.mode,
+        failure: result.delivery.failure ?? 'unknown',
+      });
+    }
 
     return noStoreJson({
       message:

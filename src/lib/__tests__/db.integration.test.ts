@@ -182,8 +182,11 @@ function runSystemAdminBootstrap(
 
 beforeAll(async () => {
   ensureTestDatabase();
-  // Transactional mail must never reach a real SMTP server from tests. With
-  // these unset, the service writes to the local outbox instead.
+  // Transactional mail must never reach a real provider from tests. With these
+  // unset, the service writes to the local outbox instead. `RESEND_API_KEY` is
+  // removed too: a key left in `.env` would otherwise make this suite send real
+  // messages through the Resend API.
+  delete process.env['RESEND_API_KEY'];
   delete process.env['EMAIL_SERVER_HOST'];
   delete process.env['EMAIL_FROM'];
   // Disposable `_test` database: start from a clean slate.

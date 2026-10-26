@@ -52,6 +52,20 @@ const env = {
   NODE_ENV: 'test',
 };
 
+// Tests must never deliver real e-mail. Removing the provider credentials here
+// keeps a developer's `.env` (or a CI secret) from letting a fixture reach
+// Resend or an SMTP server; the e-mail tests mock `fetch` explicitly.
+for (const key of [
+  'RESEND_API_KEY',
+  'EMAIL_FROM',
+  'EMAIL_SERVER_HOST',
+  'EMAIL_SERVER_PORT',
+  'EMAIL_SERVER_USER',
+  'EMAIL_SERVER_PASSWORD',
+]) {
+  delete env[key];
+}
+
 const jest = spawn(
   process.execPath,
   [

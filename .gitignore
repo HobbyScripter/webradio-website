@@ -70,3 +70,5 @@ Desktop.ini
 
 
 ci-clean-temp/
+.vercel
+.env*

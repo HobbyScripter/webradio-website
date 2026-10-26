@@ -18,6 +18,7 @@
  */
 import crypto from 'crypto';
 import { db } from './db';
+import { describeErrorChain } from './db-error-diagnostics';
 
 export type RateLimitPolicy = {
   /** Maximum number of requests in one window. */
@@ -159,12 +160,12 @@ export async function consumeRateLimitSafely(
   try {
     return await consumeRateLimit(input);
   } catch (error) {
-    const name = error instanceof Error ? error.name : 'UnknownError';
-    const code =
-      typeof error === 'object' && error !== null && 'code' in error
-        ? String((error as { code: unknown }).code)
-        : 'UNKNOWN';
-    console.error('[rate-limit] limiter unavailable; failing open', { name, code });
+    // `describeErrorChain` also reports the driver code and SQLSTATE nested in
+    // a Prisma wrapper (e.g. CONTRACT.MARKER_READ_FAILED → ECONNREFUSED).
+    console.error(
+      '[rate-limit] limiter unavailable; failing open',
+      describeErrorChain(error),
+    );
 
     const policy = input.policy ?? RATE_LIMITS[input.scope];
     return {

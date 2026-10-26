@@ -18,6 +18,7 @@
 import crypto from 'crypto';
 import bcryptjs from 'bcryptjs';
 import { or } from '@prisma/orm-postgres/orm-client';
+import { describeErrorChain } from './db-error-diagnostics';
 import { db } from './db';
 import { hasRole } from './roles';
 import type { AssignableRole, Role, RegisterInput } from './validations';
@@ -152,13 +153,10 @@ export function logServerError(scope: string, error: unknown): void {
     return;
   }
 
-  const name = error instanceof Error ? error.name : 'UnknownError';
-  const code =
-    typeof error === 'object' && error !== null && 'code' in error
-      ? String((error as { code: unknown }).code)
-      : 'UNKNOWN';
-
-  console.error(`[${scope}] unexpected failure`, { name, code });
+  // Walks the cause chain: a Prisma marker-verification wrapper such as
+  // CONTRACT.MARKER_READ_FAILED hides the driver error that actually caused
+  // the failure. Only names and codes are logged, never a message.
+  console.error(`[${scope}] unexpected failure`, describeErrorChain(error));
 }
 
 /**
