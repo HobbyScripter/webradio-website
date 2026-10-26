@@ -32,6 +32,7 @@ import {
   canSubmitForReview,
   decisionRequiresNotes,
   editOutcome,
+  isRemovedEntry,
   isValidModerationNotes,
   versionOutcome,
   type CatalogKind,
@@ -264,6 +265,15 @@ export async function updateCatalogEntry(input: {
     const profile = await requireDeveloperProfile(input.actorId, tx);
     const entry = await loadOwnedEntry(input.kind, input.entryId, profile.id, tx);
 
+    // A takedown is terminal: editing would change hidden content and could
+    // prepare a re-publication, so the owner is locked out instead.
+    if (isRemovedEntry(entry.status)) {
+      throw new ConflictError(
+        'Dieser Eintrag wurde von der Administration entfernt und kann nicht mehr bearbeitet werden.',
+        'ENTRY_REMOVED',
+      );
+    }
+
     await assertSlugAvailable(input.kind, data.slug, entry.id, tx);
 
     const outcome = editOutcome({
@@ -481,6 +491,13 @@ export async function addCatalogVersion(input: {
   return db.transaction(async (tx) => {
     const profile = await requireDeveloperProfile(input.actorId, tx);
     const entry = await loadOwnedEntry(input.kind, input.entryId, profile.id, tx);
+
+    if (isRemovedEntry(entry.status)) {
+      throw new ConflictError(
+        'Dieser Eintrag wurde von der Administration entfernt; es können keine Versionen mehr hinzugefügt werden.',
+        'ENTRY_REMOVED',
+      );
+    }
 
     const outcome = versionOutcome({ status: entry.status, isPublished: entry.isPublished });
     if (outcome.blocked) {

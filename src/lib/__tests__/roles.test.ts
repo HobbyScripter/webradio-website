@@ -22,9 +22,14 @@ describe('role hierarchy', () => {
 });
 
 describe('account navigation', () => {
-  it('shows only account pages to USER', () => {
+  it('shows account pages and the developer-access entry to USER', () => {
     const keys = getAccountNavItems('USER').map((item) => item.key);
-    expect(keys).toEqual(['account', 'profile', 'security']);
+    // `developer-access` is the application page, not the developer dashboard:
+    // it is open to every account and grants nothing by itself.
+    expect(keys).toEqual(['account', 'profile', 'security', 'developer-access']);
+    expect(keys).not.toContain('developer');
+    expect(keys).not.toContain('admin');
+    expect(keys).not.toContain('system-admin');
   });
 
   it('adds the developer dashboard for DEVELOPER but no admin links', () => {
@@ -47,6 +52,7 @@ describe('account navigation', () => {
       'account',
       'profile',
       'security',
+      'developer-access',
       'developer',
       'admin',
       'system-admin',
@@ -58,11 +64,13 @@ describe('account navigation', () => {
       'account',
       'profile',
       'security',
+      'developer-access',
     ]);
     expect(getAccountNavItems(undefined).map((item) => item.key)).toEqual([
       'account',
       'profile',
       'security',
+      'developer-access',
     ]);
   });
 });

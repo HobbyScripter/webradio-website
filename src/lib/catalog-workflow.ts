@@ -39,6 +39,15 @@ export function editOutcome(current: {
   return { status: current.status, isPublished: false, requiresReReview: false };
 }
 
+/**
+ * An administrative takedown is terminal. `REMOVED` is deliberately absent from
+ * `canSubmitForReview()`, so the owner can never re-enter the review queue with
+ * removed content — that would let a takedown be undone by the reported party.
+ */
+export function isRemovedEntry(status: CatalogStatus): boolean {
+  return status === 'REMOVED';
+}
+
 /** A draft, rejected, change-requested or withdrawn entry may be submitted. */
 export function canSubmitForReview(status: CatalogStatus): boolean {
   return (

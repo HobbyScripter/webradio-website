@@ -5,10 +5,23 @@
 **Status:** offen. Dieses Dokument ist **keine Rechtsberatung** und enthält
 bewusst keine erfundenen Anbieter-, Adress- oder Lizenzangaben.
 
-Die Website veröffentlicht derzeit **keine** Datenschutzerklärung und **kein**
-Impressum. Der Footer kennzeichnet beide als noch nicht veröffentlicht und
-verlinkt keine leeren Platzhalterseiten. Das ist für einen öffentlichen Launch
-nicht ausreichend.
+Die Routen `/impressum`, `/datenschutz` und `/nutzungsbedingungen` existieren,
+sind aber **gesperrt**: Sie rendern für alle Besucher den Zustand „Freigabe
+ausstehend“. Der Footer verlinkt sie nicht und kennzeichnet die Texte weiterhin
+als nicht veröffentlicht; die Sitemap enthält sie nicht.
+
+Der Gate hat zwei unabhängige Bedingungen (siehe `src/lib/legal.ts`):
+
+1. `LEGAL_RELEASE_APPROVED = false` — eine eingecheckte Konstante, die nur durch
+   einen geprüften Code-Change geändert wird. Kein Umgebungsparameter kann die
+   Veröffentlichung versehentlich auslösen.
+2. Alle Pflichtangaben aus `LEGAL_OPERATOR_*` / `LEGAL_HOSTING_*` /
+   `LEGAL_DATABASE_*` / `LEGAL_MAIL_*` / `LEGAL_RETENTION_*` /
+   `LEGAL_SUPERVISORY_AUTHORITY` sind gesetzt (Platzhalter in `.env.example`).
+
+`noindex` allein ist keine Zugriffssperre; die Seiten sind deshalb inhaltlich
+gesperrt, nicht nur für Suchmaschinen. Das ist für einen öffentlichen Launch
+weiterhin nicht ausreichend — die Angaben und die rechtliche Prüfung fehlen.
 
 ## 1. Tatsächlich eingesetzte Verarbeitungen
 
@@ -22,7 +35,10 @@ Bewertung.
 | Session | verschlüsseltes NextAuth-JWT im HttpOnly-Cookie + Session-Zeile in PostgreSQL | Browser + PostgreSQL |
 | Audit-Log | Aktion, optionale User-ID, optional IP/User-Agent, Details | PostgreSQL |
 | Rate-Limiting | SHA-256-Digest aus Scope + normalisiertem Identifier + Zeitfenster, Zähler | PostgreSQL |
-| Passwort-Reset / E-Mail-Verifikation | SHA-256-Token-Hash, Ablauf, User-ID; E-Mail-Adresse an SMTP-Anbieter | PostgreSQL + SMTP |
+| Passwort-Reset / E-Mail-Verifikation | SHA-256-Token-Hash, Ablauf, User-ID. **Versand ist derzeit pausiert** (`EMAIL_DELIVERY_ENABLED` ≠ `"true"`): kein Anbieteraufruf, keine Outbox-Datei, kein Token für unzustellbare Links | PostgreSQL (kein Versand) |
+| Entwickleranträge | User-ID, Begründung, optionale Portfolio-URL, Status, entscheidender Admin, Zeitpunkt | PostgreSQL |
+| Meldungen | meldende Person, Zieltyp/-ID, Grund, optionaler Freitext, Status, entscheidender Admin | PostgreSQL |
+| Kontosperren | Status, Zeitpunkt, Ablauf, Begründung, handelnder Admin | PostgreSQL |
 | Server-Logs | Fehlername/-code, keine Passwörter, Tokens oder vollständigen Verbindungs-Strings | Hosting-Logs |
 
 Keine Analyse-, Marketing- oder Tracking-Cookies sind implementiert. Es gibt
@@ -41,7 +57,7 @@ werden:
 - [ ] Umsatzsteuer-ID / Wirtschafts-ID, falls einschlägig
 - [ ] Verantwortlicher für den Inhalt (Name, Anschrift)
 - [ ] tatsächlicher Hosting-Anbieter und Region (Vercel ist geplant, nicht deployt)
-- [ ] tatsächlicher E-Mail-/SMTP-Anbieter und dessen Auftragsverarbeitung
+- [ ] tatsächlicher E-Mail-Anbieter und dessen Auftragsverarbeitung (Versand derzeit pausiert)
 - [ ] eingesetzte Datenbank (Anbieter, Region, Backup-Aufbewahrung)
 - [ ] Aufbewahrungsfristen für Audit-Logs, Sessions, Rate-Limit-Buckets
 - [ ] Entscheidung, ob und wie Betroffenenrechte (Auskunft, Löschung,

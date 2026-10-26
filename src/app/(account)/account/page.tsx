@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { SectionHeading } from '@/components/ui/layout';
+import AccountWarnings from '@/components/dashboard/AccountWarnings';
+import { listAccountWarnings } from '@/lib/report-service';
 import { UserIcon, SettingsIcon, ShieldIcon, CalendarIcon, CheckIcon, AlertIcon } from '@/components/ui/icons';
 
 // Authenticated dashboard: session and profile lookups are request data.
@@ -36,6 +38,10 @@ async function AccountDashboardContent() {
     userId: session.user.id,
   }).all();
 
+  // Warnings for the signed-in account only: the id comes from the session, not
+  // from the request, so this can not be pointed at another user.
+  const warnings = await listAccountWarnings(session.user.id);
+
   const isEmailVerified = user.emailVerified !== null;
 
   return (
@@ -59,17 +65,21 @@ async function AccountDashboardContent() {
           <div>
             <p className="font-semibold">E-Mail-Adresse nicht bestätigt</p>
             <p className="mt-0.5 text-amber-300/80">
-              Deine E-Mail-Adresse ist noch nicht verifiziert. Bestätige sie, um alle Funktionen nutzen zu können.
-            </p>
-            <Link
+              Deine E-Mail-Adresse ist noch nicht bestätigt. Das ist für die normale Nutzung nicht
+              erforderlich; der E-Mail-Versand ist derzeit deaktiviert, deshalb kann derzeit kein
+              Bestätigungslink versendet werden.
+            </p>              <Link
               href="/auth/verify-email/resend"
               className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-amber-300 hover:text-amber-200"
             >
-              Bestätigungslink anfordern
+              Status der E-Mail-Bestätigung ansehen
             </Link>
           </div>
         </div>
       )}
+
+      {/* Warnings issued by moderation (audit record, no e-mail while paused) */}
+      <AccountWarnings warnings={warnings} />
 
       {/* Account Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

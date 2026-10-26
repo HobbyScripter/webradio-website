@@ -13,10 +13,21 @@ import {
   issueAuthToken,
 } from './auth-tokens';
 import {
+  isEmailDeliveryPaused,
   sendEmailVerificationEmail,
   sendPasswordResetEmail,
   type EmailDeliveryResult,
 } from './email';
+
+/**
+ * Result of a deliberate pause. No token is issued, so no unusable, never
+ * delivered link accumulates in the database while delivery is switched off.
+ */
+const PAUSED_DELIVERY: EmailDeliveryResult = {
+  delivered: false,
+  mode: 'paused',
+  failure: 'delivery_paused',
+};
 
 type RequestMeta = {
   ipAddress?: string;
@@ -41,6 +52,12 @@ export async function requestPasswordReset(
 
   if (!user) {
     return { accountFound: false, delivery: { delivered: false, mode: 'unconfigured' } };
+  }
+
+  // Paused delivery: the caller's answer is unchanged and generic, but no
+  // token is created for a link that could never reach the mailbox.
+  if (isEmailDeliveryPaused()) {
+    return { accountFound: true, delivery: PAUSED_DELIVERY };
   }
 
   const token = await issueAuthToken(user.id, 'PASSWORD_RESET');
@@ -88,6 +105,10 @@ export async function requestEmailVerification(
       sent: false,
       delivery: { delivered: false, mode: 'unconfigured' },
     };
+  }
+
+  if (isEmailDeliveryPaused()) {
+    return { sent: false, delivery: PAUSED_DELIVERY };
   }
 
   const token = await issueAuthToken(user.id, 'EMAIL_VERIFICATION');

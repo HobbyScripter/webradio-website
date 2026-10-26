@@ -155,7 +155,8 @@ export default function AccountProfilePage() {
           <div>
             <p className="font-semibold">E-Mail-Adresse nicht bestätigt</p>
             <p className="mt-0.5 text-amber-300/80">
-              Deine E-Mail-Adresse ist noch nicht verifiziert. Bestätige sie, um alle Funktionen nutzen zu können.
+              Deine E-Mail-Adresse ist noch nicht bestätigt. Für die normale Nutzung ist das nicht
+              erforderlich; der E-Mail-Versand ist derzeit deaktiviert.
             </p>
             <Link
               href="/auth/verify-email/resend"

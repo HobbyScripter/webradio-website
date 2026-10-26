@@ -16,6 +16,14 @@
       "model": "Changelog",
       "namespace": "public"
     },
+    "ContentReport": {
+      "model": "ContentReport",
+      "namespace": "public"
+    },
+    "DeveloperApplication": {
+      "model": "DeveloperApplication",
+      "namespace": "public"
+    },
     "DeveloperProfile": {
       "model": "DeveloperProfile",
       "namespace": "public"
@@ -102,6 +110,52 @@
               }
             ]
           },
+          "ContentReportStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "OPEN",
+                "value": "OPEN"
+              },
+              {
+                "name": "DISMISSED",
+                "value": "DISMISSED"
+              },
+              {
+                "name": "CONTENT_REMOVED",
+                "value": "CONTENT_REMOVED"
+              },
+              {
+                "name": "WARNING_ISSUED",
+                "value": "WARNING_ISSUED"
+              },
+              {
+                "name": "ACCOUNT_SUSPENDED",
+                "value": "ACCOUNT_SUSPENDED"
+              }
+            ]
+          },
+          "DeveloperApplicationStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "REJECTED",
+                "value": "REJECTED"
+              },
+              {
+                "name": "WITHDRAWN",
+                "value": "WITHDRAWN"
+              }
+            ]
+          },
           "PluginStatus": {
             "codecId": "pg/text@1",
             "members": [
@@ -128,6 +182,10 @@
               {
                 "name": "ARCHIVED",
                 "value": "ARCHIVED"
+              },
+              {
+                "name": "REMOVED",
+                "value": "REMOVED"
               }
             ]
           },
@@ -137,6 +195,56 @@
               {
                 "name": "WEBRADIO",
                 "value": "WEBRADIO"
+              }
+            ]
+          },
+          "ReportReason": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ILLEGAL",
+                "value": "ILLEGAL"
+              },
+              {
+                "name": "MALWARE",
+                "value": "MALWARE"
+              },
+              {
+                "name": "COPYRIGHT",
+                "value": "COPYRIGHT"
+              },
+              {
+                "name": "SPAM",
+                "value": "SPAM"
+              },
+              {
+                "name": "MISLEADING",
+                "value": "MISLEADING"
+              },
+              {
+                "name": "OTHER",
+                "value": "OTHER"
+              }
+            ]
+          },
+          "ReportTargetType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PLUGIN",
+                "value": "PLUGIN"
+              },
+              {
+                "name": "THEME",
+                "value": "THEME"
+              },
+              {
+                "name": "PLUGIN_VERSION",
+                "value": "PLUGIN_VERSION"
+              },
+              {
+                "name": "THEME_VERSION",
+                "value": "THEME_VERSION"
               }
             ]
           },
@@ -154,6 +262,10 @@
               {
                 "name": "CHANGES_REQUESTED",
                 "value": "CHANGES_REQUESTED"
+              },
+              {
+                "name": "REMOVED",
+                "value": "REMOVED"
               }
             ]
           },
@@ -238,6 +350,23 @@
               {
                 "name": "ARCHIVED",
                 "value": "ARCHIVED"
+              },
+              {
+                "name": "REMOVED",
+                "value": "REMOVED"
+              }
+            ]
+          },
+          "UserStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "SUSPENDED",
+                "value": "SUSPENDED"
               }
             ]
           }
@@ -521,6 +650,338 @@
               },
               "namespaceId": "public",
               "table": "Changelog"
+            }
+          },
+          "ContentReport": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "details": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reason": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ReportReason",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "reporterId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "resolutionNotes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "resolvedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "resolvedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ContentReportStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "targetId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "targetType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ReportTargetType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "reporter": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "reporterId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "resolvedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "resolvedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "details": {
+                  "column": "details"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "reason": {
+                  "column": "reason"
+                },
+                "reporterId": {
+                  "column": "reporterId"
+                },
+                "resolutionNotes": {
+                  "column": "resolutionNotes"
+                },
+                "resolvedAt": {
+                  "column": "resolvedAt"
+                },
+                "resolvedById": {
+                  "column": "resolvedById"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "targetId": {
+                  "column": "targetId"
+                },
+                "targetType": {
+                  "column": "targetType"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "ContentReport"
+            }
+          },
+          "DeveloperApplication": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "decidedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "decidedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "decisionNotes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "motivation": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "portfolioUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DeveloperApplicationStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "decidedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "decidedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "decidedAt": {
+                  "column": "decidedAt"
+                },
+                "decidedById": {
+                  "column": "decidedById"
+                },
+                "decisionNotes": {
+                  "column": "decisionNotes"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "motivation": {
+                  "column": "motivation"
+                },
+                "portfolioUrl": {
+                  "column": "portfolioUrl"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "DeveloperApplication"
             }
           },
           "DeveloperProfile": {
@@ -2360,6 +2821,47 @@
                   "plane": "domain"
                 }
               },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "UserStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "suspendedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "suspendedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "suspendedReason": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "suspendedUntil": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -2369,6 +2871,21 @@
               }
             },
             "relations": {
+              "applicationDecisions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "decidedById"
+                  ]
+                },
+                "to": {
+                  "model": "DeveloperApplication",
+                  "namespace": "public"
+                }
+              },
               "auditLogs": {
                 "cardinality": "1:N",
                 "on": {
@@ -2399,6 +2916,21 @@
                   "namespace": "public"
                 }
               },
+              "developerApplications": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "DeveloperApplication",
+                  "namespace": "public"
+                }
+              },
               "developerProfile": {
                 "cardinality": "1:1",
                 "nullable": true,
@@ -2412,6 +2944,36 @@
                 },
                 "to": {
                   "model": "DeveloperProfile",
+                  "namespace": "public"
+                }
+              },
+              "reportsFiled": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "reporterId"
+                  ]
+                },
+                "to": {
+                  "model": "ContentReport",
+                  "namespace": "public"
+                }
+              },
+              "reportsResolved": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "resolvedById"
+                  ]
+                },
+                "to": {
+                  "model": "ContentReport",
                   "namespace": "public"
                 }
               },
@@ -2444,6 +3006,37 @@
                   "model": "Session",
                   "namespace": "public"
                 }
+              },
+              "suspendedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "suspendedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "suspensionsIssued": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "suspendedById"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -2468,6 +3061,21 @@
                 },
                 "role": {
                   "column": "role"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "suspendedAt": {
+                  "column": "suspendedAt"
+                },
+                "suspendedById": {
+                  "column": "suspendedById"
+                },
+                "suspendedReason": {
+                  "column": "suspendedReason"
+                },
+                "suspendedUntil": {
+                  "column": "suspendedUntil"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -2759,6 +3367,370 @@
               },
               "uniques": []
             },
+            "ContentReport": {
+              "checks": [
+                {
+                  "expression": "\"reason\" IN ('ILLEGAL', 'MALWARE', 'COPYRIGHT', 'SPAM', 'MISLEADING', 'OTHER')",
+                  "name": "ContentReport_reason_check_57e704e3",
+                  "prefix": "ContentReport_reason_check"
+                },
+                {
+                  "expression": "\"status\" IN ('OPEN', 'DISMISSED', 'CONTENT_REMOVED', 'WARNING_ISSUED', 'ACCOUNT_SUSPENDED')",
+                  "name": "ContentReport_status_check_8a170c60",
+                  "prefix": "ContentReport_status_check"
+                },
+                {
+                  "expression": "\"targetType\" IN ('PLUGIN', 'THEME', 'PLUGIN_VERSION', 'THEME_VERSION')",
+                  "name": "ContentReport_targetType_check_e746220a",
+                  "prefix": "ContentReport_targetType_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "details": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "reason": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ReportReason",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "reporterId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "resolutionNotes": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "resolvedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "resolvedById": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "OPEN"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ContentReportStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "targetId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "targetType": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ReportTargetType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "ContentReport_reporterId_idx_aa245831"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "reporterId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ContentReport"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "ContentReport_resolvedById_idx_fc75edc7"
+                  },
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "resolvedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ContentReport"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "ContentReport_createdAt_idx_9575dbd7",
+                  "prefix": "ContentReport_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "reporterId"
+                  ],
+                  "name": "ContentReport_reporterId_idx_aa245831",
+                  "prefix": "ContentReport_reporterId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "resolvedById"
+                  ],
+                  "name": "ContentReport_resolvedById_idx_fc75edc7",
+                  "prefix": "ContentReport_resolvedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "ContentReport_status_idx_e98638ab",
+                  "prefix": "ContentReport_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "targetType",
+                    "targetId"
+                  ],
+                  "name": "ContentReport_targetType_targetId_idx_7a5ee9cb",
+                  "prefix": "ContentReport_targetType_targetId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "reporterId",
+                    "targetType",
+                    "targetId"
+                  ]
+                }
+              ]
+            },
+            "DeveloperApplication": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN')",
+                  "name": "DeveloperApplication_status_check_9a526491",
+                  "prefix": "DeveloperApplication_status_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "decidedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "decidedById": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "decisionNotes": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "motivation": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "portfolioUrl": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DeveloperApplicationStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "DeveloperApplication_userId_idx_a489d58a"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "DeveloperApplication"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "DeveloperApplication_decidedById_idx_8194d55f"
+                  },
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "decidedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "DeveloperApplication"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "DeveloperApplication_createdAt_idx_9575dbd7",
+                  "prefix": "DeveloperApplication_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "decidedById"
+                  ],
+                  "name": "DeveloperApplication_decidedById_idx_8194d55f",
+                  "prefix": "DeveloperApplication_decidedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "DeveloperApplication_status_idx_e98638ab",
+                  "prefix": "DeveloperApplication_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "DeveloperApplication_userId_idx_a489d58a",
+                  "prefix": "DeveloperApplication_userId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId",
+                    "status"
+                  ],
+                  "name": "DeveloperApplication_userId_status_idx_e4a128ba",
+                  "prefix": "DeveloperApplication_userId_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "DeveloperProfile": {
               "columns": {
                 "bio": {
@@ -2995,8 +3967,8 @@
                   "prefix": "Plugin_product_check"
                 },
                 {
-                  "expression": "\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED')",
-                  "name": "Plugin_status_check_d5a30912",
+                  "expression": "\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED', 'REMOVED')",
+                  "name": "Plugin_status_check_9768c138",
                   "prefix": "Plugin_status_check"
                 }
               ],
@@ -3417,8 +4389,8 @@
             "PublicationReview": {
               "checks": [
                 {
-                  "expression": "\"status\" IN ('APPROVED', 'REJECTED', 'CHANGES_REQUESTED')",
-                  "name": "PublicationReview_status_check_13038551",
+                  "expression": "\"status\" IN ('APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'REMOVED')",
+                  "name": "PublicationReview_status_check_457e60ba",
                   "prefix": "PublicationReview_status_check"
                 },
                 {
@@ -3877,8 +4849,8 @@
                   "prefix": "Theme_product_check"
                 },
                 {
-                  "expression": "\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED')",
-                  "name": "Theme_status_check_d5a30912",
+                  "expression": "\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED', 'REMOVED')",
+                  "name": "Theme_status_check_9768c138",
                   "prefix": "Theme_status_check"
                 }
               ],
@@ -4302,6 +5274,11 @@
                   "expression": "\"role\" IN ('USER', 'DEVELOPER', 'ADMIN', 'SYSTEM_ADMIN')",
                   "name": "User_role_check_c07371c4",
                   "prefix": "User_role_check"
+                },
+                {
+                  "expression": "\"status\" IN ('ACTIVE', 'SUSPENDED')",
+                  "name": "User_status_check_1527ac15",
+                  "prefix": "User_status_check"
                 }
               ],
               "columns": {
@@ -4350,13 +5327,69 @@
                     "plane": "storage"
                   }
                 },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ACTIVE"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "UserStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "suspendedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "suspendedById": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "suspendedReason": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "suspendedUntil": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "dataType": "pg/timestamptz",
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "User_suspendedById_idx_441458ac"
+                  },
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "suspendedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
               "indexes": [
                 {
                   "columns": [
@@ -4364,6 +5397,22 @@
                   ],
                   "name": "User_role_idx_2c1ddf83",
                   "prefix": "User_role_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "User_status_idx_e98638ab",
+                  "prefix": "User_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "suspendedById"
+                  ],
+                  "name": "User_suspendedById_idx_441458ac",
+                  "prefix": "User_suspendedById_idx",
                   "unique": false
                 }
               ],
@@ -4389,6 +5438,25 @@
                 "PASSWORD_RESET"
               ]
             },
+            "ContentReportStatus": {
+              "kind": "valueSet",
+              "values": [
+                "OPEN",
+                "DISMISSED",
+                "CONTENT_REMOVED",
+                "WARNING_ISSUED",
+                "ACCOUNT_SUSPENDED"
+              ]
+            },
+            "DeveloperApplicationStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED",
+                "WITHDRAWN"
+              ]
+            },
             "PluginStatus": {
               "kind": "valueSet",
               "values": [
@@ -4397,7 +5465,8 @@
                 "APPROVED",
                 "REJECTED",
                 "CHANGES_REQUESTED",
-                "ARCHIVED"
+                "ARCHIVED",
+                "REMOVED"
               ]
             },
             "Product": {
@@ -4406,12 +5475,33 @@
                 "WEBRADIO"
               ]
             },
+            "ReportReason": {
+              "kind": "valueSet",
+              "values": [
+                "ILLEGAL",
+                "MALWARE",
+                "COPYRIGHT",
+                "SPAM",
+                "MISLEADING",
+                "OTHER"
+              ]
+            },
+            "ReportTargetType": {
+              "kind": "valueSet",
+              "values": [
+                "PLUGIN",
+                "THEME",
+                "PLUGIN_VERSION",
+                "THEME_VERSION"
+              ]
+            },
             "ReviewResult": {
               "kind": "valueSet",
               "values": [
                 "APPROVED",
                 "REJECTED",
-                "CHANGES_REQUESTED"
+                "CHANGES_REQUESTED",
+                "REMOVED"
               ]
             },
             "ReviewTarget": {
@@ -4447,7 +5537,15 @@
                 "APPROVED",
                 "REJECTED",
                 "CHANGES_REQUESTED",
-                "ARCHIVED"
+                "ARCHIVED",
+                "REMOVED"
+              ]
+            },
+            "UserStatus": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVE",
+                "SUSPENDED"
               ]
             }
           }
@@ -4456,10 +5554,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "8116d0696aa09b6976cfc453f7c9db1cf55107d54bc492483cc3146e9673671c"
+    "storageHash": "297315b0b622fec8a6381c97a99fccd0ab1c5a56565211db00cca77c4b284dc4"
   },
   "execution": {
-    "executionHash": "e73ce013d2074ea332be257777069e436fde1c5fed6d37b3d80dba38bd1e2899",
+    "executionHash": "2ea8caf570fc7aca21311af1da4442bf26b0cb7173f20dbe461fbc7bd2ba4438",
     "mutations": {
       "defaults": [
         {
@@ -4525,6 +5623,80 @@
           "ref": {
             "entry": "Changelog",
             "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "ContentReport",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "ContentReport",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "ContentReport",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "DeveloperApplication",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "DeveloperApplication",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "DeveloperApplication",
+            "field": "updatedAt",
             "namespace": "public"
           }
         },

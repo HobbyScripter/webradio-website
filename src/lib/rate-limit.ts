@@ -45,6 +45,12 @@ export const RATE_LIMITS = {
   contentWrite: { limit: 60, windowSeconds: 10 * 60 },
   moderationDecision: { limit: 60, windowSeconds: 10 * 60 },
   adminUserWrite: { limit: 30, windowSeconds: 10 * 60 },
+  // Developer access requests: three per day, so a rejected applicant can ask
+  // again after revising the motivation but can not flood the admin queue.
+  developerApplication: { limit: 3, windowSeconds: 24 * 60 * 60 },
+  // Abuse reports: ten per day per account. Both scopes are per account, never
+  // per client-supplied identifier.
+  reportCreate: { limit: 10, windowSeconds: 24 * 60 * 60 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 export type RateLimitScope = keyof typeof RATE_LIMITS;

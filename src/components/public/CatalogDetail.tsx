@@ -291,12 +291,20 @@ export default function CatalogDetail({
               Einträge werden nicht ausgeliefert.
             </p>
           </div>
-          <Link
-            href={basePath}
-            className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-violet-300 transition-colors hover:text-violet-200"
-          >
-            Zurück zum Katalog <ArrowRightIcon className="h-4 w-4" />
-          </Link>
+          <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+            <Link
+              href={`/report?type=${isPlugin ? 'PLUGIN' : 'THEME'}&id=${item.id}`}
+              className="text-xs font-medium text-zinc-400 underline-offset-4 transition-colors hover:text-white hover:underline"
+            >
+              Inhalt melden
+            </Link>
+            <Link
+              href={basePath}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-300 transition-colors hover:text-violet-200"
+            >
+              Zurück zum Katalog <ArrowRightIcon className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </Container>
     </>

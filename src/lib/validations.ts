@@ -112,6 +112,72 @@ export const developerProfileSchema = z.object({
   websiteUrl: urlSchema.optional(),
 });
 
+/** Optional URL that tolerates the empty string an HTML form submits. */
+export const optionalUrlSchema = z.union([urlSchema, z.literal('')]).optional();
+
+// ---------------------------------------------------------------------------
+// Developer access applications
+// ---------------------------------------------------------------------------
+
+export const developerApplicationSchema = z.object({
+  motivation: z
+    .string()
+    .trim()
+    .min(50, 'Die Begründung muss mindestens 50 Zeichen lang sein.')
+    .max(2000, 'Die Begründung darf höchstens 2000 Zeichen lang sein.'),
+  portfolioUrl: optionalUrlSchema,
+});
+
+// ---------------------------------------------------------------------------
+// Abuse reports
+// ---------------------------------------------------------------------------
+
+export const reportTargetTypeSchema = z.enum([
+  'PLUGIN',
+  'THEME',
+  'PLUGIN_VERSION',
+  'THEME_VERSION',
+]);
+
+export const reportReasonSchema = z.enum([
+  'ILLEGAL',
+  'MALWARE',
+  'COPYRIGHT',
+  'SPAM',
+  'MISLEADING',
+  'OTHER',
+]);
+
+export const reportCreateSchema = z
+  .object({
+    targetType: reportTargetTypeSchema,
+    targetId: z.string().min(1, 'Ziel-ID fehlt.').max(64),
+    reason: reportReasonSchema,
+    details: z.string().max(2000, 'Der Meldungstext darf höchstens 2000 Zeichen lang sein.').trim().optional(),
+  })
+  // "Sonstiges" without an explanation is not actionable.
+  .refine(
+    (value) =>
+      value.reason !== 'OTHER' || (value.details?.trim().length ?? 0) >= 10,
+    {
+      message: 'Bitte beschreibe den Grund mit mindestens 10 Zeichen.',
+      path: ['details'],
+    },
+  );
+
+/**
+ * Account suspension. `until` is an ISO timestamp; omitting it means permanent.
+ * The reason is required by the contract and by the audit requirement.
+ */
+export const suspensionSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(10, 'Die Begründung muss mindestens 10 Zeichen lang sein.')
+    .max(500, 'Die Begründung darf höchstens 500 Zeichen lang sein.'),
+  until: z.string().datetime({ offset: true }).optional(),
+});
+
 // ---------------------------------------------------------------------------
 // Plugin schemas
 // ---------------------------------------------------------------------------
@@ -229,6 +295,8 @@ export const pluginStatusSchema = z.enum([
   'REJECTED',
   'CHANGES_REQUESTED',
   'ARCHIVED',
+  // Administrative takedown: terminal and never resubmittable.
+  'REMOVED',
 ]);
 
 export const themeStatusSchema = pluginStatusSchema;
@@ -272,6 +340,11 @@ export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchem
 export type PasswordResetConfirmInput = z.infer<typeof passwordResetConfirmSchema>;
 export type EmailVerificationInput = z.infer<typeof emailVerificationSchema>;
 export type DeveloperProfileInput = z.infer<typeof developerProfileSchema>;
+export type DeveloperApplicationInput = z.infer<typeof developerApplicationSchema>;
+export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
+export type ReportTargetTypeInput = z.infer<typeof reportTargetTypeSchema>;
+export type ReportReasonInput = z.infer<typeof reportReasonSchema>;
+export type SuspensionInput = z.infer<typeof suspensionSchema>;
 export type PluginCreateInput = z.infer<typeof pluginCreateSchema>;
 export type ModerationDecisionInput = z.infer<typeof moderationDecisionSchema>;
 export type CatalogStatus = z.infer<typeof pluginStatusSchema>;

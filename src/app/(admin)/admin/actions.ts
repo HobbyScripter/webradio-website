@@ -21,6 +21,15 @@ import {
   updateNews,
 } from '@/lib/news-service';
 import { assignableRoleSchema, reviewResultSchema, reviewTargetSchema } from '@/lib/validations';
+import { decideDeveloperApplication } from '@/lib/developer-application-service';
+import {
+  dismissReport,
+  removeReportedContent,
+  suspendReportedAccount,
+  warnReportedAccount,
+} from '@/lib/report-service';
+import { liftSuspension, suspendAccount } from '@/lib/account-suspension';
+import { removeCatalogEntry } from '@/lib/catalog-moderation-service';
 
 function readString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -214,6 +223,189 @@ export async function deleteNewsAction(formData: FormData): Promise<void> {
     target = '/admin/news?deleted=1';
   } catch (error) {
     target = failure('/admin/news', error, 'action:admin:news:delete');
+  }
+
+  redirect(target);
+}
+
+// ---------------------------------------------------------------------------
+// Developer access applications
+// ---------------------------------------------------------------------------
+
+export async function decideDeveloperApplicationAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const applicationId = readString(formData, 'applicationId');
+  const decision = readString(formData, 'decision');
+  const notes = readString(formData, 'notes').trim();
+  let target: string;
+
+  try {
+    if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+      throw new AuthError('Ungültige Entscheidung.', 400, 'VALIDATION_ERROR');
+    }
+
+    await enforceLimit('adminUserWrite', admin.id);
+
+    await decideDeveloperApplication({
+      actorId: admin.id,
+      applicationId,
+      decision,
+      notes: notes || undefined,
+      userAgent: (await meta()).userAgent,
+    });
+
+    revalidatePath('/admin/developer-applications');
+    revalidatePath('/admin/users');
+    revalidatePath('/account/developer');
+    target = `/admin/developer-applications?decided=${encodeURIComponent(decision)}`;
+  } catch (error) {
+    target = failure('/admin/developer-applications', error, 'action:admin:developer-application');
+  }
+
+  redirect(target);
+}
+
+// ---------------------------------------------------------------------------
+// Reports, takedowns and account suspensions
+// ---------------------------------------------------------------------------
+
+export async function reportDecisionAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const reportId = readString(formData, 'reportId');
+  const decision = readString(formData, 'decision');
+  const notes = readString(formData, 'notes').trim();
+  const days = Number.parseInt(readString(formData, 'suspendDays'), 10);
+  let target: string;
+
+  const common = {
+    actorId: admin.id,
+    reportId,
+    notes: notes || undefined,
+    userAgent: (await meta()).userAgent,
+  };
+
+  try {
+    await enforceLimit('moderationDecision', admin.id);
+
+    switch (decision) {
+      case 'DISMISS':
+        await dismissReport(common);
+        break;
+      case 'REMOVE':
+        await removeReportedContent(common);
+        break;
+      case 'WARN':
+        await warnReportedAccount(common);
+        break;
+      case 'SUSPEND':
+        await suspendReportedAccount({
+          ...common,
+          until:
+            Number.isFinite(days) && days > 0
+              ? Temporal.Now.instant().add({ hours: days * 24 })
+              : null,
+        });
+        break;
+      default:
+        throw new AuthError('Ungültige Entscheidung.', 400, 'VALIDATION_ERROR');
+    }
+
+    revalidatePath('/admin/reports');
+    revalidatePath('/plugins');
+    revalidatePath('/themes');
+    target = `/admin/reports?decided=${encodeURIComponent(decision)}`;
+  } catch (error) {
+    target = failure('/admin/reports', error, 'action:admin:report-decision');
+  }
+
+  redirect(target);
+}
+
+export async function removeCatalogEntryAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const kind = reviewTargetSchema.safeParse(readString(formData, 'kind'));
+  const entryId = readString(formData, 'entryId');
+  const notes = readString(formData, 'notes').trim();
+  const detailPath = `/admin/moderation/${kind.success ? kind.data : 'PLUGIN'}/${entryId}`;
+  let target: string;
+
+  try {
+    if (!kind.success || !entryId) {
+      throw new AuthError('Ungültiges Ziel.', 400, 'VALIDATION_ERROR');
+    }
+
+    await enforceLimit('moderationDecision', admin.id);
+    await removeCatalogEntry({
+      actorId: admin.id,
+      kind: kind.data,
+      entryId,
+      notes,
+      userAgent: (await meta()).userAgent,
+    });
+
+    revalidatePath('/admin/moderation');
+    revalidatePath('/plugins');
+    revalidatePath('/themes');
+    target = '/admin/moderation?removed=1';
+  } catch (error) {
+    target = failure(detailPath, error, 'action:admin:catalog-remove');
+  }
+
+  redirect(target);
+}
+
+export async function suspendAccountAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const userId = readString(formData, 'userId');
+  const reason = readString(formData, 'reason').trim();
+  const days = Number.parseInt(readString(formData, 'days'), 10);
+  const detailPath = `/admin/users/${userId}`;
+  let target: string;
+
+  try {
+    await enforceLimit('adminUserWrite', admin.id);
+    await suspendAccount({
+      actorId: admin.id,
+      targetUserId: userId,
+      reason,
+      until:
+        Number.isFinite(days) && days > 0
+          ? Temporal.Now.instant().add({ hours: days * 24 })
+          : null,
+      userAgent: (await meta()).userAgent,
+    });
+
+    revalidatePath('/admin/users');
+    revalidatePath(detailPath);
+    target = `${detailPath}?suspended=1`;
+  } catch (error) {
+    target = failure(detailPath, error, 'action:admin:suspend-account');
+  }
+
+  redirect(target);
+}
+
+export async function liftSuspensionAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const userId = readString(formData, 'userId');
+  const reason = readString(formData, 'reason').trim();
+  const detailPath = `/admin/users/${userId}`;
+  let target: string;
+
+  try {
+    await enforceLimit('adminUserWrite', admin.id);
+    await liftSuspension({
+      actorId: admin.id,
+      targetUserId: userId,
+      reason,
+      userAgent: (await meta()).userAgent,
+    });
+
+    revalidatePath('/admin/users');
+    revalidatePath(detailPath);
+    target = `${detailPath}?lifted=1`;
+  } catch (error) {
+    target = failure(detailPath, error, 'action:admin:lift-suspension');
   }
 
   redirect(target);

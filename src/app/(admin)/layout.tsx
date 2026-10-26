@@ -14,6 +14,7 @@ import {
   BookIcon,
   HomeIcon,
   ShieldIcon,
+  AlertIcon,
 } from '@/components/ui/icons';
 
 export const metadata: Metadata = {
@@ -41,6 +42,16 @@ const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
     label: 'Moderation',
     href: '/admin/moderation',
     icon: <ClockIcon className="h-5 w-5" />,
+  },
+  {
+    label: 'Meldungen',
+    href: '/admin/reports',
+    icon: <AlertIcon className="h-5 w-5" />,
+  },
+  {
+    label: 'Entwickleranträge',
+    href: '/admin/developer-applications',
+    icon: <UserIcon className="h-5 w-5" />,
   },
   {
     label: 'News',

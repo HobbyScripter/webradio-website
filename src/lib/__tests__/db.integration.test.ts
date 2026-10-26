@@ -189,6 +189,10 @@ beforeAll(async () => {
   delete process.env['RESEND_API_KEY'];
   delete process.env['EMAIL_SERVER_HOST'];
   delete process.env['EMAIL_FROM'];
+  // Delivery is paused by default in the application. These tests verify the
+  // outbox flow, so they enable delivery explicitly; no provider is configured,
+  // which keeps every message inside `.local-db/outbox/`.
+  process.env['EMAIL_DELIVERY_ENABLED'] = 'true';
   // Disposable `_test` database: start from a clean slate.
   await db.orm.public.Session.where({}).deleteAll();
   await db.orm.public.AuditLog.where({}).deleteAll();
@@ -647,21 +651,40 @@ describe('5. Roles, permissions and admin actions', () => {
     expect(target?.role).toBe('USER');
   });
 
-  it('refuses a privileged role before the target address is verified', async () => {
+  it('keeps ADMIN verification-bound but allows the documented DEVELOPER exception', async () => {
     const target = await db.orm.public.User.first({ id: regularUserId });
     expect(target?.emailVerified).toBeNull();
 
+    // ADMIN still requires a verified address: that rule did not change.
     await expect(
-      changeUserRole({ actorId: adminId, targetUserId: regularUserId, newRole: 'DEVELOPER' }),
+      changeUserRole({ actorId: adminId, targetUserId: regularUserId, newRole: 'ADMIN' }),
     ).rejects.toMatchObject({ code: 'EMAIL_NOT_VERIFIED' });
 
     const unchanged = await db.orm.public.User.first({ id: regularUserId });
     expect(unchanged?.role).toBe('USER');
 
-    // Simulate the successful verification flow before the role change below.
-    await db.orm.public.User.where({ id: regularUserId }).update({
-      emailVerified: Temporal.Now.instant(),
+    // DEVELOPER is the single, documented exception while transactional e-mail
+    // is paused. It is granted only through this central server-side path and
+    // gets its own audit entry.
+    const granted = await changeUserRole({
+      actorId: adminId,
+      targetUserId: regularUserId,
+      newRole: 'DEVELOPER',
     });
+    expect(granted.role).toBe('DEVELOPER');
+
+    const exceptionAudit = await db.orm.public.AuditLog.where({
+      action: 'DEVELOPER_GRANTED_UNVERIFIED_EMAIL',
+    }).all();
+    expect(exceptionAudit).toHaveLength(1);
+    expect(exceptionAudit[0]?.userId).toBe(adminId);
+
+    // Reset to the state the following tests expect.
+    await db.orm.public.User.where({ id: regularUserId }).update({ role: 'USER' });
+    await db.orm.public.AuditLog.where({ action: 'ADMIN_ROLE_CHANGED' }).deleteAll();
+    await db.orm.public.AuditLog.where({
+      action: 'DEVELOPER_GRANTED_UNVERIFIED_EMAIL',
+    }).deleteAll();
   });
 
   it('lets an ADMIN change a role and records an audit log entry', async () => {

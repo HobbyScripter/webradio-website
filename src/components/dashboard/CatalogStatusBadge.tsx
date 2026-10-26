@@ -25,6 +25,10 @@ const STATUS_META: Record<CatalogStatus, { label: string; className: string }> =
     label: 'Archiviert',
     className: 'border-zinc-600/30 bg-zinc-600/10 text-zinc-400',
   },
+  REMOVED: {
+    label: 'Entfernt',
+    className: 'border-rose-600/30 bg-rose-600/10 text-rose-300',
+  },
 };
 
 export function catalogStatusLabel(status: string): string {

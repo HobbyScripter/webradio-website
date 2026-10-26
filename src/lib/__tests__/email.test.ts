@@ -8,6 +8,7 @@ import {
   getAuthLinkOrigin,
   getOutboxDirectory,
   isEmailDeliveryConfigured,
+  isEmailDeliveryPaused,
   sendTransactionalEmail,
 } from '../email';
 
@@ -19,6 +20,7 @@ const ORIGINAL_ENV = {
   EMAIL_SERVER_HOST: process.env['EMAIL_SERVER_HOST'],
   EMAIL_FROM: process.env['EMAIL_FROM'],
   RESEND_API_KEY: process.env['RESEND_API_KEY'],
+  EMAIL_DELIVERY_ENABLED: process.env['EMAIL_DELIVERY_ENABLED'],
 };
 
 const fetchMock = jest.fn();
@@ -31,6 +33,11 @@ beforeEach(() => {
   delete process.env['EMAIL_SERVER_USER'];
   delete process.env['EMAIL_SERVER_PASSWORD'];
   delete process.env['EMAIL_FROM'];
+  // Delivery is paused by default in the application. These tests exercise the
+  // provider paths, so they explicitly enable delivery; the paused default has
+  // its own suite below.
+  mutableEnv['EMAIL_DELIVERY_ENABLED'] = 'true';
+
   fetchMock.mockReset();
   (globalThis as unknown as { fetch: unknown }).fetch = fetchMock;
 });
@@ -274,3 +281,47 @@ describe('production without a provider', () => {
   });
 });
 
+describe('paused delivery', () => {
+  it('is paused unless EMAIL_DELIVERY_ENABLED is exactly "true"', async () => {
+    delete process.env['EMAIL_DELIVERY_ENABLED'];
+    expect(isEmailDeliveryPaused()).toBe(true);
+
+    mutableEnv['EMAIL_DELIVERY_ENABLED'] = 'TRUE';
+    expect(isEmailDeliveryPaused()).toBe(false);
+
+    mutableEnv['EMAIL_DELIVERY_ENABLED'] = '1';
+    expect(isEmailDeliveryPaused()).toBe(true);
+  });
+
+  it('makes no provider call and writes no outbox file while paused', async () => {
+    delete process.env['EMAIL_DELIVERY_ENABLED'];
+    mutableEnv['NODE_ENV'] = 'development';
+    // Both a provider and the outbox would otherwise be reachable.
+    mutableEnv['RESEND_API_KEY'] = 're_test_key';
+    mutableEnv['EMAIL_FROM'] = 'WebRadio <noreply@webradio.example>';
+
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const before = await readdir(getOutboxDirectory()).catch(() => [] as string[]);
+
+    const result = await sendTransactionalEmail({
+      to: 'user@example.com',
+      subject: 'Test',
+      text: 'token=SECRET_TOKEN',
+    });
+
+    expect(result).toEqual({
+      delivered: false,
+      mode: 'paused',
+      failure: 'delivery_paused',
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const after = await readdir(getOutboxDirectory()).catch(() => [] as string[]);
+    expect(after.length).toBe(before.length);
+
+    // The pause notice names the variable, never the recipient or the token.
+    const logged = JSON.stringify(consoleWarn.mock.calls);
+    expect(logged).not.toContain('SECRET_TOKEN');
+    expect(logged).not.toContain('user@example.com');
+  });
+});

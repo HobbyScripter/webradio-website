@@ -1,0 +1,1632 @@
+[
+  {
+    "id": "dropCheckConstraint.Plugin.Plugin_status_check_d5a30912",
+    "label": "Drop check constraint \"Plugin_status_check_d5a30912\" on \"Plugin\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Plugin_status_check_d5a30912",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Plugin_status_check_d5a30912\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Plugin_status_check_d5a30912",
+          "public",
+          "\"public\".\"Plugin\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Plugin_status_check_d5a30912\" on \"Plugin\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Plugin_status_check_d5a30912\"",
+        "sql": "ALTER TABLE \"public\".\"Plugin\" DROP CONSTRAINT \"Plugin_status_check_d5a30912\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Plugin_status_check_d5a30912\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Plugin_status_check_d5a30912",
+          "public",
+          "\"public\".\"Plugin\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Plugin_status_check_d5a30912\" on \"Plugin\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.PublicationReview.PublicationReview_status_check_13038551",
+    "label": "Drop check constraint \"PublicationReview_status_check_13038551\" on \"PublicationReview\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "PublicationReview_status_check_13038551",
+        "table": "PublicationReview"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"PublicationReview_status_check_13038551\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "PublicationReview_status_check_13038551",
+          "public",
+          "\"public\".\"PublicationReview\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"PublicationReview_status_check_13038551\" on \"PublicationReview\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"PublicationReview_status_check_13038551\"",
+        "sql": "ALTER TABLE \"public\".\"PublicationReview\" DROP CONSTRAINT \"PublicationReview_status_check_13038551\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"PublicationReview_status_check_13038551\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "PublicationReview_status_check_13038551",
+          "public",
+          "\"public\".\"PublicationReview\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"PublicationReview_status_check_13038551\" on \"PublicationReview\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.Theme.Theme_status_check_d5a30912",
+    "label": "Drop check constraint \"Theme_status_check_d5a30912\" on \"Theme\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Theme_status_check_d5a30912",
+        "table": "Theme"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Theme_status_check_d5a30912\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Theme_status_check_d5a30912",
+          "public",
+          "\"public\".\"Theme\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Theme_status_check_d5a30912\" on \"Theme\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Theme_status_check_d5a30912\"",
+        "sql": "ALTER TABLE \"public\".\"Theme\" DROP CONSTRAINT \"Theme_status_check_d5a30912\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Theme_status_check_d5a30912\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Theme_status_check_d5a30912",
+          "public",
+          "\"public\".\"Theme\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Theme_status_check_d5a30912\" on \"Theme\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.ContentReport",
+    "label": "Create table \"ContentReport\"",
+    "summary": "Creates table \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ContentReport\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"ContentReport\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ContentReport\"",
+        "sql": "CREATE TABLE \"public\".\"ContentReport\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"details\" text,\n  \"id\" text NOT NULL,\n  \"reason\" text NOT NULL,\n  \"reporterId\" text NOT NULL,\n  \"resolutionNotes\" text,\n  \"resolvedAt\" timestamptz,\n  \"resolvedById\" text,\n  \"status\" text DEFAULT 'OPEN' NOT NULL,\n  \"targetId\" text NOT NULL,\n  \"targetType\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"ContentReport_reason_check_57e704e3\" CHECK (\"reason\" IN ('ILLEGAL', 'MALWARE', 'COPYRIGHT', 'SPAM', 'MISLEADING', 'OTHER')),\n  CONSTRAINT \"ContentReport_status_check_8a170c60\" CHECK (\"status\" IN ('OPEN', 'DISMISSED', 'CONTENT_REMOVED', 'WARNING_ISSUED', 'ACCOUNT_SUSPENDED')),\n  CONSTRAINT \"ContentReport_targetType_check_e746220a\" CHECK (\"targetType\" IN ('PLUGIN', 'THEME', 'PLUGIN_VERSION', 'THEME_VERSION'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ContentReport\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"ContentReport\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.DeveloperApplication",
+    "label": "Create table \"DeveloperApplication\"",
+    "summary": "Creates table \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"DeveloperApplication\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"DeveloperApplication\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"DeveloperApplication\"",
+        "sql": "CREATE TABLE \"public\".\"DeveloperApplication\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"decidedAt\" timestamptz,\n  \"decidedById\" text,\n  \"decisionNotes\" text,\n  \"id\" text NOT NULL,\n  \"motivation\" text NOT NULL,\n  \"portfolioUrl\" text,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"DeveloperApplication_status_check_9a526491\" CHECK (\"status\" IN ('PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"DeveloperApplication\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"DeveloperApplication\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.User.status",
+    "label": "Add column \"status\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "status",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"status\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "status"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"status\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"status\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"status\" text DEFAULT 'ACTIVE' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"status\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "status"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"status\" on \"User\""
+        }
+      },
+      {
+        "description": "verify column \"status\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "status",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"status\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "status",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.User.suspendedAt",
+    "label": "Add column \"suspendedAt\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "suspendedAt",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"suspendedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedAt"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"suspendedAt\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"suspendedAt\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"suspendedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"suspendedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedAt"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"suspendedAt\" on \"User\""
+        }
+      },
+      {
+        "description": "verify column \"suspendedAt\" has type \"timestamp with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedAt",
+          "timestamp with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.User.suspendedById",
+    "label": "Add column \"suspendedById\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "suspendedById",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"suspendedById\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedById"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"suspendedById\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"suspendedById\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"suspendedById\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"suspendedById\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedById"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"suspendedById\" on \"User\""
+        }
+      },
+      {
+        "description": "verify column \"suspendedById\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedById",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.User.suspendedReason",
+    "label": "Add column \"suspendedReason\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "suspendedReason",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"suspendedReason\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedReason"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"suspendedReason\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"suspendedReason\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"suspendedReason\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"suspendedReason\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedReason"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"suspendedReason\" on \"User\""
+        }
+      },
+      {
+        "description": "verify column \"suspendedReason\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedReason",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.User.suspendedUntil",
+    "label": "Add column \"suspendedUntil\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "suspendedUntil",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"suspendedUntil\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedUntil"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"suspendedUntil\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"suspendedUntil\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"suspendedUntil\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"suspendedUntil\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedUntil"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"suspendedUntil\" on \"User\""
+        }
+      },
+      {
+        "description": "verify column \"suspendedUntil\" has type \"timestamp with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "suspendedUntil",
+          "timestamp with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.ContentReport.ContentReport_reporterId_targetType_targetId_key",
+    "label": "Add unique constraint on \"ContentReport\" (reporterId, targetType, targetId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "ContentReport_reporterId_targetType_targetId_key",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ContentReport_reporterId_targetType_targetId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ContentReport_reporterId_targetType_targetId_key",
+          "public",
+          "\"public\".\"ContentReport\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"ContentReport_reporterId_targetType_targetId_key\" on \"ContentReport\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"ContentReport_reporterId_targetType_targetId_key\"",
+        "sql": "ALTER TABLE \"public\".\"ContentReport\" ADD CONSTRAINT \"ContentReport_reporterId_targetType_targetId_key\" UNIQUE (\"reporterId\", \"targetType\", \"targetId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"ContentReport_reporterId_targetType_targetId_key\" exists on (reporterId, targetType, targetId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "ContentReport_reporterId_targetType_targetId_key",
+          "public",
+          "\"public\".\"ContentReport\"",
+          "u",
+          "[\"reporterId\",\"targetType\",\"targetId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Plugin.Plugin_status_check_9768c138",
+    "label": "Add check constraint \"Plugin_status_check_9768c138\" on \"Plugin\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Plugin_status_check_9768c138",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Plugin_status_check_9768c138\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Plugin_status_check_9768c138",
+          "public",
+          "\"public\".\"Plugin\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Plugin_status_check_9768c138\" on \"Plugin\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Plugin_status_check_9768c138\"",
+        "sql": "ALTER TABLE \"public\".\"Plugin\" ADD CONSTRAINT \"Plugin_status_check_9768c138\" CHECK (\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED', 'REMOVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Plugin_status_check_9768c138\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Plugin_status_check_9768c138",
+          "public",
+          "\"public\".\"Plugin\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.PublicationReview.PublicationReview_status_check_457e60ba",
+    "label": "Add check constraint \"PublicationReview_status_check_457e60ba\" on \"PublicationReview\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "PublicationReview_status_check_457e60ba",
+        "table": "PublicationReview"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"PublicationReview_status_check_457e60ba\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "PublicationReview_status_check_457e60ba",
+          "public",
+          "\"public\".\"PublicationReview\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"PublicationReview_status_check_457e60ba\" on \"PublicationReview\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"PublicationReview_status_check_457e60ba\"",
+        "sql": "ALTER TABLE \"public\".\"PublicationReview\" ADD CONSTRAINT \"PublicationReview_status_check_457e60ba\" CHECK (\"status\" IN ('APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'REMOVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"PublicationReview_status_check_457e60ba\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "PublicationReview_status_check_457e60ba",
+          "public",
+          "\"public\".\"PublicationReview\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Theme.Theme_status_check_9768c138",
+    "label": "Add check constraint \"Theme_status_check_9768c138\" on \"Theme\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Theme_status_check_9768c138",
+        "table": "Theme"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Theme_status_check_9768c138\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Theme_status_check_9768c138",
+          "public",
+          "\"public\".\"Theme\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Theme_status_check_9768c138\" on \"Theme\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Theme_status_check_9768c138\"",
+        "sql": "ALTER TABLE \"public\".\"Theme\" ADD CONSTRAINT \"Theme_status_check_9768c138\" CHECK (\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED', 'ARCHIVED', 'REMOVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Theme_status_check_9768c138\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Theme_status_check_9768c138",
+          "public",
+          "\"public\".\"Theme\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.User.User_status_check_1527ac15",
+    "label": "Add check constraint \"User_status_check_1527ac15\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "User_status_check_1527ac15",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"User_status_check_1527ac15\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_status_check_1527ac15",
+          "public",
+          "\"public\".\"User\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"User_status_check_1527ac15\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"User_status_check_1527ac15\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD CONSTRAINT \"User_status_check_1527ac15\" CHECK (\"status\" IN ('ACTIVE', 'SUSPENDED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"User_status_check_1527ac15\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "User_status_check_1527ac15",
+          "public",
+          "\"public\".\"User\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentReport.ContentReport_createdAt_idx_9575dbd7",
+    "label": "Create index \"ContentReport_createdAt_idx_9575dbd7\" on \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentReport_createdAt_idx_9575dbd7",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentReport_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentReport_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentReport_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"ContentReport_createdAt_idx_9575dbd7\" ON \"public\".\"ContentReport\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentReport_createdAt_idx_9575dbd7\" exists on \"ContentReport\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"ContentReport\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentReport.ContentReport_reporterId_idx_aa245831",
+    "label": "Create index \"ContentReport_reporterId_idx_aa245831\" on \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentReport_reporterId_idx_aa245831",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentReport_reporterId_idx_aa245831\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_reporterId_idx_aa245831\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentReport_reporterId_idx_aa245831\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentReport_reporterId_idx_aa245831\"",
+        "sql": "CREATE INDEX \"ContentReport_reporterId_idx_aa245831\" ON \"public\".\"ContentReport\" (\"reporterId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentReport_reporterId_idx_aa245831\" exists on \"ContentReport\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_reporterId_idx_aa245831\"",
+          "i",
+          "I",
+          "\"public\".\"ContentReport\"",
+          "btree",
+          "[\"reporterId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentReport.ContentReport_resolvedById_idx_fc75edc7",
+    "label": "Create index \"ContentReport_resolvedById_idx_fc75edc7\" on \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentReport_resolvedById_idx_fc75edc7",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentReport_resolvedById_idx_fc75edc7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_resolvedById_idx_fc75edc7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentReport_resolvedById_idx_fc75edc7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentReport_resolvedById_idx_fc75edc7\"",
+        "sql": "CREATE INDEX \"ContentReport_resolvedById_idx_fc75edc7\" ON \"public\".\"ContentReport\" (\"resolvedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentReport_resolvedById_idx_fc75edc7\" exists on \"ContentReport\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_resolvedById_idx_fc75edc7\"",
+          "i",
+          "I",
+          "\"public\".\"ContentReport\"",
+          "btree",
+          "[\"resolvedById\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentReport.ContentReport_status_idx_e98638ab",
+    "label": "Create index \"ContentReport_status_idx_e98638ab\" on \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentReport_status_idx_e98638ab",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentReport_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentReport_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentReport_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"ContentReport_status_idx_e98638ab\" ON \"public\".\"ContentReport\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentReport_status_idx_e98638ab\" exists on \"ContentReport\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"ContentReport\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentReport.ContentReport_targetType_targetId_idx_7a5ee9cb",
+    "label": "Create index \"ContentReport_targetType_targetId_idx_7a5ee9cb\" on \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentReport_targetType_targetId_idx_7a5ee9cb",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentReport_targetType_targetId_idx_7a5ee9cb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_targetType_targetId_idx_7a5ee9cb\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentReport_targetType_targetId_idx_7a5ee9cb\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentReport_targetType_targetId_idx_7a5ee9cb\"",
+        "sql": "CREATE INDEX \"ContentReport_targetType_targetId_idx_7a5ee9cb\" ON \"public\".\"ContentReport\" (\"targetType\", \"targetId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentReport_targetType_targetId_idx_7a5ee9cb\" exists on \"ContentReport\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentReport_targetType_targetId_idx_7a5ee9cb\"",
+          "i",
+          "I",
+          "\"public\".\"ContentReport\"",
+          "btree",
+          "[\"targetType\",\"targetId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DeveloperApplication.DeveloperApplication_createdAt_idx_9575dbd7",
+    "label": "Create index \"DeveloperApplication_createdAt_idx_9575dbd7\" on \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DeveloperApplication_createdAt_idx_9575dbd7",
+        "table": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DeveloperApplication_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DeveloperApplication_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DeveloperApplication_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"DeveloperApplication_createdAt_idx_9575dbd7\" ON \"public\".\"DeveloperApplication\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DeveloperApplication_createdAt_idx_9575dbd7\" exists on \"DeveloperApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"DeveloperApplication\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DeveloperApplication.DeveloperApplication_decidedById_idx_8194d55f",
+    "label": "Create index \"DeveloperApplication_decidedById_idx_8194d55f\" on \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DeveloperApplication_decidedById_idx_8194d55f",
+        "table": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DeveloperApplication_decidedById_idx_8194d55f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_decidedById_idx_8194d55f\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DeveloperApplication_decidedById_idx_8194d55f\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DeveloperApplication_decidedById_idx_8194d55f\"",
+        "sql": "CREATE INDEX \"DeveloperApplication_decidedById_idx_8194d55f\" ON \"public\".\"DeveloperApplication\" (\"decidedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DeveloperApplication_decidedById_idx_8194d55f\" exists on \"DeveloperApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_decidedById_idx_8194d55f\"",
+          "i",
+          "I",
+          "\"public\".\"DeveloperApplication\"",
+          "btree",
+          "[\"decidedById\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DeveloperApplication.DeveloperApplication_status_idx_e98638ab",
+    "label": "Create index \"DeveloperApplication_status_idx_e98638ab\" on \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DeveloperApplication_status_idx_e98638ab",
+        "table": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DeveloperApplication_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DeveloperApplication_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DeveloperApplication_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"DeveloperApplication_status_idx_e98638ab\" ON \"public\".\"DeveloperApplication\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DeveloperApplication_status_idx_e98638ab\" exists on \"DeveloperApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"DeveloperApplication\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DeveloperApplication.DeveloperApplication_userId_idx_a489d58a",
+    "label": "Create index \"DeveloperApplication_userId_idx_a489d58a\" on \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DeveloperApplication_userId_idx_a489d58a",
+        "table": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DeveloperApplication_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_userId_idx_a489d58a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DeveloperApplication_userId_idx_a489d58a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DeveloperApplication_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"DeveloperApplication_userId_idx_a489d58a\" ON \"public\".\"DeveloperApplication\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DeveloperApplication_userId_idx_a489d58a\" exists on \"DeveloperApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_userId_idx_a489d58a\"",
+          "i",
+          "I",
+          "\"public\".\"DeveloperApplication\"",
+          "btree",
+          "[\"userId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DeveloperApplication.DeveloperApplication_userId_status_idx_e4a128ba",
+    "label": "Create index \"DeveloperApplication_userId_status_idx_e4a128ba\" on \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DeveloperApplication_userId_status_idx_e4a128ba",
+        "table": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DeveloperApplication_userId_status_idx_e4a128ba\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_userId_status_idx_e4a128ba\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DeveloperApplication_userId_status_idx_e4a128ba\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DeveloperApplication_userId_status_idx_e4a128ba\"",
+        "sql": "CREATE INDEX \"DeveloperApplication_userId_status_idx_e4a128ba\" ON \"public\".\"DeveloperApplication\" (\"userId\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DeveloperApplication_userId_status_idx_e4a128ba\" exists on \"DeveloperApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DeveloperApplication_userId_status_idx_e4a128ba\"",
+          "i",
+          "I",
+          "\"public\".\"DeveloperApplication\"",
+          "btree",
+          "[\"userId\",\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.User.User_status_idx_e98638ab",
+    "label": "Create index \"User_status_idx_e98638ab\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "User_status_idx_e98638ab",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"User_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"User_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"User_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"User_status_idx_e98638ab\" ON \"public\".\"User\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"User_status_idx_e98638ab\" exists on \"User\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"User_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"User\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.User.User_suspendedById_idx_441458ac",
+    "label": "Create index \"User_suspendedById_idx_441458ac\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "User_suspendedById_idx_441458ac",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"User_suspendedById_idx_441458ac\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_suspendedById_idx_441458ac\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"User_suspendedById_idx_441458ac\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"User_suspendedById_idx_441458ac\"",
+        "sql": "CREATE INDEX \"User_suspendedById_idx_441458ac\" ON \"public\".\"User\" (\"suspendedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"User_suspendedById_idx_441458ac\" exists on \"User\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"User_suspendedById_idx_441458ac\"",
+          "i",
+          "I",
+          "\"public\".\"User\"",
+          "btree",
+          "[\"suspendedById\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ContentReport.ContentReport_reporterId_fkey",
+    "label": "Add foreign key \"ContentReport_reporterId_fkey\" on \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ContentReport_reporterId_fkey",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ContentReport_reporterId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ContentReport_reporterId_fkey",
+          "public",
+          "\"public\".\"ContentReport\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"ContentReport_reporterId_fkey\" on \"ContentReport\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ContentReport_reporterId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ContentReport\"\nADD CONSTRAINT \"ContentReport_reporterId_fkey\"\nFOREIGN KEY (\"reporterId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ContentReport_reporterId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "ContentReport_reporterId_fkey",
+          "public",
+          "\"public\".\"ContentReport\"",
+          "f",
+          "[\"reporterId\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ContentReport.ContentReport_resolvedById_fkey",
+    "label": "Add foreign key \"ContentReport_resolvedById_fkey\" on \"ContentReport\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ContentReport_resolvedById_fkey",
+        "table": "ContentReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ContentReport_resolvedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ContentReport_resolvedById_fkey",
+          "public",
+          "\"public\".\"ContentReport\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"ContentReport_resolvedById_fkey\" on \"ContentReport\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ContentReport_resolvedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ContentReport\"\nADD CONSTRAINT \"ContentReport_resolvedById_fkey\"\nFOREIGN KEY (\"resolvedById\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ContentReport_resolvedById_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "ContentReport_resolvedById_fkey",
+          "public",
+          "\"public\".\"ContentReport\"",
+          "f",
+          "[\"resolvedById\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "n",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.DeveloperApplication.DeveloperApplication_userId_fkey",
+    "label": "Add foreign key \"DeveloperApplication_userId_fkey\" on \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "DeveloperApplication_userId_fkey",
+        "table": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"DeveloperApplication_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "DeveloperApplication_userId_fkey",
+          "public",
+          "\"public\".\"DeveloperApplication\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"DeveloperApplication_userId_fkey\" on \"DeveloperApplication\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"DeveloperApplication_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"DeveloperApplication\"\nADD CONSTRAINT \"DeveloperApplication_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"DeveloperApplication_userId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "DeveloperApplication_userId_fkey",
+          "public",
+          "\"public\".\"DeveloperApplication\"",
+          "f",
+          "[\"userId\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.DeveloperApplication.DeveloperApplication_decidedById_fkey",
+    "label": "Add foreign key \"DeveloperApplication_decidedById_fkey\" on \"DeveloperApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "DeveloperApplication_decidedById_fkey",
+        "table": "DeveloperApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"DeveloperApplication_decidedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "DeveloperApplication_decidedById_fkey",
+          "public",
+          "\"public\".\"DeveloperApplication\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"DeveloperApplication_decidedById_fkey\" on \"DeveloperApplication\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"DeveloperApplication_decidedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"DeveloperApplication\"\nADD CONSTRAINT \"DeveloperApplication_decidedById_fkey\"\nFOREIGN KEY (\"decidedById\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"DeveloperApplication_decidedById_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "DeveloperApplication_decidedById_fkey",
+          "public",
+          "\"public\".\"DeveloperApplication\"",
+          "f",
+          "[\"decidedById\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "n",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.User.User_suspendedById_fkey",
+    "label": "Add foreign key \"User_suspendedById_fkey\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "User_suspendedById_fkey",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"User_suspendedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_suspendedById_fkey",
+          "public",
+          "\"public\".\"User\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"User_suspendedById_fkey\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"User_suspendedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"User\"\nADD CONSTRAINT \"User_suspendedById_fkey\"\nFOREIGN KEY (\"suspendedById\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"User_suspendedById_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "User_suspendedById_fkey",
+          "public",
+          "\"public\".\"User\"",
+          "f",
+          "[\"suspendedById\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "n",
+          "a"
+        ]
+      }
+    ]
+  }
+]

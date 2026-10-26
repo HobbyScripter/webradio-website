@@ -30,6 +30,43 @@ export function hasRole(userRole: Role, requiredRole: Role): boolean {
 /** The role hierarchy as an ordered list, highest privilege last. */
 export const ROLE_ORDER: readonly Role[] = ['USER', 'DEVELOPER', 'ADMIN', 'SYSTEM_ADMIN'];
 
+/** Persisted account state (see the `UserStatus` enum in the contract). */
+export type AccountStatus = 'ACTIVE' | 'SUSPENDED';
+
+/**
+ * A suspension is in force when the account is `SUSPENDED` and either has no
+ * end (`suspendedUntil === null` ⇒ permanent) or an end in the future.
+ *
+ * Expiry is deliberately *derived*, never written back: no request, cron job or
+ * race can turn a permanent suspension into an active account, and concurrent
+ * requests at the expiry instant all reach the same answer without a write.
+ *
+ * Pure and database-free so `resolveSession()`, the login path and the admin UI
+ * all apply exactly the same rule.
+ */
+export function isSuspensionActive(
+  status: AccountStatus | null | undefined,
+  suspendedUntil: Temporal.Instant | null | undefined,
+  now: Temporal.Instant = Temporal.Now.instant(),
+): boolean {
+  if (status !== 'SUSPENDED') {
+    return false;
+  }
+  if (suspendedUntil === null || suspendedUntil === undefined) {
+    return true;
+  }
+  return Temporal.Instant.compare(suspendedUntil, now) > 0;
+}
+
+/** True when the account may act: not suspended, or the suspension expired. */
+export function isAccountAccessible(
+  status: AccountStatus | null | undefined,
+  suspendedUntil: Temporal.Instant | null | undefined,
+  now: Temporal.Instant = Temporal.Now.instant(),
+): boolean {
+  return !isSuspensionActive(status, suspendedUntil, now);
+}
+
 export type AccountNavIcon = 'user' | 'settings' | 'shield' | 'code' | 'server' | 'logout';
 
 export type AccountNavItem = {
@@ -59,6 +96,13 @@ export const ACCOUNT_NAV_ITEMS: readonly AccountNavItem[] = [
     label: 'Sicherheit',
     href: '/account/security',
     icon: 'shield',
+    requiredRole: 'USER',
+  },
+  {
+    key: 'developer-access',
+    label: 'Entwicklerzugang',
+    href: '/account/developer',
+    icon: 'code',
     requiredRole: 'USER',
   },
   {

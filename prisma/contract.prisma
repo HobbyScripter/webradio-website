@@ -12,6 +12,15 @@ enum Role {
   SYSTEM_ADMIN
 }
 
+// Account state. `SUSPENDED` with `suspendedUntil = null` is permanent;
+// with a timestamp it ends at that instant. The effective state is derived on
+// every request (see src/lib/roles.ts) — expiry is never written back, so a
+// stale timestamp can not lift a permanently recorded suspension.
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 // User model - Core authentication entity
 model User {
   id               String             @id @onCreate(uuid(7))
@@ -20,6 +29,11 @@ model User {
   name             String?
   role             Role               @default(USER)
   emailVerified    DateTime?
+  status           UserStatus         @default(ACTIVE)
+  suspendedAt      DateTime?
+  suspendedUntil   DateTime?
+  suspendedReason  String?
+  suspendedById    String?
   createdAt        DateTime           @onCreate(now())
   updatedAt        DateTime           @onCreate(now()) @onUpdate(now())
 
@@ -28,9 +42,16 @@ model User {
   developerProfile DeveloperProfile?
   auditLogs        AuditLog[]
   reviews          PublicationReview[]
+  suspendedBy      User?                  @relation("UserSuspensions", fields: [suspendedById], references: [id], onDelete: SetNull)
+  suspensionsIssued User[]                @relation("UserSuspensions")
+  developerApplications DeveloperApplication[] @relation("DeveloperApplicationApplicant")
+  reportsFiled     ContentReport[]        @relation("ReportReporter")
+  reportsResolved  ContentReport[]        @relation("ReportResolver")
+  applicationDecisions DeveloperApplication[] @relation("DeveloperApplicationDecisions")
 
   @@index([email])
   @@index([role])
+  @@index([status])
 }
 
 // Session model for server-side authentication & revocation
@@ -104,6 +125,37 @@ model DeveloperProfile {
   @@index([userId])
 }
 
+// Developer access request. A normal registration never creates this row and
+// never grants DEVELOPER; only an administrator decision does. `PENDING` is
+// unique per user (enforced transactionally in the service layer).
+enum DeveloperApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+model DeveloperApplication {
+  id            String                     @id @onCreate(uuid(7))
+  userId        String
+  motivation    String
+  portfolioUrl  String?
+  status        DeveloperApplicationStatus @default(PENDING)
+  decisionNotes String?
+  decidedById   String?
+  decidedAt     DateTime?
+  createdAt     DateTime                   @onCreate(now())
+  updatedAt     DateTime                   @onCreate(now()) @onUpdate(now())
+
+  user      User  @relation("DeveloperApplicationApplicant", fields: [userId], references: [id], onDelete: Cascade)
+  decidedBy User? @relation("DeveloperApplicationDecisions", fields: [decidedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([status])
+  @@index([createdAt])
+}
+
 // Every catalogue entry is bound to the WebRadio desktop program. The enum
 // deliberately has one value: offering arbitrary software would require a
 // reviewed contract migration, not just a different request body.
@@ -146,6 +198,8 @@ enum PluginStatus {
   // Reviewer asked the developer for changes; editable and resubmittable.
   CHANGES_REQUESTED
   ARCHIVED
+  // Administratively taken down. Terminal: never resubmittable by the owner.
+  REMOVED
 }
 
 // Plugin version
@@ -230,6 +284,8 @@ enum ThemeStatus {
   // Reviewer asked the developer for changes; editable and resubmittable.
   CHANGES_REQUESTED
   ARCHIVED
+  // Administratively taken down. Terminal: never resubmittable by the owner.
+  REMOVED
 }
 
 // Theme version
@@ -289,6 +345,9 @@ enum ReviewResult {
   APPROVED
   REJECTED
   CHANGES_REQUESTED
+  // Administrative takedown of already published content (not a review
+  // decision). Kept in this table so the moderation history stays complete.
+  REMOVED
 }
 
 model PublicationReview {
@@ -304,6 +363,56 @@ model PublicationReview {
 
   @@index([targetType, targetId])
   @@index([reviewerId])
+  @@index([createdAt])
+}
+
+// User-submitted abuse report. A report is a pointer, never a verdict: it does
+// nothing until an administrator decides. The unique key stops the same user
+// from reporting the same target twice (a repeat answers 409).
+enum ReportTargetType {
+  PLUGIN
+  THEME
+  PLUGIN_VERSION
+  THEME_VERSION
+}
+
+enum ReportReason {
+  ILLEGAL
+  MALWARE
+  COPYRIGHT
+  SPAM
+  MISLEADING
+  OTHER
+}
+
+enum ContentReportStatus {
+  OPEN
+  DISMISSED
+  CONTENT_REMOVED
+  WARNING_ISSUED
+  ACCOUNT_SUSPENDED
+}
+
+model ContentReport {
+  id              String             @id @onCreate(uuid(7))
+  reporterId      String
+  targetType      ReportTargetType
+  targetId        String
+  reason          ReportReason
+  details         String?
+  status          ContentReportStatus @default(OPEN)
+  resolutionNotes String?
+  resolvedById    String?
+  resolvedAt      DateTime?
+  createdAt       DateTime           @onCreate(now())
+  updatedAt       DateTime           @onCreate(now()) @onUpdate(now())
+
+  reporter   User  @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolvedBy User? @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([status])
+  @@index([targetType, targetId])
   @@index([createdAt])
 }
 

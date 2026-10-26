@@ -5,6 +5,7 @@ import {
   decisionRequiresNotes,
   editOutcome,
   isPubliclyVisible,
+  isRemovedEntry,
   isValidModerationNotes,
   versionOutcome,
 } from '../catalog-workflow';
@@ -112,5 +113,26 @@ describe('moderation decisions', () => {
     expect(isValidModerationNotes('REJECTED', 'zu kurz')).toBe(false);
     expect(isValidModerationNotes('REJECTED', 'Bitte Beschreibung ergänzen.')).toBe(true);
     expect(isValidModerationNotes('CHANGES_REQUESTED', '           ')).toBe(false);
+  });
+});
+
+// Administrative takedown: a removed entry is terminal and never public, even
+// if someone sets isPublished by hand.
+describe('REMOVED state', () => {
+  it('identifies removed entries', () => {
+    expect(isRemovedEntry('REMOVED')).toBe(true);
+    expect(isRemovedEntry('ARCHIVED')).toBe(false);
+    expect(isRemovedEntry('APPROVED')).toBe(false);
+  });
+
+  it('never allows a removed entry back into review', () => {
+    expect(canSubmitForReview('REMOVED')).toBe(false);
+    expect(canSubmitForReview('DRAFT')).toBe(true);
+    expect(canSubmitForReview('ARCHIVED')).toBe(true);
+  });
+
+  it('is never publicly visible, even with isPublished set', () => {
+    expect(isPubliclyVisible({ status: 'REMOVED', isPublished: true })).toBe(false);
+    expect(isPubliclyVisible({ status: 'REMOVED', isPublished: false })).toBe(false);
   });
 });

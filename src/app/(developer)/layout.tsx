@@ -8,7 +8,6 @@ import Footer from '@/components/public/Footer';
 import Link from 'next/link';
 import DashboardNav, { type DashboardNavItem } from '@/components/dashboard/DashboardNav';
 import DashboardBreadcrumbs from '@/components/dashboard/DashboardBreadcrumbs';
-import AccessDenied from '@/components/dashboard/AccessDenied';
 import {
   CodeIcon,
   PlugIcon,
@@ -74,14 +73,32 @@ export default async function DeveloperLayout({
     redirect('/auth/login?callbackUrl=/developer');
   }
 
-  // Same access-denied surface as /admin and /system-admin: a signed-in user
-  // without the role gets an explanation, not a silent redirect home.
+  // A signed-in user without the role gets an actionable explanation instead of
+  // a dead end: developer access is a separate, admin-approved permission.
   if (!hasRole(session.user.role, 'DEVELOPER')) {
     return (
       <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100">
         <Header />
         <main id="main-content" className="flex-1">
-          <AccessDenied area="Der Entwicklerbereich" requiredRole="Entwickler" />
+          <div className="mx-auto my-16 max-w-lg space-y-4 rounded-2xl border border-violet-500/20 bg-zinc-900 p-8 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
+              <CodeIcon className="h-6 w-6" />
+            </div>
+            <h1 className="text-xl font-bold text-white">Entwicklerzugang erforderlich</h1>
+            <p className="text-sm leading-relaxed text-zinc-400">
+              Das Entwicklerportal ist eine eigene, von der Administration geprüfte
+              Berechtigung. Eine Registrierung allein vergibt keine Entwicklerrechte.
+            </p>
+            <Link
+              href="/account/developer"
+              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-500"
+            >
+              Entwicklerzugang beantragen
+            </Link>
+            <p className="text-xs text-zinc-500">
+              Alternativ: <Link href="/account" className="underline-offset-4 hover:underline">zurück zu Mein Konto</Link>
+            </p>
+          </div>
         </main>
         <Footer />
       </div>

@@ -2,10 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdminSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
-import { ROLE_LABELS } from '@/lib/roles';
+import { ROLE_LABELS, isAccountAccessible, isSuspensionActive } from '@/lib/roles';
 import { formatDateTime } from '@/lib/format';
 import RoleChangeForm from '@/components/dashboard/RoleChangeForm';
-import { changeRoleAction } from '@/app/(admin)/admin/actions';
+import {
+  changeRoleAction,
+  liftSuspensionAction,
+  suspendAccountAction,
+} from '@/app/(admin)/admin/actions';
 import {
   ArrowLeftIcon,
   UserIcon,
@@ -31,7 +35,12 @@ export default async function AdminUserDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ roleChanged?: string; error?: string }>;
+  searchParams: Promise<{
+    roleChanged?: string;
+    error?: string;
+    suspended?: string;
+    lifted?: string;
+  }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const admin = await requireAdminSession();
@@ -61,6 +70,13 @@ export default async function AdminUserDetailPage({
   const isTargetSystemAdmin = target.role === 'SYSTEM_ADMIN';
   const canEditRole = !(isTargetSystemAdmin && admin.role !== 'SYSTEM_ADMIN');
 
+  // Derived, never written back: an expired temporary suspension is shown as
+  // "abgelaufen" while the persisted status stays SUSPENDED.
+  const suspensionActive = isSuspensionActive(target.status, target.suspendedUntil);
+  const accountAccessible = isAccountAccessible(target.status, target.suspendedUntil);
+  const suspensionExpired =
+    target.status === 'SUSPENDED' && target.suspendedUntil !== null && accountAccessible;
+
   return (
     <div className="space-y-6">
       <Link
@@ -79,6 +95,16 @@ export default async function AdminUserDetailPage({
       {query.roleChanged ? (
         <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
           Rolle geändert und auditiert.
+        </p>
+      ) : null}
+      {query.suspended ? (
+        <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
+          Konto gesperrt. Alle bestehenden Sitzungen wurden beendet.
+        </p>
+      ) : null}
+      {query.lifted ? (
+        <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
+          Sperre aufgehoben. Frühere Sitzungen bleiben ungültig; das Konto muss sich neu anmelden.
         </p>
       ) : null}
 
@@ -129,6 +155,18 @@ export default async function AdminUserDetailPage({
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
           <div className="text-xs font-medium uppercase text-zinc-500">Aktive Sitzungen</div>
           <div className="mt-1 text-sm text-zinc-300">{sessions.length}</div>
+        </div>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+          <div className="text-xs font-medium uppercase text-zinc-500">Kontostatus</div>
+          <div className="mt-1 text-sm">
+            {suspensionActive ? (
+              <span className="text-rose-300">Gesperrt</span>
+            ) : suspensionExpired ? (
+              <span className="text-amber-300">Sperre abgelaufen</span>
+            ) : (
+              <span className="text-emerald-400">Aktiv</span>
+            )}
+          </div>
         </div>
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
           <div className="text-xs font-medium uppercase text-zinc-500">Erweiterungen</div>
@@ -192,9 +230,93 @@ export default async function AdminUserDetailPage({
             </div>
           ) : null}
 
+          <div className="mt-5 border-t border-zinc-800 pt-4">
+            <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <AlertIcon className="h-4 w-4" />
+              Kontosperre
+            </h3>
+
+            {suspensionActive ? (
+              <p className="mt-2 text-xs leading-relaxed text-rose-200">
+                Gesperrt am {formatDateTime(target.suspendedAt) ?? '—'}
+                {target.suspendedUntil
+                  ? ` bis ${formatDateTime(target.suspendedUntil)}`
+                  : ' — dauerhaft'}
+                . {target.suspendedReason ? `Grund: ${target.suspendedReason}` : null}
+              </p>
+            ) : suspensionExpired ? (
+              <p className="mt-2 text-xs leading-relaxed text-amber-200">
+                Die befristete Sperre ist abgelaufen; das Konto ist wieder zugänglich. Der
+                gespeicherte Status bleibt unverändert.
+              </p>
+            ) : (
+              <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+                Das Konto ist aktiv. Eine Sperre beendet sofort alle Sitzungen und blockiert auch
+                die Anmeldung.
+              </p>
+            )}
+
+            {suspensionActive ? (
+              <form action={liftSuspensionAction} className="mt-3 space-y-2">
+                <input type="hidden" name="userId" value={target.id} />
+                <label htmlFor="lift-reason" className="block text-xs text-zinc-400">
+                  Begründung der Aufhebung (mindestens 10 Zeichen)
+                </label>
+                <textarea
+                  id="lift-reason"
+                  name="reason"
+                  required
+                  minLength={10}
+                  maxLength={500}
+                  rows={2}
+                  className="w-full resize-none rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white"
+                />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+                >
+                  Sperre aufheben
+                </button>
+              </form>
+            ) : (
+              <form action={suspendAccountAction} className="mt-3 space-y-2">
+                <input type="hidden" name="userId" value={target.id} />
+                <label htmlFor="suspend-reason" className="block text-xs text-zinc-400">
+                  Begründung (mindestens 10 Zeichen, wird auditiert)
+                </label>
+                <textarea
+                  id="suspend-reason"
+                  name="reason"
+                  required
+                  minLength={10}
+                  maxLength={500}
+                  rows={2}
+                  className="w-full resize-none rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white"
+                />
+                <label htmlFor="suspend-days" className="block text-xs text-zinc-400">
+                  Dauer in Tagen (leer = dauerhaft)
+                </label>
+                <input
+                  id="suspend-days"
+                  name="days"
+                  type="number"
+                  min={1}
+                  max={3650}
+                  className="w-32 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white"
+                />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+                >
+                  Konto sperren
+                </button>
+              </form>
+            )}
+          </div>
+
           <p className="mt-5 border-t border-zinc-800 pt-4 text-xs text-zinc-500">
-            Kontodeaktivierung und -löschung sind im aktuellen Datenmodell nicht vorgesehen und
-            werden hier deshalb bewusst nicht angeboten.
+            Eine Kontolöschung ist im aktuellen Datenmodell nicht vorgesehen und wird hier
+            deshalb bewusst nicht angeboten. Sperren ersetzen keine Löschung.
           </p>
         </section>
 

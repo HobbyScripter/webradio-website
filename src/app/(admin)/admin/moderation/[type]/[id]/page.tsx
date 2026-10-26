@@ -5,7 +5,10 @@ import { db } from '@/lib/db';
 import { formatDate, formatDateTime } from '@/lib/format';
 import CatalogStatusBadge from '@/components/dashboard/CatalogStatusBadge';
 import ModerationDecisionForm from '@/components/dashboard/ModerationDecisionForm';
-import { moderateAction } from '@/app/(admin)/admin/actions';
+import {
+  moderateAction,
+  removeCatalogEntryAction,
+} from '@/app/(admin)/admin/actions';
 import { ArrowLeftIcon, PlugIcon, PaletteIcon, AlertIcon } from '@/components/ui/icons';
 
 // Session-guarded page: renders on demand instead of being prerendered.
@@ -223,6 +226,47 @@ export default async function ModerationDetailPage({
           ) : (
             <p className="text-sm text-zinc-400">
               Für diese Einreichung ist keine Entscheidung mehr offen.
+            </p>
+          )}
+
+          {entry.status !== 'REMOVED' ? (
+            <form
+              action={removeCatalogEntryAction}
+              className="mt-6 space-y-2 border-t border-zinc-800 pt-4"
+            >
+              <input type="hidden" name="kind" value={type} />
+              <input type="hidden" name="entryId" value={entry.id} />
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                Inhalt entfernen
+              </h3>
+              <p className="text-xs leading-relaxed text-zinc-500">
+                Entfernt den Eintrag dauerhaft aus dem öffentlichen Katalog. Eine erneute
+                Einreichung ist danach nicht möglich. Externe Datei-URLs lassen sich dadurch nicht
+                widerrufen.
+              </p>
+              <label htmlFor="remove-notes" className="block text-xs text-zinc-400">
+                Begründung (mindestens 10 Zeichen)
+              </label>
+              <textarea
+                id="remove-notes"
+                name="notes"
+                required
+                minLength={10}
+                maxLength={500}
+                rows={2}
+                className="w-full resize-none rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white"
+              />
+              <button
+                type="submit"
+                className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+              >
+                Aus dem Katalog entfernen
+              </button>
+            </form>
+          ) : (
+            <p className="mt-6 border-t border-zinc-800 pt-4 text-xs leading-relaxed text-rose-200">
+              Dieser Eintrag wurde entfernt und kann weder bearbeitet noch erneut eingereicht
+              werden.
             </p>
           )}
         </aside>

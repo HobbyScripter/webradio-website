@@ -20,7 +20,7 @@ import bcryptjs from 'bcryptjs';
 import { or } from '@prisma/orm-postgres/orm-client';
 import { describeErrorChain } from './db-error-diagnostics';
 import { db } from './db';
-import { hasRole } from './roles';
+import { hasRole, isAccountAccessible } from './roles';
 import type { AssignableRole, Role, RegisterInput } from './validations';
 
 // Re-exported so every existing server-side import keeps one hierarchy.
@@ -76,6 +76,21 @@ export class ForbiddenError extends AuthError {
   constructor(message = 'Insufficient permissions.') {
     super(message, 403, 'FORBIDDEN');
     this.name = 'ForbiddenError';
+  }
+}
+
+/**
+ * Thrown only after the password was verified, so it cannot be used to probe
+ * for existing accounts without credentials.
+ */
+export class AccountSuspendedError extends AuthError {
+  constructor() {
+    super(
+      'Dieses Konto ist gesperrt. Bitte wende dich an die Administration.',
+      403,
+      'ACCOUNT_SUSPENDED',
+    );
+    this.name = 'AccountSuspendedError';
   }
 }
 
@@ -284,6 +299,13 @@ export async function authenticateUser(
     throw new InvalidCredentialsError();
   }
 
+  // 2b. Correct credentials are not enough for a suspended account. Without
+  // this check a suspension would be bypassed by simply signing in again and
+  // receiving a fresh database session.
+  if (!isAccountAccessible(user.status, user.suspendedUntil)) {
+    throw new AccountSuspendedError();
+  }
+
   // 3. Audit successful login (never the password or hash)
   try {
     await db.orm.public.AuditLog.create({
@@ -361,6 +383,13 @@ async function resolveSession(session: SessionRow | null) {
 
   const user = await db.orm.public.User.first({ id: session.userId });
   if (!user) {
+    return null;
+  }
+
+  // Central gate for every authorization check: a suspended account is never
+  // authenticated, even if a stale session row or cookie still exists. An
+  // expired temporary suspension becomes accessible again by comparison only.
+  if (!isAccountAccessible(user.status, user.suspendedUntil)) {
     return null;
   }
 
@@ -444,23 +473,56 @@ export function assertRole(userRole: Role, requiredRole: Role): void {
  * The change and its audit log entry are committed atomically. The last
  * remaining administrator cannot be demoted.
  */
-export async function changeUserRole(input: {
+export type RoleChangeInput = {
   actorId: string;
   targetUserId: string;
   newRole: AssignableRole;
   ipAddress?: string;
   userAgent?: string;
-}): Promise<{ id: string; email: string; role: Role; previousRole: Role }> {
-  return db.transaction(async (tx) => {
+};
+
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Locks every ADMIN and SYSTEM_ADMIN row for the rest of the transaction.
+ *
+ * Shared by role changes and account suspensions so the two paths serialise
+ * against each other and the last-admin / last-system-admin decisions stay
+ * race-free even when two administrators act at the same time.
+ */
+export async function lockPrivilegedUsers(
+  tx: Transaction,
+): Promise<Awaited<ReturnType<typeof db.orm.public.User.all>>> {
+  return tx.orm.public.User.where((user) =>
+    or(user.role.eq('ADMIN'), user.role.eq('SYSTEM_ADMIN')),
+  )
+    .forNoKeyUpdate()
+    .all();
+}
+
+export async function changeUserRole(
+  input: RoleChangeInput,
+): Promise<{ id: string; email: string; role: Role; previousRole: Role }> {
+  return db.transaction((tx) => applyRoleChangeInTransaction(tx, input));
+}
+
+/**
+ * The role change itself, inside a caller-provided transaction.
+ *
+ * Extracted so a developer-application approval can mark the application AND
+ * change the role in one commit. All authorization rules stay in this single
+ * place — there is no second role-assignment path.
+ */
+export async function applyRoleChangeInTransaction(
+  tx: Transaction,
+  input: RoleChangeInput,
+): Promise<{ id: string; email: string; role: Role; previousRole: Role }> {
+  {
     // Every role change first locks all privileged accounts. This serialises
     // concurrent changes (including two administrators demoting each other)
     // and makes the last-SYSTEM_ADMIN count decision race-free. The actor is
     // always part of this set because no other role may change roles.
-    const privileged = await tx.orm.public.User.where((user) =>
-      or(user.role.eq('ADMIN'), user.role.eq('SYSTEM_ADMIN')),
-    )
-      .forNoKeyUpdate()
-      .all();
+    const privileged = await lockPrivilegedUsers(tx);
 
     const actor = privileged.find((user) => user.id === input.actorId);
     if (!actor) {
@@ -503,10 +565,27 @@ export async function changeUserRole(input: {
       );
     }
 
+    // A suspended account must not be able to gain capabilities while it is
+    // locked out; that would make the suspension ineffective.
+    if (!isAccountAccessible(target.status, target.suspendedUntil)) {
+      throw new AuthError(
+        'Gesperrte Konten können keine Rolle erhalten. Bitte zuerst die Sperre aufheben.',
+        409,
+        'ACCOUNT_SUSPENDED',
+      );
+    }
+
     // Privileged roles are only granted to accounts that proved control of
     // their address. Without this, a mistyped address could receive admin
     // access, and a throw-away registration would be enough for DEVELOPER.
-    if (input.newRole !== 'USER' && target.emailVerified === null) {
+    //
+    // The single, narrowly scoped exception is DEVELOPER: while transactional
+    // e-mail is paused, nobody can verify an address, and a developer account
+    // cannot administer users or content. It is granted only through this
+    // central server-side path (an approved application), never through a
+    // client-supplied flag, and is audited separately below.
+    const isDeveloperGrant = input.newRole === 'DEVELOPER';
+    if (input.newRole !== 'USER' && !isDeveloperGrant && target.emailVerified === null) {
       throw new AuthError(
         'The target account must verify its e-mail address before receiving a privileged role.',
         409,
@@ -563,13 +642,29 @@ export async function changeUserRole(input: {
       userAgent: input.userAgent ?? null,
     });
 
+    // Separate record whenever the documented verification exception applied,
+    // so the decision is reviewable without parsing the role-change details.
+    if (isDeveloperGrant && target.emailVerified === null) {
+      await tx.orm.public.AuditLog.create({
+        userId: input.actorId,
+        action: 'DEVELOPER_GRANTED_UNVERIFIED_EMAIL',
+        details: JSON.stringify({
+          targetUserId: target.id,
+          actorRole: actor.role,
+          reason: 'developer-role-granted-while-email-delivery-is-paused',
+        }),
+        ipAddress: input.ipAddress ?? null,
+        userAgent: input.userAgent ?? null,
+      });
+    }
+
     return {
       id: target.id,
       email: target.email,
       role: input.newRole,
       previousRole,
     };
-  });
+  }
 }
 
 /**

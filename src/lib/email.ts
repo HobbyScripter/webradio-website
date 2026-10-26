@@ -33,6 +33,7 @@ export type EmailDeliveryMode =
   | 'smtp'
   | 'outbox'
   | 'unconfigured'
+  | 'paused';
 
 /** Why a message was not delivered. Stable, non-secret classification. */
 export type EmailDeliveryFailure =
@@ -43,6 +44,7 @@ export type EmailDeliveryFailure =
   | 'timeout'
   | 'network_error'
   | 'outbox_error'
+  | 'delivery_paused';
 
 export type EmailDeliveryResult = {
   delivered: boolean;
@@ -70,6 +72,17 @@ const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 function readEnv(name: string): string | undefined {
   const value = process.env[name]?.trim();
   return value ? value : undefined;
+}
+
+/**
+ * Operator switch. Delivery is paused unless `EMAIL_DELIVERY_ENABLED` is
+ * explicitly `"true"`, so a missing variable (the current state) or a typo can
+ * never start sending. A paused sender makes **no** provider call and writes
+ * **no** outbox file: the existing Resend/SMTP code stays intact for the later
+ * reactivation.
+ */
+export function isEmailDeliveryPaused(): boolean {
+  return process.env['EMAIL_DELIVERY_ENABLED']?.trim().toLowerCase() !== 'true';
 }
 
 export function isResendConfigured(): boolean {
@@ -317,6 +330,13 @@ async function sendSmtp(message: TransactionalEmail): Promise<EmailDeliveryResul
 export async function sendTransactionalEmail(
   message: TransactionalEmail,
 ): Promise<EmailDeliveryResult> {
+  if (isEmailDeliveryPaused()) {
+    console.warn(
+      '[email] delivery is paused (EMAIL_DELIVERY_ENABLED is not "true"); no message was sent',
+    );
+    return { delivered: false, mode: 'paused', failure: 'delivery_paused' };
+  }
+
   if (isResendConfigured()) {
     return sendResend(message);
   }
