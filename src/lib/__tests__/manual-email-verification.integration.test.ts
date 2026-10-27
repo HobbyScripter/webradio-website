@@ -64,10 +64,15 @@ describe('manual e-mail verification', () => {
     ).rejects.toBeInstanceOf(ForbiddenError);
   });
 
-  it('rejects an unverified administrator', async () => {
-    await expect(
-      verifyUserEmailManually({ actorId: unverifiedAdminId, targetUserId: userId }),
-    ).rejects.toBeInstanceOf(ForbiddenError);
+  it('allows an unverified but authorized administrator to verify an account', async () => {
+    const targetId = await createUser('USER', false, 'manualtarget');
+    const result = await verifyUserEmailManually({
+      actorId: unverifiedAdminId,
+      targetUserId: targetId,
+    });
+    expect(result.alreadyVerified).toBe(false);
+    const user = await db.orm.public.User.first({ id: targetId });
+    expect(user?.emailVerified).not.toBeNull();
   });
 
   it('rejects invalid and missing user ids', async () => {

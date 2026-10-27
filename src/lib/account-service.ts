@@ -172,9 +172,9 @@ export async function verifyUserEmailManually(input: {
     if (!hasRole(actor.role as Role, 'ADMIN')) {
       throw new ForbiddenError('Fuer diese Aktion ist die Administratorrolle erforderlich.');
     }
-    if (actor.emailVerified === null) {
-      throw new ForbiddenError('Administrator actions require a verified e-mail address.');
-    }
+    // Manual verification is the one administrative action that must work while
+    // transactional e-mail is paused: the operator accounts themselves are not
+    // verified yet. Every other admin action keeps the verified-email guard.
     if (!isAccountAccessible(actor.status, actor.suspendedUntil)) {
       throw new ForbiddenError('Ein gesperrtes Konto kann keine Konten verwalten.');
     }
