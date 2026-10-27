@@ -5,10 +5,12 @@ import { db } from '@/lib/db';
 import { ROLE_LABELS, isAccountAccessible, isSuspensionActive } from '@/lib/roles';
 import { formatDateTime } from '@/lib/format';
 import RoleChangeForm from '@/components/dashboard/RoleChangeForm';
+import ManualEmailVerificationForm from '@/components/dashboard/ManualEmailVerificationForm';
 import {
   changeRoleAction,
   liftSuspensionAction,
   suspendAccountAction,
+  verifyEmailManuallyAction,
 } from '@/app/(admin)/admin/actions';
 import {
   ArrowLeftIcon,
@@ -40,6 +42,7 @@ export default async function AdminUserDetailPage({
     error?: string;
     suspended?: string;
     lifted?: string;
+    verified?: string;
   }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
@@ -95,6 +98,11 @@ export default async function AdminUserDetailPage({
       {query.roleChanged ? (
         <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
           Rolle geändert und auditiert.
+        </p>
+      ) : null}
+      {query.verified ? (
+        <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
+          E-Mail-Adresse wurde manuell als verifiziert markiert.
         </p>
       ) : null}
       {query.suspended ? (
@@ -229,6 +237,20 @@ export default async function AdminUserDetailPage({
               ) : null}
             </div>
           ) : null}
+
+          <div className="mt-5 border-t border-zinc-800 pt-4">
+            <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <CheckIcon className="h-4 w-4" />
+              E-Mail-Verifizierung
+            </h3>
+            {target.emailVerified ? (
+              <p className="mt-2 text-xs leading-relaxed text-emerald-300">
+                Diese E-Mail-Adresse ist bereits verifiziert.
+              </p>
+            ) : (
+              <ManualEmailVerificationForm action={verifyEmailManuallyAction} userId={target.id} />
+            )}
+          </div>
 
           <div className="mt-5 border-t border-zinc-800 pt-4">
             <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">

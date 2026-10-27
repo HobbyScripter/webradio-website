@@ -176,12 +176,20 @@ export default async function ModerationDetailPage({
             ) : (
               <ul className="divide-y divide-zinc-800 text-sm">
                 {versions.map((version) => (
-                  <li key={version.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                    <span className="font-mono text-white">{version.version}</span>
+                  <li key={version.id} className="space-y-1 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-mono text-white">{version.version}</span>
                     <span className="text-xs text-zinc-500">
                       {formatDate(version.releasedAt) ?? '—'} ·{' '}
                       {version.fileSize.toLocaleString('de-DE')} Bytes
                     </span>
+                    </div>
+                    <div className="text-xs text-zinc-400">
+                      Bezugsquelle:{' '}
+                      <a href={version.fileUrl} target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300">
+                        {version.fileUrl}
+                      </a>
+                    </div>
                   </li>
                 ))}
               </ul>

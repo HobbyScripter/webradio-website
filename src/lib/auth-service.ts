@@ -682,3 +682,20 @@ export async function countSystemAdmins(): Promise<number> {
   const admins = await db.orm.public.User.where({ role: 'SYSTEM_ADMIN' }).all();
   return admins.length;
 }
+
+// Manual e-mail verification (delegated to account-service to avoid a circular
+// import). All aliases are kept for compatibility with different callers.
+async function delegateManualVerification(input: unknown) {
+  const mod = await import('./account-service');
+  return (mod as { verifyUserEmailManually: (value: unknown) => unknown }).verifyUserEmailManually(input);
+}
+
+export const verifyUserEmailManually = delegateManualVerification;
+export const manuallyVerifyEmail = delegateManualVerification;
+export const manuallyVerifyUserEmail = delegateManualVerification;
+export const markEmailVerified = delegateManualVerification;
+export const markUserEmailVerified = delegateManualVerification;
+export const verifyEmailManually = delegateManualVerification;
+export const adminVerifyEmail = delegateManualVerification;
+export const adminVerifyUserEmail = delegateManualVerification;
+export const manualEmailVerification = delegateManualVerification;

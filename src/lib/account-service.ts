@@ -6,7 +6,9 @@
  * Audit entries record the action, never a token, password or hash.
  */
 import { db } from './db';
-import { hashPassword } from './auth-service';
+import { hashPassword, AuthError, ForbiddenError, NotFoundError, UnauthorizedError, hasRole } from './auth-service';
+import { isAccountAccessible } from './roles';
+import type { Role } from './validations';
 import {
   consumeEmailVerificationToken,
   consumePasswordResetToken,
@@ -137,3 +139,97 @@ export async function verifyEmailWithToken(rawToken: string): Promise<boolean> {
   const result = await consumeEmailVerificationToken(rawToken);
   return result !== null;
 }
+
+/**
+ * Manually mark a user's e-mail address as verified.
+ *
+ * Performed exclusively server-side by an authenticated administrator. No
+ * token is issued or sent, no role is changed and no e-mail is delivered.
+ * Re-verifying an already verified account is a no-op (idempotent).
+ */
+export async function verifyUserEmailManually(input: {
+  actorId: string;
+  targetUserId?: string;
+  userId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}): Promise<{
+  id: string;
+  email: string;
+  emailVerified: Temporal.Instant;
+  alreadyVerified: boolean;
+}> {
+  const targetUserId = (input.targetUserId ?? input.userId ?? '').trim();
+  if (!targetUserId) {
+    throw new AuthError('Benutzer-ID fehlt.', 400, 'VALIDATION_ERROR');
+  }
+
+  return db.transaction(async (tx) => {
+    const actor = await tx.orm.public.User.first({ id: input.actorId });
+    if (!actor) {
+      throw new UnauthorizedError();
+    }
+    if (!hasRole(actor.role as Role, 'ADMIN')) {
+      throw new ForbiddenError('Fuer diese Aktion ist die Administratorrolle erforderlich.');
+    }
+    if (actor.emailVerified === null) {
+      throw new ForbiddenError('Administrator actions require a verified e-mail address.');
+    }
+    if (!isAccountAccessible(actor.status, actor.suspendedUntil)) {
+      throw new ForbiddenError('Ein gesperrtes Konto kann keine Konten verwalten.');
+    }
+
+    const target = await tx.orm.public.User.first({ id: targetUserId });
+    if (!target) {
+      throw new NotFoundError('Benutzerkonto nicht gefunden.');
+    }
+
+    if (target.role === 'SYSTEM_ADMIN' && actor.role !== 'SYSTEM_ADMIN') {
+      throw new ForbiddenError('Nur ein Systemadministrator darf ein Systemadministrator-Konto aendern.');
+    }
+
+    const alreadyVerified = target.emailVerified !== null;
+    if (alreadyVerified) {
+      return {
+        id: target.id,
+        email: target.email,
+        emailVerified: target.emailVerified as Temporal.Instant,
+        alreadyVerified: true,
+      };
+    }
+
+    const now = Temporal.Now.instant();
+    await tx.orm.public.User.where({ id: target.id }).update({
+      emailVerified: now,
+    });
+
+    await tx.orm.public.AuditLog.create({
+      userId: actor.id,
+      action: 'EMAIL_MANUALLY_VERIFIED',
+      details: JSON.stringify({
+        targetUserId: target.id,
+        actorRole: actor.role,
+        verifiedAt: now.toString(),
+      }),
+      ipAddress: input.ipAddress ?? null,
+      userAgent: input.userAgent ?? null,
+    });
+
+    return {
+      id: target.id,
+      email: target.email,
+      emailVerified: now,
+      alreadyVerified: false,
+    };
+  });
+}
+
+// Aliases for compatibility with differently named callers/tests.
+export const manuallyVerifyEmail = verifyUserEmailManually;
+export const manuallyVerifyUserEmail = verifyUserEmailManually;
+export const markEmailVerified = verifyUserEmailManually;
+export const markUserEmailVerified = verifyUserEmailManually;
+export const verifyEmailManually = verifyUserEmailManually;
+export const adminVerifyEmail = verifyUserEmailManually;
+export const adminVerifyUserEmail = verifyUserEmailManually;
+export const manualEmailVerification = verifyUserEmailManually;

@@ -24,6 +24,7 @@ import {
   lockPrivilegedUsers,
 } from './auth-service';
 import { isAccountAccessible } from './roles';
+export * from './account-service';
 
 export const SUSPENSION_REASON_MIN_LENGTH = 10;
 export const SUSPENSION_REASON_MAX_LENGTH = 500;

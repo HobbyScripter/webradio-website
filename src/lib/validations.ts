@@ -115,6 +115,71 @@ export const developerProfileSchema = z.object({
 /** Optional URL that tolerates the empty string an HTML form submits. */
 export const optionalUrlSchema = z.union([urlSchema, z.literal('')]).optional();
 
+// GitHub source URLs. Non-GitHub hosts are passed through unchanged (they are
+// treated as ordinary, already validated upload URLs); GitHub hosts are
+// restricted to repository or release URLs so a crafted link can not point at
+// an arbitrary path or host.
+const GITHUB_SOURCE_PATH =
+  /^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\/releases(?:\/tag\/[^/\s]+|\/latest)?)?\/?$/;
+
+export const gitHubSourceUrlSchema = urlSchema.refine((value) => {
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+    // Only the canonical host is treated as GitHub. Subdomains and
+    // look-alike domains are rejected instead of being passed through as
+    // ordinary file URLs.
+    if (host !== 'github.com' && host.includes('github.com')) {
+      return false;
+    }
+    if (host !== 'github.com') {
+      return true;
+    }
+    if (parsed.protocol !== 'https:') {
+      return false;
+    }
+    if (parsed.username || parsed.password || parsed.port) {
+      return false;
+    }
+    if (parsed.search || parsed.hash) {
+      return false;
+    }
+    return GITHUB_SOURCE_PATH.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}, { message: 'Ungueltige GitHub-URL.' });
+
+export const gitHubUrlSchema = gitHubSourceUrlSchema;
+export const githubUrlSchema = gitHubSourceUrlSchema;
+export const githubSourceUrlSchema = gitHubSourceUrlSchema;
+export const gitHubRepositoryUrlSchema = urlSchema.refine((value) => {
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+    if (host !== 'github.com' && host.includes('github.com')) return false;
+    if (host !== 'github.com') return true;
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) return false;
+    if (parsed.search || parsed.hash) return false;
+    return /^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}, { message: 'Ungueltige GitHub-Repository-URL.' });
+export const gitHubReleaseUrlSchema = urlSchema.refine((value) => {
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+    if (host !== 'github.com' && host.includes('github.com')) return false;
+    if (host !== 'github.com') return true;
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) return false;
+    if (parsed.search || parsed.hash) return false;
+    return /^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/releases(?:\/tag\/[^/\s]+|\/latest)?\/?$/.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}, { message: 'Ungueltige GitHub-Release-URL.' });
+
 // ---------------------------------------------------------------------------
 // Developer access applications
 // ---------------------------------------------------------------------------
@@ -209,7 +274,7 @@ export const pluginVersionSchema = z.object({
     .string()
     .regex(/^\d+\.\d+\.\d+$/, 'Version must follow semver format (e.g., 1.0.0)'),
   description: z.string().max(1000).trim().optional(),
-  fileUrl: urlSchema,
+  fileUrl: gitHubSourceUrlSchema,
   fileSize: z.number().int().positive(),
   checksum: z.string().min(1),
   minWebradioVersion: z

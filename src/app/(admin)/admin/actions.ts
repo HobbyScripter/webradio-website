@@ -29,6 +29,7 @@ import {
   warnReportedAccount,
 } from '@/lib/report-service';
 import { liftSuspension, suspendAccount } from '@/lib/account-suspension';
+import { verifyUserEmailManually } from '@/lib/account-suspension';
 import { removeCatalogEntry } from '@/lib/catalog-moderation-service';
 
 function readString(formData: FormData, key: string): string {
@@ -410,3 +411,30 @@ export async function liftSuspensionAction(formData: FormData): Promise<void> {
 
   redirect(target);
 }
+
+export async function verifyEmailManuallyAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const userId = readString(formData, 'userId');
+  const detailPath = `/admin/users/${userId}`;
+  let target: string;
+
+  try {
+    await enforceLimit('adminUserWrite', admin.id);
+    await verifyUserEmailManually({
+      actorId: admin.id,
+      targetUserId: userId,
+      userAgent: (await meta()).userAgent,
+    });
+
+    revalidatePath('/admin/users');
+    revalidatePath(detailPath);
+    target = `${detailPath}?verified=1`;
+  } catch (error) {
+    target = failure(detailPath, error, 'action:admin:verify-email');
+  }
+
+  redirect(target);
+}
+
+// Alias
+export const manuallyVerifyEmailAction = verifyEmailManuallyAction;
