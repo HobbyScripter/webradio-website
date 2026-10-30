@@ -58,6 +58,7 @@ type OwnedEntry = {
   slug: string;
   name: string;
   description: string;
+  repositoryUrl?: string | null;
   status: CatalogStatus;
   isPublished: boolean;
   downloads: number;
@@ -189,6 +190,12 @@ export async function createCatalogEntry(input: {
   meta?: RequestMeta;
 }): Promise<CatalogEntryResult> {
   const data = parseCreateInput(input.kind, input.raw);
+  // Only a plugin stores a repository link; the schema already canonicalised it
+  // and the empty string stands for "no repository given".
+  const repositoryUrl =
+    input.kind === 'PLUGIN'
+      ? (data as PluginCreateInput).repositoryUrl?.trim() || null
+      : null;
 
   return db.transaction(async (tx) => {
     const profile = await requireDeveloperProfile(input.actorId, tx);
@@ -201,6 +208,7 @@ export async function createCatalogEntry(input: {
         slug: data.slug,
         name: data.name,
         description: data.description,
+        repositoryUrl,
         product: 'WEBRADIO',
         developerId: profile.id,
         status,
@@ -211,7 +219,7 @@ export async function createCatalogEntry(input: {
       await writeAudit(tx, {
         actorId: input.actorId,
         action: 'PLUGIN_CREATED',
-        details: { pluginId: created.id, slug: created.slug, status },
+        details: { pluginId: created.id, slug: created.slug, status, repositoryUrl },
         meta: input.meta,
       });
 
@@ -260,6 +268,17 @@ export async function updateCatalogEntry(input: {
   meta?: RequestMeta;
 }): Promise<CatalogEntryResult> {
   const data = parseCreateInput(input.kind, input.raw);
+  const repositoryUrl =
+    input.kind === 'PLUGIN'
+      ? (data as PluginCreateInput).repositoryUrl?.trim() || null
+      : null;
+  // API clients that predate the field omit it entirely. Omitting must keep the
+  // stored link; only an explicit empty string clears it.
+  const repositoryProvided =
+    input.kind === 'PLUGIN' &&
+    typeof input.raw === 'object' &&
+    input.raw !== null &&
+    Object.prototype.hasOwnProperty.call(input.raw, 'repositoryUrl');
 
   return db.transaction(async (tx) => {
     const profile = await requireDeveloperProfile(input.actorId, tx);
@@ -289,10 +308,14 @@ export async function updateCatalogEntry(input: {
     }
 
     if (input.kind === 'PLUGIN') {
+      if (repositoryProvided && (entry.repositoryUrl ?? null) !== repositoryUrl) {
+        changes.repositoryUrl = { from: entry.repositoryUrl ?? null, to: repositoryUrl };
+      }
       await tx.orm.public.Plugin.where({ id: entry.id }).update({
         slug: data.slug,
         name: data.name,
         description: data.description,
+        ...(repositoryProvided ? { repositoryUrl } : {}),
         product: 'WEBRADIO',
         status: outcome.status,
         isPublished: outcome.isPublished,

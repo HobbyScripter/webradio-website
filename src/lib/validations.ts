@@ -9,6 +9,11 @@
  */
 import { z } from 'zod';
 import { WEBRADIO_PRODUCT } from './product';
+import {
+  GitHubRepositoryError,
+  normalizeGitHubSourceUrl,
+  parseGitHubRepositoryInput,
+} from './github-repository';
 
 // ---------------------------------------------------------------------------
 // Shared primitives
@@ -116,39 +121,47 @@ export const developerProfileSchema = z.object({
 export const optionalUrlSchema = z.union([urlSchema, z.literal('')]).optional();
 
 // GitHub source URLs. Non-GitHub hosts are passed through unchanged (they are
-// treated as ordinary, already validated upload URLs); GitHub hosts are
-// restricted to repository or release URLs so a crafted link can not point at
-// an arbitrary path or host.
-const GITHUB_SOURCE_PATH =
-  /^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\/releases(?:\/tag\/[^/\s]+|\/latest)?)?\/?$/;
-
-export const gitHubSourceUrlSchema = urlSchema.refine((value) => {
+// treated as ordinary, already validated upload URLs). GitHub hosts are
+// reduced to a canonical repository or release URL, so a pasted branch link or
+// tracking parameters never reach the database and a crafted link can not
+// point at an arbitrary path or host.
+function githubSourceHost(value: string): string | null {
   try {
-    const parsed = new URL(value);
-    const host = parsed.hostname.toLowerCase();
+    const host = new URL(value).hostname.toLowerCase();
+    return host;
+  } catch {
+    return null;
+  }
+}
+
+export const gitHubSourceUrlSchema = urlSchema
+  .refine((value) => {
+    const host = githubSourceHost(value);
+    if (host === null) {
+      return false;
+    }
     // Only the canonical host is treated as GitHub. Subdomains and
     // look-alike domains are rejected instead of being passed through as
     // ordinary file URLs.
-    if (host !== 'github.com' && host.includes('github.com')) {
-      return false;
-    }
     if (host !== 'github.com') {
-      return true;
+      return !host.includes('github.com');
     }
+
+    const parsed = new URL(value);
     if (parsed.protocol !== 'https:') {
       return false;
     }
     if (parsed.username || parsed.password || parsed.port) {
       return false;
     }
-    if (parsed.search || parsed.hash) {
-      return false;
-    }
-    return GITHUB_SOURCE_PATH.test(parsed.pathname);
-  } catch {
-    return false;
-  }
-}, { message: 'Ungueltige GitHub-URL.' });
+    // Query strings and fragments are dropped by the transform below.
+    return normalizeGitHubSourceUrl(value) !== null;
+  }, { message: 'Ungueltige GitHub-URL.' })
+  .transform((value) =>
+    githubSourceHost(value) === 'github.com'
+      ? normalizeGitHubSourceUrl(value) ?? value
+      : value,
+  );
 
 export const gitHubUrlSchema = gitHubSourceUrlSchema;
 export const githubUrlSchema = gitHubSourceUrlSchema;
@@ -179,6 +192,33 @@ export const gitHubReleaseUrlSchema = urlSchema.refine((value) => {
     return false;
   }
 }, { message: 'Ungueltige GitHub-Release-URL.' });
+
+/**
+ * Optional GitHub repository link (`OWNER/REPOSITORY`). Stored in canonical
+ * form, so a pasted branch or release URL never reaches the database and the
+ * release lookup for a new version does not have to normalise it again.
+ */
+export const githubRepositoryUrlSchema = z
+  .string()
+  .trim()
+  .max(300, 'Die GitHub-URL ist zu lang.')
+  .transform((value, ctx) => {
+    if (value === '') {
+      return '';
+    }
+    try {
+      return parseGitHubRepositoryInput(value).repositoryUrl;
+    } catch (error) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          error instanceof GitHubRepositoryError
+            ? error.message
+            : 'Ungültige GitHub-Repository-URL.',
+      });
+      return z.NEVER;
+    }
+  });
 
 // ---------------------------------------------------------------------------
 // Developer access applications
@@ -255,6 +295,8 @@ export const pluginCreateSchema = z.object({
   slug: slugSchema,
   name: z.string().min(1, 'Plugin name is required').max(100).trim(),
   description: z.string().min(10, 'Description must be at least 10 characters').max(2000).trim(),
+  // Optional canonical repository link, used to prefill new versions.
+  repositoryUrl: githubRepositoryUrlSchema.optional(),
   product: productSchema,
   // `true` persists a draft (owner-only). Omitting it submits for review,
   // which keeps the previous API behaviour for existing callers.

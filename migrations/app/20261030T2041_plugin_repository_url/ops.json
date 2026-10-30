@@ -1,0 +1,62 @@
+[
+  {
+    "id": "column.public.Plugin.repositoryUrl",
+    "label": "Add column \"repositoryUrl\" to \"Plugin\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "repositoryUrl",
+        "table": "Plugin"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"repositoryUrl\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Plugin",
+          "repositoryUrl"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"repositoryUrl\" on \"Plugin\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"repositoryUrl\"",
+        "sql": "ALTER TABLE \"public\".\"Plugin\" ADD COLUMN \"repositoryUrl\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"repositoryUrl\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Plugin",
+          "repositoryUrl"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"repositoryUrl\" on \"Plugin\""
+        }
+      },
+      {
+        "description": "verify column \"repositoryUrl\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Plugin",
+          "repositoryUrl",
+          "text"
+        ]
+      }
+    ]
+  }
+]

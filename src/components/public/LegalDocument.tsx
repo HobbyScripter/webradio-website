@@ -1,17 +1,17 @@
 import Link from 'next/link';
 import { Container, PageHeader } from '@/components/ui/layout';
-import type { LegalReadiness, LegalSection } from '@/lib/legal';
+import type { LegalDetails, LegalSection } from '@/lib/legal';
 
 /**
- * Rendered for every visitor while the release gate is closed. It is not a
+ * Rendered while required operator details are still missing. It is not a
  * placeholder that could be mistaken for a finished legal notice — it states
- * exactly why the page is not available yet.
+ * exactly which facts are outstanding. The page itself stays reachable.
  */
 function PendingNotice({ missing }: { missing: string[] }) {
   return (
     <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-6">
       <h2 className="text-lg font-semibold text-amber-200">
-        Freigabe ausstehend – dieser Text ist nicht veröffentlicht
+        Pflichtangaben noch nicht vollständig
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-amber-100/80">
         Die Angaben für diese Seite liegen noch nicht vollständig vor. Es werden
@@ -20,9 +20,9 @@ function PendingNotice({ missing }: { missing: string[] }) {
         Impressum oder eine fertige Datenschutzerklärung wirken könnten.
       </p>
       <p className="mt-3 text-sm leading-relaxed text-amber-100/80">
-        Diese Seite ist deshalb für alle Besucher gesperrt, nicht nur für
-        Suchmaschinen. Sobald die Angaben vorliegen und der Text rechtlich geprüft
-        wurde, wird sie freigegeben.
+        Diese Seite ist unabhängig davon jederzeit erreichbar. Sobald die
+        fehlenden Angaben vorliegen und der Text rechtlich geprüft wurde, steht
+        er hier ohne weitere Konfiguration.
       </p>
       {missing.length > 0 ? (
         <div className="mt-5">
@@ -72,12 +72,12 @@ function Sections({ sections }: { sections: LegalSection[] }) {
 export default function LegalDocument({
   title,
   description,
-  readiness,
+  details,
   sections,
 }: {
   title: string;
   description: string;
-  readiness: LegalReadiness;
+  details: LegalDetails;
   sections: LegalSection[];
 }) {
   return (
@@ -85,10 +85,10 @@ export default function LegalDocument({
       <PageHeader eyebrow="Rechtliches" title={title} description={description} />
       <Container className="mt-10">
         <div className="max-w-3xl">
-          {readiness.publishable ? (
+          {details.complete ? (
             <Sections sections={sections} />
           ) : (
-            <PendingNotice missing={readiness.missing} />
+            <PendingNotice missing={details.missing} />
           )}
 
           <nav aria-label="Weitere rechtliche Informationen" className="mt-12 border-t border-white/[0.07] pt-6">

@@ -10,6 +10,7 @@ import {
   registerSchema,
   slugSchema,
   pluginCreateSchema,
+  githubRepositoryUrlSchema,
   roleSchema,
   assignableRoleSchema,
 } from '../validations';
@@ -171,5 +172,65 @@ describe('pluginCreateSchema', () => {
       description: 'Short',
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('githubRepositoryUrlSchema', () => {
+  it('stores only the canonical repository address', () => {
+    const result = githubRepositoryUrlSchema.safeParse(
+      ' github.com/owner/repo/tree/main/plugins?tab=readme ',
+    );
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toBe('https://github.com/owner/repo');
+    }
+  });
+
+  it('keeps an explicit empty value as "no repository"', () => {
+    const result = githubRepositoryUrlSchema.safeParse('   ');
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toBe('');
+    }
+  });
+
+  it('rejects other hosts and malformed links with a readable message', () => {
+    for (const value of [
+      'https://gitlab.com/owner/repo',
+      'https://github.com/owner',
+      'https://github.com.evil.example/owner/repo',
+      'not a url',
+    ]) {
+      const result = githubRepositoryUrlSchema.safeParse(value);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.message).toMatch(/github/i);
+      }
+    }
+  });
+
+  it('is optional in the plugin schema and normalised when present', () => {
+    const withoutRepository = pluginCreateSchema.safeParse({
+      slug: 'my-plugin',
+      name: 'My Plugin',
+      description: 'A plugin that does something useful and interesting.',
+    });
+    expect(withoutRepository.success).toBe(true);
+    if (withoutRepository.success) {
+      expect(withoutRepository.data.repositoryUrl).toBeUndefined();
+    }
+
+    const withRepository = pluginCreateSchema.safeParse({
+      slug: 'my-plugin',
+      name: 'My Plugin',
+      description: 'A plugin that does something useful and interesting.',
+      repositoryUrl: 'https://github.com/owner/repo/releases',
+    });
+    expect(withRepository.success).toBe(true);
+    if (withRepository.success) {
+      expect(withRepository.data.repositoryUrl).toBe('https://github.com/owner/repo');
+    }
   });
 });

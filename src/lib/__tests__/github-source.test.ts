@@ -38,9 +38,29 @@ describe('GitHub source URL validation', () => {
     }
   });
 
-  it('rejects query parameters and fragments for GitHub URLs', () => {
-    expect(gitHubSourceUrlSchema.safeParse('https://github.com/owner/repo?x=1').success).toBe(false);
-    expect(gitHubSourceUrlSchema.safeParse('https://github.com/owner/repo#frag').success).toBe(false);
+  it('drops query parameters and fragments instead of rejecting the link', () => {
+    expect(gitHubSourceUrlSchema.parse('https://github.com/owner/repo?x=1')).toBe(
+      'https://github.com/owner/repo',
+    );
+    expect(gitHubSourceUrlSchema.parse('https://github.com/owner/repo#frag')).toBe(
+      'https://github.com/owner/repo',
+    );
+    expect(
+      gitHubSourceUrlSchema.parse('https://github.com/owner/repo/releases/tag/v1.0.0?tab=readme'),
+    ).toBe('https://github.com/owner/repo/releases/tag/v1.0.0');
+  });
+
+  it('reduces branch links to the repository address', () => {
+    // A `/tree/<branch>` page is what developers copy most often.
+    expect(gitHubSourceUrlSchema.parse('https://github.com/owner/repo/tree/main')).toBe(
+      'https://github.com/owner/repo',
+    );
+    expect(gitHubSourceUrlSchema.parse('https://github.com/owner/repo/tree/feature/x/plugins')).toBe(
+      'https://github.com/owner/repo',
+    );
+    expect(gitHubSourceUrlSchema.parse('https://github.com/owner/repo.git')).toBe(
+      'https://github.com/owner/repo',
+    );
   });
 
   it('still allows ordinary non-GitHub file URLs', () => {

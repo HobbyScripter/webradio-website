@@ -47,6 +47,19 @@ export default function AuthLayout({
           &larr; Zurück zur Startseite
         </Link>
       </div>
+
+      {/* Legal pages stay reachable without an account */}
+      <nav
+        aria-label="Rechtliches"
+        className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-zinc-500 relative z-10"
+      >
+        <Link href="/impressum" className="hover:text-zinc-300 transition-colors">
+          Impressum
+        </Link>
+        <Link href="/datenschutz" className="hover:text-zinc-300 transition-colors">
+          Datenschutz
+        </Link>
+      </nav>
     </main>
   );
 }

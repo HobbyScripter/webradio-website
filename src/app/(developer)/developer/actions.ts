@@ -97,6 +97,9 @@ async function createEntry(kind: CatalogKind, formData: FormData): Promise<never
         slug: readString(formData, 'slug').trim(),
         name: readString(formData, 'name').trim(),
         description: readString(formData, 'description').trim(),
+        ...(kind === 'PLUGIN'
+          ? { repositoryUrl: readString(formData, 'repositoryUrl').trim() }
+          : {}),
         product: 'WEBRADIO',
         saveAsDraft: intent === 'draft',
       },
@@ -131,6 +134,9 @@ async function updateEntry(kind: CatalogKind, formData: FormData): Promise<never
         slug,
         name: readString(formData, 'name').trim(),
         description: readString(formData, 'description').trim(),
+        ...(kind === 'PLUGIN'
+          ? { repositoryUrl: readString(formData, 'repositoryUrl').trim() }
+          : {}),
         product: 'WEBRADIO',
       },
       meta: await actionMeta(),

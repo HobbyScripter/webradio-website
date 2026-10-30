@@ -24,7 +24,13 @@ export default function CatalogEntryEditor({
 }: {
   kind: CatalogKind;
   mode: 'create' | 'edit';
-  initial?: { id: string; slug: string; name: string; description: string };
+  initial?: {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    repositoryUrl?: string | null;
+  };
   status?: string;
   error?: string | null;
   success?: string | null;
@@ -94,6 +100,7 @@ export default function CatalogEntryEditor({
                   slug: initial.slug,
                   name: initial.name,
                   description: initial.description,
+                  repositoryUrl: initial.repositoryUrl ?? null,
                 }
               : undefined
           }

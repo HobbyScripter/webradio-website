@@ -48,6 +48,10 @@ export const RATE_LIMITS = {
   // Developer access requests: three per day, so a rejected applicant can ask
   // again after revising the motivation but can not flood the admin queue.
   developerApplication: { limit: 3, windowSeconds: 24 * 60 * 60 },
+  // Read-only GitHub lookups from the developer form. The identifier is the
+  // account, and the limit stays below GitHub's own unauthenticated quota so a
+  // single developer can not exhaust it for everyone.
+  githubLookup: { limit: 30, windowSeconds: 10 * 60 },
   // Abuse reports: ten per day per account. Both scopes are per account, never
   // per client-supplied identifier.
   reportCreate: { limit: 10, windowSeconds: 24 * 60 * 60 },

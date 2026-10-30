@@ -1,26 +1,27 @@
 import type { Metadata } from 'next';
 import LegalDocument from '@/components/public/LegalDocument';
-import { getLegalReadiness, termsSections } from '@/lib/legal';
+import { getLegalDetails, termsSections } from '@/lib/legal';
 
 export function generateMetadata(): Metadata {
-  const { publishable } = getLegalReadiness();
+  const { complete } = getLegalDetails();
   return {
     title: 'Nutzungsregeln',
-    description:
-      'Regeln für Konten, Entwickleranträge und eingereichte Kataloginhalte. Die Seite wird erst nach rechtlicher Prüfung freigegeben.',
-    robots: publishable ? undefined : { index: false, follow: false },
+    description: 'Regeln für Konten, Entwickleranträge und eingereichte Kataloginhalte.',
+    // The page is always reachable; only a text whose required operator details
+    // are still missing stays out of search indexes.
+    robots: complete ? undefined : { index: false, follow: false },
   };
 }
 
 export default function NutzungsbedingungenPage() {
-  const readiness = getLegalReadiness();
+  const details = getLegalDetails();
 
   return (
     <LegalDocument
       title="Nutzungsregeln"
       description="Verbindliche Regeln für Konten, Entwicklerzugang, eingereichte Inhalte, Meldungen und mögliche Maßnahmen."
-      readiness={readiness}
-      sections={readiness.publishable ? termsSections(readiness.operator!) : []}
+      details={details}
+      sections={details.complete ? termsSections(details.operator) : []}
     />
   );
 }

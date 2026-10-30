@@ -27,6 +27,17 @@ export default function NotFound() {
             Plugins entdecken
           </Link>
         </div>
+        <nav
+          aria-label="Rechtliches"
+          className="flex flex-wrap justify-center gap-x-4 gap-y-1 pt-2 text-xs text-zinc-500"
+        >
+          <Link href="/impressum" className="hover:text-zinc-300">
+            Impressum
+          </Link>
+          <Link href="/datenschutz" className="hover:text-zinc-300">
+            Datenschutz
+          </Link>
+        </nav>
       </div>
     </div>
   );

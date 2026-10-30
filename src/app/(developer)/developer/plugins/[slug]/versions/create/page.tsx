@@ -63,6 +63,7 @@ export default async function CreatePluginVersionPage({
           slug={plugin.slug}
           cancelHref={backHref}
           error={query.error ?? null}
+          repositoryUrl={plugin.repositoryUrl}
         />
       </div>
     </div>

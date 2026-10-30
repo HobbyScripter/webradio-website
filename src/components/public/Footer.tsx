@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Brand from './Brand';
 import { Container } from '@/components/ui/layout';
-import { getLegalReadiness } from '@/lib/legal';
 import {
   PRODUCT_CONTRIBUTING_URL,
   PRODUCT_DISCUSSIONS_URL,
@@ -47,20 +46,26 @@ const LINK_GROUPS = [
       { label: 'Lizenz (Apache-2.0)', href: PRODUCT_LICENSE_URL, external: true },
     ],
   },
+  {
+    title: 'Rechtliches',
+    links: [
+      { label: 'Impressum', href: '/impressum' },
+      { label: 'Datenschutz', href: '/datenschutz' },
+      { label: 'Nutzungsregeln', href: '/nutzungsbedingungen' },
+    ],
+  },
 ] as const;
 
 const linkClass =
   'text-sm text-zinc-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#07070a] rounded';
 
 export default function Footer() {
-  // Legal pages are linked only after the explicit release gate opened; while it
-  // is closed the existing "not published" notice below stays in place.
-  const { publishable: legalPublished } = getLegalReadiness();
-
+  // The legal pages are permanent parts of the site, so their links are always
+  // rendered — independent of environment variables, roles or account state.
   return (
     <footer className="border-t border-white/[0.07] bg-[#050507]">
       <Container className="py-14 sm:py-16">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
           <div>
             <Brand />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-zinc-400">
@@ -124,31 +129,6 @@ export default function Footer() {
               </ul>
             </nav>
           ))}
-
-          {legalPublished ? (
-            <nav aria-label="Rechtliches">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                Rechtliches
-              </h2>
-              <ul className="mt-4 space-y-2.5">
-                <li>
-                  <Link href="/impressum" className={linkClass}>
-                    Impressum
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/datenschutz" className={linkClass}>
-                    Datenschutz
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/nutzungsbedingungen" className={linkClass}>
-                    Nutzungsregeln
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          ) : null}
         </div>
 
         <div className="mt-10 space-y-3 border-t border-white/[0.07] pt-6 text-xs leading-relaxed text-zinc-500">
@@ -157,17 +137,8 @@ export default function Footer() {
             Plugins und Themes in diesem Katalog sind ausschließlich für WebRadio bestimmt.
           </p>
           <p>
-            {legalPublished ? (
-              <>
-                Impressum, Datenschutzerklärung und Nutzungsregeln sind veröffentlicht. Es werden
-                keine Analyse- oder Marketing-Cookies eingesetzt.
-              </>
-            ) : (
-              <>
-                Datenschutzerklärung, Impressum und Nutzungsregeln dieser Website sind noch nicht
-                veröffentlicht. Es werden keine Analyse- oder Marketing-Cookies eingesetzt.
-              </>
-            )}{' '}
+            Impressum, Datenschutzerklärung und Nutzungsregeln sind jederzeit über die Links im
+            Footer erreichbar. Es werden keine Analyse- oder Marketing-Cookies eingesetzt.{' '}
             Die Datenschutzhinweise des Desktop-Programms stehen in der{' '}
             <a
               href={PRODUCT_PRIVACY_URL}

@@ -33,7 +33,7 @@ export default function CatalogEntryForm({
   action: (formData: FormData) => void | Promise<void>;
   mode: 'create' | 'edit';
   kindLabel: 'Plugin' | 'Theme';
-  initial?: { slug: string; name: string; description: string };
+  initial?: { slug: string; name: string; description: string; repositoryUrl?: string | null };
   entryId?: string;
   cancelHref: string;
   error?: string | null;
@@ -121,6 +121,29 @@ export default function CatalogEntryForm({
             Mindestens 10 Zeichen, maximal 2000 Zeichen.
           </p>
         </div>
+
+        {kindLabel === 'Plugin' ? (
+          <div>
+            <label htmlFor="repositoryUrl" className="mb-1.5 block text-sm font-medium text-zinc-300">
+              GitHub-Repository <span className="text-zinc-500">(optional)</span>
+            </label>
+            <input
+              type="text"
+              id="repositoryUrl"
+              name="repositoryUrl"
+              inputMode="url"
+              maxLength={300}
+              placeholder="https://github.com/OWNER/REPOSITORY"
+              defaultValue={initial?.repositoryUrl ?? ''}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 font-mono text-sm text-white placeholder:text-zinc-500 transition-colors focus:border-transparent focus:ring-2 focus:ring-violet-400 focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-zinc-500">
+              Es genügt die Adresse des Repositorys. Zusatzpfade wie{' '}
+              <code>/tree/main</code> werden entfernt. Mit dieser Angabe werden neue Versionen
+              vorausgefüllt; veröffentlicht wird dadurch nichts.
+            </p>
+          </div>
+        ) : null}
 
         <input type="hidden" name="product" value="WEBRADIO" />
         {entryId ? <input type="hidden" name="id" value={entryId} /> : null}

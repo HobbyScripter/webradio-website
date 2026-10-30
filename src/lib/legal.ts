@@ -1,26 +1,23 @@
 /**
- * Legal pages configuration.
+ * Legal pages.
  *
- * Two independent gates, both required before anything legal is rendered as
- * final text:
+ * `/impressum` and `/datenschutz` are permanent parts of the site. Their routes,
+ * the footer links and the in-page navigation are unconditional: no environment
+ * variable, role, account status or feature flag enables or disables them.
  *
- *   1. `LEGAL_RELEASE_APPROVED` — a checked-in constant. It only changes through
- *      a reviewed code change, so setting an environment variable on the host
- *      can never publish unreviewed legal text by accident.
- *   2. Complete operator details — read from `LEGAL_OPERATOR_*` variables. A
- *      missing value keeps the page in the "release pending" state instead of
- *      rendering a plausible-looking placeholder.
+ * The `LEGAL_*` variables below are not an activation switch. They only carry
+ * the operator facts the texts need. While a required fact is missing, the page
+ * still answers normally but renders a clearly marked notice instead of a
+ * plausible-looking placeholder, because inventing operator details is not an
+ * option. As soon as every required value is present, the texts are rendered.
  *
- * `noindex` is not access control: the pending state is rendered for every
- * visitor, not only for crawlers.
+ * `noindex` is not access control: the page is reachable for every visitor in
+ * both states.
  *
  * Nothing here is legal advice. The texts describe the verified technical state
  * of the application and must be reviewed by a qualified person together with
- * the operator details before `LEGAL_RELEASE_APPROVED` is set to `true`.
+ * the operator details.
  */
-
-/** Flip only after operator details are complete AND the texts were reviewed. */
-export const LEGAL_RELEASE_APPROVED = false;
 
 export type OperatorDetails = {
   name: string;
@@ -102,12 +99,12 @@ export const OPERATOR_FIELDS: readonly FieldSpec[] = [
   },
 ];
 
-export type LegalReadiness = {
-  /** True only when the release constant is set AND every required field exists. */
-  publishable: boolean;
-  approvedInCode: boolean;
+export type LegalDetails = {
+  /** True when every required operator detail is present. */
+  complete: boolean;
+  /** Human-readable labels of missing required fields — never values. */
   missing: string[];
-  operator: OperatorDetails | null;
+  operator: OperatorDetails;
 };
 
 function read(env: Record<string, string | undefined>, name: string): string {
@@ -115,12 +112,12 @@ function read(env: Record<string, string | undefined>, name: string): string {
 }
 
 /**
- * Evaluate the release gate. `missing` lists human-readable field labels only —
+ * Read the operator details. `missing` lists human-readable field labels only —
  * never values, so the list is safe to render and to log.
  */
-export function getLegalReadiness(
+export function getLegalDetails(
   env: Record<string, string | undefined> = process.env,
-): LegalReadiness {
+): LegalDetails {
   const values = new Map<keyof OperatorDetails, string>();
   const missing: string[] = [];
 
@@ -157,8 +154,7 @@ export function getLegalReadiness(
   };
 
   return {
-    publishable: LEGAL_RELEASE_APPROVED && missing.length === 0,
-    approvedInCode: LEGAL_RELEASE_APPROVED,
+    complete: missing.length === 0,
     missing,
     operator,
   };

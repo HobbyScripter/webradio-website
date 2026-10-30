@@ -1371,6 +1371,13 @@
                   "plane": "domain"
                 }
               },
+              "repositoryUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "slug": {
                 "nullable": false,
                 "type": {
@@ -1487,6 +1494,9 @@
                 },
                 "product": {
                   "column": "product"
+                },
+                "repositoryUrl": {
+                  "column": "repositoryUrl"
                 },
                 "slug": {
                   "column": "slug"
@@ -4031,6 +4041,11 @@
                     "plane": "storage"
                   }
                 },
+                "repositoryUrl": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
                 "slug": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -5554,7 +5569,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "297315b0b622fec8a6381c97a99fccd0ab1c5a56565211db00cca77c4b284dc4"
+    "storageHash": "096f7da5a64999bac4aa0d0ae2cfd1ce87b0bc6225c7cd0e2617293297a03c09"
   },
   "execution": {
     "executionHash": "2ea8caf570fc7aca21311af1da4442bf26b0cb7173f20dbe461fbc7bd2ba4438",

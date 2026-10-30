@@ -5,23 +5,22 @@
 **Status:** offen. Dieses Dokument ist **keine Rechtsberatung** und enthält
 bewusst keine erfundenen Anbieter-, Adress- oder Lizenzangaben.
 
-Die Routen `/impressum`, `/datenschutz` und `/nutzungsbedingungen` existieren,
-sind aber **gesperrt**: Sie rendern für alle Besucher den Zustand „Freigabe
-ausstehend“. Der Footer verlinkt sie nicht und kennzeichnet die Texte weiterhin
-als nicht veröffentlicht; die Sitemap enthält sie nicht.
+Die Routen `/impressum`, `/datenschutz` und `/nutzungsbedingungen` sind
+dauerhaft Teil der Website: Sie sind ohne Anmeldung erreichbar, im Footer sowie
+auf Login-, Registrierungs- und Fehlerseiten verlinkt und werden durch keine
+Umgebungsvariable, Rolle oder Feature-Flag aktiviert oder deaktiviert. Die
+Sitemap enthält sie nicht.
 
-Der Gate hat zwei unabhängige Bedingungen (siehe `src/lib/legal.ts`):
+Ob die Texte selbst erscheinen, hängt allein davon ab, ob die Pflichtangaben
+aus `LEGAL_OPERATOR_*` / `LEGAL_HOSTING_*` / `LEGAL_DATABASE_*` /
+`LEGAL_MAIL_*` / `LEGAL_RETENTION_*` / `LEGAL_SUPERVISORY_AUTHORITY` gesetzt
+sind (Platzhalter in `.env.example`). Fehlt eine Angabe, zeigt die Seite einen
+Hinweis mit der Liste der fehlenden Angaben statt eines erfundenen
+Platzhalters.
 
-1. `LEGAL_RELEASE_APPROVED = false` — eine eingecheckte Konstante, die nur durch
-   einen geprüften Code-Change geändert wird. Kein Umgebungsparameter kann die
-   Veröffentlichung versehentlich auslösen.
-2. Alle Pflichtangaben aus `LEGAL_OPERATOR_*` / `LEGAL_HOSTING_*` /
-   `LEGAL_DATABASE_*` / `LEGAL_MAIL_*` / `LEGAL_RETENTION_*` /
-   `LEGAL_SUPERVISORY_AUTHORITY` sind gesetzt (Platzhalter in `.env.example`).
-
-`noindex` allein ist keine Zugriffssperre; die Seiten sind deshalb inhaltlich
-gesperrt, nicht nur für Suchmaschinen. Das ist für einen öffentlichen Launch
-weiterhin nicht ausreichend — die Angaben und die rechtliche Prüfung fehlen.
+`noindex` allein ist keine Zugriffssperre; die Seiten sind erreichbar, aber
+inhaltlich noch nicht fertig. Das ist für einen öffentlichen Launch weiterhin
+nicht ausreichend — die Angaben und die rechtliche Prüfung fehlen.
 
 ## 1. Tatsächlich eingesetzte Verarbeitungen
 
@@ -142,7 +141,8 @@ vollständigen Lizenz-Scan geprüft und die Hinweise gebündelt werden.
 - [ ] Auftragsverarbeitung mit Hosting/DB/E-Mail geklärt
 - [ ] Rechtsprüfung durch qualifizierte Person
 
-Bis dahin bleibt der Footer-Hinweis „noch nicht veröffentlicht“ bestehen.
+Bis dahin zeigen Impressum und Datenschutz den Hinweis auf fehlende
+Pflichtangaben; erreichbar und verlinkt bleiben sie in jedem Fall.
 
 ## 7. Erweiterte Launch-Checkliste
 
@@ -251,5 +251,5 @@ rechtliche Prüfung.
 - [ ] Melde-/Entfernungsprozess und Sicherheitskontakt
 - [ ] Entscheidung zu Cookie-Hinweis und Rechtsgrundlagen
 
-Bis diese Angaben vorliegen, bleiben Impressum und Datenschutz als „noch nicht
-veröffentlicht“ gekennzeichnet. Es wurden keine Ersatzangaben erfunden.
+Bis diese Angaben vorliegen, weisen Impressum und Datenschutz auf die fehlenden
+Pflichtangaben hin. Es wurden keine Ersatzangaben erfunden.

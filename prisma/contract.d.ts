@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'297315b0b622fec8a6381c97a99fccd0ab1c5a56565211db00cca77c4b284dc4'>;
+  StorageHashBase<'096f7da5a64999bac4aa0d0ae2cfd1ce87b0bc6225c7cd0e2617293297a03c09'>;
 export type ExecutionHash =
   ExecutionHashBase<'2ea8caf570fc7aca21311af1da4442bf26b0cb7173f20dbe461fbc7bd2ba4438'>;
 export type ProfileHash =
@@ -584,6 +584,7 @@ export namespace Models {
     isPublished: FieldOutputTypes['public']['Plugin']['isPublished'];
     name: FieldOutputTypes['public']['Plugin']['name'];
     product: FieldOutputTypes['public']['Plugin']['product'];
+    repositoryUrl: FieldOutputTypes['public']['Plugin']['repositoryUrl'];
     slug: FieldOutputTypes['public']['Plugin']['slug'];
     status: FieldOutputTypes['public']['Plugin']['status'];
     updatedAt: FieldOutputTypes['public']['Plugin']['updatedAt'];
@@ -1565,6 +1566,12 @@ type ContractBase = Omit<
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/text@1', 'WEBRADIO'>;
                   };
+                  readonly many: false;
+                };
+                readonly repositoryUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly slug: {
@@ -3462,6 +3469,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly repositoryUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly slug: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3537,6 +3548,7 @@ type ContractBase = Omit<
                 readonly isPublished: { readonly column: 'isPublished' };
                 readonly name: { readonly column: 'name' };
                 readonly product: { readonly column: 'product' };
+                readonly repositoryUrl: { readonly column: 'repositoryUrl' };
                 readonly slug: { readonly column: 'slug' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };

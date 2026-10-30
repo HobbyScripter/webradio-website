@@ -46,6 +46,7 @@ export default async function EditPluginPage({
         slug: plugin.slug,
         name: plugin.name,
         description: plugin.description,
+        repositoryUrl: plugin.repositoryUrl,
       }}
       error={query.error ?? null}
       success={success}

@@ -169,6 +169,10 @@ model Plugin {
   slug        String       @unique
   name        String
   description String
+  // Canonical https://github.com/OWNER/REPOSITORY link, optional. Used to
+  // prefill the release lookup when a new version is added; the release data
+  // itself is never stored automatically.
+  repositoryUrl String?
   product     Product      @default(WEBRADIO)
   developerId String
   status      PluginStatus @default(PENDING_REVIEW)
