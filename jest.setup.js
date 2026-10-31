@@ -14,3 +14,20 @@ if (typeof global.TextEncoder === 'undefined') {
 if (typeof global.TextDecoder === 'undefined') {
   global.TextDecoder = TextDecoder;
 }
+
+// jsdom (Jest) does not expose the Fetch API globals that Next.js 16 and the
+// Prisma 8 runtime reference at module load. Provide minimal synchronous
+// placeholders so server modules can be imported in unit tests; real requests
+// are never issued by these tests.
+if (typeof globalThis.Request === 'undefined') {
+  globalThis.Request = class Request {};
+}
+if (typeof globalThis.Response === 'undefined') {
+  globalThis.Response = class Response {};
+}
+if (typeof globalThis.Headers === 'undefined') {
+  globalThis.Headers = class Headers {};
+}
+if (typeof globalThis.fetch === 'undefined') {
+  globalThis.fetch = () => Promise.resolve(new globalThis.Response());
+}

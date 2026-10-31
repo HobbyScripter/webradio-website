@@ -59,6 +59,11 @@ const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
     icon: <NewsIcon className="h-5 w-5" />,
   },
   {
+    label: 'Rechtliche Inhalte',
+    href: '/admin/legal',
+    icon: <BookIcon className="h-5 w-5" />,
+  },
+  {
     label: 'Audit-Protokoll',
     href: '/admin/audit',
     icon: <BookIcon className="h-5 w-5" />,

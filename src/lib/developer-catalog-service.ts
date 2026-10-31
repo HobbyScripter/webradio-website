@@ -27,6 +27,7 @@ import {
   type Role,
   type ThemeCreateInput,
 } from './validations';
+import { extractGitHubRepository } from './github-source';
 import {
   CATALOG_KIND_LABELS,
   canSubmitForReview,
@@ -522,7 +523,31 @@ export async function addCatalogVersion(input: {
       );
     }
 
-    const outcome = versionOutcome({ status: entry.status, isPublished: entry.isPublished });
+    // Automated checks for an update of an already approved entry. A changed
+    // GitHub repository (or the first GitHub source on an entry that had none)
+    // requires manual review; ordinary uploads and matching GitHub releases do
+    // not.
+    let requiresManualReview = false;
+    const newRepository = extractGitHubRepository(data.fileUrl);
+    if (newRepository) {
+      const existingVersions =
+        input.kind === 'PLUGIN'
+          ? await tx.orm.public.PluginVersion.where({ pluginId: entry.id }).all()
+          : await tx.orm.public.ThemeVersion.where({ themeId: entry.id }).all();
+      const approvedRepositories = new Set(
+        existingVersions
+          .map((version) => extractGitHubRepository(version.fileUrl))
+          .filter((repository): repository is string => repository !== null),
+      );
+      if (approvedRepositories.size === 0 || !approvedRepositories.has(newRepository)) {
+        requiresManualReview = true;
+      }
+    }
+
+    const outcome = versionOutcome(
+      { status: entry.status, isPublished: entry.isPublished },
+      { requiresManualReview },
+    );
     if (outcome.blocked) {
       throw new ConflictError(
         'Während einer laufenden Prüfung können keine Versionen hinzugefügt werden. Ziehe die Einreichung zuerst zurück.',

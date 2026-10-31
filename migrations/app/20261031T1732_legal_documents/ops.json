@@ -1,0 +1,581 @@
+[
+  {
+    "id": "table.LegalConsent",
+    "label": "Create table \"LegalConsent\"",
+    "summary": "Creates table \"LegalConsent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "LegalConsent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"LegalConsent\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"LegalConsent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"LegalConsent\"",
+        "sql": "CREATE TABLE \"public\".\"LegalConsent\" (\n  \"acceptedAt\" timestamptz NOT NULL,\n  \"documentType\" text NOT NULL,\n  \"documentVersionId\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"ipAddress\" text,\n  \"userAgent\" text,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"LegalConsent_documentType_check_217db1df\" CHECK (\"documentType\" IN ('IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"LegalConsent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"LegalConsent\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.LegalDocument",
+    "label": "Create table \"LegalDocument\"",
+    "summary": "Creates table \"LegalDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "LegalDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"LegalDocument\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"LegalDocument\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"LegalDocument\"",
+        "sql": "CREATE TABLE \"public\".\"LegalDocument\" (\n  \"changeDescription\" text,\n  \"content\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"createdBy\" text,\n  \"id\" text NOT NULL,\n  \"publishedAt\" timestamptz,\n  \"publishedBy\" text,\n  \"requiresConsent\" bool DEFAULT false NOT NULL,\n  \"status\" text DEFAULT 'DRAFT' NOT NULL,\n  \"title\" text,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"versionNumber\" int4 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"LegalDocument_status_check_bc64f66b\" CHECK (\"status\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')),\n  CONSTRAINT \"LegalDocument_type_check_f1bcc268\" CHECK (\"type\" IN ('IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"LegalDocument\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"LegalDocument\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.PrivacyImpactNote",
+    "label": "Create table \"PrivacyImpactNote\"",
+    "summary": "Creates table \"PrivacyImpactNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "PrivacyImpactNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"PrivacyImpactNote\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PrivacyImpactNote\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"PrivacyImpactNote\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"PrivacyImpactNote\"",
+        "sql": "CREATE TABLE \"public\".\"PrivacyImpactNote\" (\n  \"area\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"description\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"markedById\" text,\n  \"resolvedAt\" timestamptz,\n  \"resolvedById\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"PrivacyImpactNote\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"PrivacyImpactNote\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"PrivacyImpactNote\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.LegalDocument.LegalDocument_type_versionNumber_key",
+    "label": "Add unique constraint on \"LegalDocument\" (type, versionNumber)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "LegalDocument_type_versionNumber_key",
+        "table": "LegalDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"LegalDocument_type_versionNumber_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "LegalDocument_type_versionNumber_key",
+          "public",
+          "\"public\".\"LegalDocument\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"LegalDocument_type_versionNumber_key\" on \"LegalDocument\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"LegalDocument_type_versionNumber_key\"",
+        "sql": "ALTER TABLE \"public\".\"LegalDocument\" ADD CONSTRAINT \"LegalDocument_type_versionNumber_key\" UNIQUE (\"type\", \"versionNumber\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"LegalDocument_type_versionNumber_key\" exists on (type, versionNumber)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "LegalDocument_type_versionNumber_key",
+          "public",
+          "\"public\".\"LegalDocument\"",
+          "u",
+          "[\"type\",\"versionNumber\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.LegalConsent.LegalConsent_acceptedAt_idx_99f41866",
+    "label": "Create index \"LegalConsent_acceptedAt_idx_99f41866\" on \"LegalConsent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "LegalConsent_acceptedAt_idx_99f41866",
+        "table": "LegalConsent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"LegalConsent_acceptedAt_idx_99f41866\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent_acceptedAt_idx_99f41866\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"LegalConsent_acceptedAt_idx_99f41866\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"LegalConsent_acceptedAt_idx_99f41866\"",
+        "sql": "CREATE INDEX \"LegalConsent_acceptedAt_idx_99f41866\" ON \"public\".\"LegalConsent\" (\"acceptedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"LegalConsent_acceptedAt_idx_99f41866\" exists on \"LegalConsent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent_acceptedAt_idx_99f41866\"",
+          "i",
+          "I",
+          "\"public\".\"LegalConsent\"",
+          "btree",
+          "[\"acceptedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.LegalConsent.LegalConsent_documentVersionId_idx_efaa8db2",
+    "label": "Create index \"LegalConsent_documentVersionId_idx_efaa8db2\" on \"LegalConsent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "LegalConsent_documentVersionId_idx_efaa8db2",
+        "table": "LegalConsent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"LegalConsent_documentVersionId_idx_efaa8db2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent_documentVersionId_idx_efaa8db2\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"LegalConsent_documentVersionId_idx_efaa8db2\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"LegalConsent_documentVersionId_idx_efaa8db2\"",
+        "sql": "CREATE INDEX \"LegalConsent_documentVersionId_idx_efaa8db2\" ON \"public\".\"LegalConsent\" (\"documentVersionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"LegalConsent_documentVersionId_idx_efaa8db2\" exists on \"LegalConsent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent_documentVersionId_idx_efaa8db2\"",
+          "i",
+          "I",
+          "\"public\".\"LegalConsent\"",
+          "btree",
+          "[\"documentVersionId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.LegalConsent.LegalConsent_userId_documentType_idx_3eab46cd",
+    "label": "Create index \"LegalConsent_userId_documentType_idx_3eab46cd\" on \"LegalConsent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "LegalConsent_userId_documentType_idx_3eab46cd",
+        "table": "LegalConsent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"LegalConsent_userId_documentType_idx_3eab46cd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent_userId_documentType_idx_3eab46cd\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"LegalConsent_userId_documentType_idx_3eab46cd\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"LegalConsent_userId_documentType_idx_3eab46cd\"",
+        "sql": "CREATE INDEX \"LegalConsent_userId_documentType_idx_3eab46cd\" ON \"public\".\"LegalConsent\" (\"userId\", \"documentType\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"LegalConsent_userId_documentType_idx_3eab46cd\" exists on \"LegalConsent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalConsent_userId_documentType_idx_3eab46cd\"",
+          "i",
+          "I",
+          "\"public\".\"LegalConsent\"",
+          "btree",
+          "[\"userId\",\"documentType\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.LegalDocument.LegalDocument_type_createdAt_idx_00d94001",
+    "label": "Create index \"LegalDocument_type_createdAt_idx_00d94001\" on \"LegalDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "LegalDocument_type_createdAt_idx_00d94001",
+        "table": "LegalDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"LegalDocument_type_createdAt_idx_00d94001\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument_type_createdAt_idx_00d94001\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"LegalDocument_type_createdAt_idx_00d94001\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"LegalDocument_type_createdAt_idx_00d94001\"",
+        "sql": "CREATE INDEX \"LegalDocument_type_createdAt_idx_00d94001\" ON \"public\".\"LegalDocument\" (\"type\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"LegalDocument_type_createdAt_idx_00d94001\" exists on \"LegalDocument\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument_type_createdAt_idx_00d94001\"",
+          "i",
+          "I",
+          "\"public\".\"LegalDocument\"",
+          "btree",
+          "[\"type\",\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.LegalDocument.LegalDocument_type_publishedAt_idx_a49ab371",
+    "label": "Create index \"LegalDocument_type_publishedAt_idx_a49ab371\" on \"LegalDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "LegalDocument_type_publishedAt_idx_a49ab371",
+        "table": "LegalDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"LegalDocument_type_publishedAt_idx_a49ab371\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument_type_publishedAt_idx_a49ab371\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"LegalDocument_type_publishedAt_idx_a49ab371\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"LegalDocument_type_publishedAt_idx_a49ab371\"",
+        "sql": "CREATE INDEX \"LegalDocument_type_publishedAt_idx_a49ab371\" ON \"public\".\"LegalDocument\" (\"type\", \"publishedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"LegalDocument_type_publishedAt_idx_a49ab371\" exists on \"LegalDocument\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument_type_publishedAt_idx_a49ab371\"",
+          "i",
+          "I",
+          "\"public\".\"LegalDocument\"",
+          "btree",
+          "[\"type\",\"publishedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.LegalDocument.LegalDocument_type_status_idx_f045f361",
+    "label": "Create index \"LegalDocument_type_status_idx_f045f361\" on \"LegalDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "LegalDocument_type_status_idx_f045f361",
+        "table": "LegalDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"LegalDocument_type_status_idx_f045f361\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument_type_status_idx_f045f361\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"LegalDocument_type_status_idx_f045f361\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"LegalDocument_type_status_idx_f045f361\"",
+        "sql": "CREATE INDEX \"LegalDocument_type_status_idx_f045f361\" ON \"public\".\"LegalDocument\" (\"type\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"LegalDocument_type_status_idx_f045f361\" exists on \"LegalDocument\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"LegalDocument_type_status_idx_f045f361\"",
+          "i",
+          "I",
+          "\"public\".\"LegalDocument\"",
+          "btree",
+          "[\"type\",\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PrivacyImpactNote.PrivacyImpactNote_createdAt_idx_9575dbd7",
+    "label": "Create index \"PrivacyImpactNote_createdAt_idx_9575dbd7\" on \"PrivacyImpactNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PrivacyImpactNote_createdAt_idx_9575dbd7",
+        "table": "PrivacyImpactNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PrivacyImpactNote_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PrivacyImpactNote_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PrivacyImpactNote_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PrivacyImpactNote_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"PrivacyImpactNote_createdAt_idx_9575dbd7\" ON \"public\".\"PrivacyImpactNote\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PrivacyImpactNote_createdAt_idx_9575dbd7\" exists on \"PrivacyImpactNote\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PrivacyImpactNote_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"PrivacyImpactNote\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PrivacyImpactNote.PrivacyImpactNote_resolvedAt_idx_a13a9d8d",
+    "label": "Create index \"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\" on \"PrivacyImpactNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PrivacyImpactNote_resolvedAt_idx_a13a9d8d",
+        "table": "PrivacyImpactNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\"",
+        "sql": "CREATE INDEX \"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\" ON \"public\".\"PrivacyImpactNote\" (\"resolvedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\" exists on \"PrivacyImpactNote\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PrivacyImpactNote_resolvedAt_idx_a13a9d8d\"",
+          "i",
+          "I",
+          "\"public\".\"PrivacyImpactNote\"",
+          "btree",
+          "[\"resolvedAt\"]"
+        ]
+      }
+    ]
+  }
+]

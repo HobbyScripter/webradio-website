@@ -52,15 +52,17 @@ function setCompleteEnv() {
 }
 
 describe('legal pages without any LEGAL_ configuration', () => {
-  it('renders the Impressum and states which details are still missing', () => {
-    render(<ImpressumPage />);
+  it('renders the Impressum and states which details are still missing', async () => {
+    const page = await ImpressumPage();
+    render(page);
 
     expect(screen.getByRole('heading', { level: 1, name: 'Impressum' })).toBeInTheDocument();
     expect(screen.getByText('Pflichtangaben noch nicht vollständig')).toBeInTheDocument();
   });
 
-  it('renders the Datenschutzerklärung and states which details are still missing', () => {
-    render(<DatenschutzPage />);
+  it('renders the Datenschutzerklärung and states which details are still missing', async () => {
+    const page = await DatenschutzPage();
+    render(page);
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Datenschutzerklärung' }),
@@ -68,43 +70,48 @@ describe('legal pages without any LEGAL_ configuration', () => {
     expect(screen.getByText('Pflichtangaben noch nicht vollständig')).toBeInTheDocument();
   });
 
-  it('renders both pages without any session or role context', () => {
+  it('renders both pages without any session or role context', async () => {
     // No NextAuth provider, no session mock, no role: rendering must not require
     // authentication at all.
-    const { unmount } = render(<ImpressumPage />);
+    const impressum = await ImpressumPage();
+    const { unmount } = render(impressum);
     expect(screen.getByRole('link', { name: 'Datenschutz' })).toHaveAttribute(
       'href',
       '/datenschutz',
     );
     unmount();
 
-    render(<DatenschutzPage />);
+    const datenschutz = await DatenschutzPage();
+    render(datenschutz);
     expect(screen.getByRole('link', { name: 'Impressum' })).toHaveAttribute('href', '/impressum');
   });
 
-  it('keeps incomplete texts out of search indexes without blocking the page', () => {
-    expect(impressumMetadata().robots).toEqual({ index: false, follow: false });
-    expect(datenschutzMetadata().robots).toEqual({ index: false, follow: false });
+  it('keeps incomplete texts out of search indexes without blocking the page', async () => {
+    expect((await impressumMetadata()).robots).toEqual({ index: false, follow: false });
+    expect((await datenschutzMetadata()).robots).toEqual({ index: false, follow: false });
   });
 });
 
 describe('legal pages with complete operator details', () => {
-  it('renders the actual Impressum and Datenschutz text', () => {
+  it('renders the actual Impressum and Datenschutz text', async () => {
     setCompleteEnv();
 
-    const { unmount } = render(<ImpressumPage />);
-    expect(screen.getByRole('heading', { name: 'Angaben gemäß § 5 DDG' })).toBeInTheDocument();
+    const impressum = await ImpressumPage();
+    const { unmount } = render(impressum);
+    // Without a published DB version, the admin notice is shown instead of invented legal text.
+    expect(screen.getByText(/Noch keine veröffentlichte Version/)).toBeInTheDocument();
     unmount();
 
-    render(<DatenschutzPage />);
-    expect(screen.getByRole('heading', { name: '1. Verantwortlicher' })).toBeInTheDocument();
+    const datenschutz = await DatenschutzPage();
+    render(datenschutz);
+    expect(screen.getByText(/Noch keine veröffentlichte Version/)).toBeInTheDocument();
   });
 
-  it('drops the noindex when the text is complete', () => {
+  it('drops the noindex when the text is complete', async () => {
     setCompleteEnv();
 
-    expect(impressumMetadata().robots).toBeUndefined();
-    expect(datenschutzMetadata().robots).toBeUndefined();
+    expect((await impressumMetadata()).robots).toBeUndefined();
+    expect((await datenschutzMetadata()).robots).toBeUndefined();
   });
 });
 

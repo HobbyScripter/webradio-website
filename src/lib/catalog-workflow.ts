@@ -65,10 +65,15 @@ export function canSubmitForReview(status: CatalogStatus): boolean {
  * therefore requires a new review. A pending submission is frozen while a
  * moderator is looking at it.
  */
-export function versionOutcome(current: {
-  status: CatalogStatus;
-  isPublished: boolean;
-}): { blocked: boolean; status: CatalogStatus; isPublished: boolean; requiresReReview: boolean } {
+export function versionOutcome(
+  current: {
+    status: CatalogStatus;
+    isPublished: boolean;
+  },
+  options?: {
+    requiresManualReview?: boolean;
+  },
+): { blocked: boolean; status: CatalogStatus; isPublished: boolean; requiresReReview: boolean } {
   if (current.status === 'PENDING_REVIEW') {
     return {
       blocked: true,
@@ -79,11 +84,23 @@ export function versionOutcome(current: {
   }
 
   if (current.status === 'APPROVED' || current.isPublished) {
+    // A normal update of an already approved entry may be published
+    // automatically once the automated checks pass. Suspicious changes still
+    // require a full manual review.
+    if (options?.requiresManualReview) {
+      return {
+        blocked: false,
+        status: 'PENDING_REVIEW',
+        isPublished: false,
+        requiresReReview: true,
+      };
+    }
+
     return {
       blocked: false,
-      status: 'PENDING_REVIEW',
-      isPublished: false,
-      requiresReReview: true,
+      status: 'APPROVED',
+      isPublished: true,
+      requiresReReview: false,
     };
   }
 

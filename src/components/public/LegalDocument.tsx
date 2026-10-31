@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Container, PageHeader } from '@/components/ui/layout';
 import type { LegalDetails, LegalSection } from '@/lib/legal';
+import LegalContent from '@/components/public/LegalContent';
 
 /**
  * Rendered while required operator details are still missing. It is not a
@@ -74,19 +75,32 @@ export default function LegalDocument({
   description,
   details,
   sections,
+  content,
 }: {
   title: string;
   description: string;
   details: LegalDetails;
   sections: LegalSection[];
+  content?: string | null;
 }) {
+  const hasPublishedContent = Boolean(content && content.trim().length > 0);
+
   return (
     <div className="bg-[#07070a] pb-24">
       <PageHeader eyebrow="Rechtliches" title={title} description={description} />
       <Container className="mt-10">
         <div className="max-w-3xl">
-          {details.complete ? (
-            <Sections sections={sections} />
+          {hasPublishedContent ? (
+            <LegalContent content={content as string} />
+          ) : details.complete ? (
+            <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-6">
+              <h2 className="text-lg font-semibold text-amber-200">Administrationshinweis</h2>
+              <p className="mt-3 text-sm leading-relaxed text-amber-100/80">
+                Noch keine veröffentlichte Version vorhanden. Dieser Inhalt wird derzeit über die
+                Administration vorbereitet und noch nicht öffentlich angezeigt. Unfertige Entwürfe
+                sind nicht öffentlich sichtbar.
+              </p>
+            </div>
           ) : (
             <PendingNotice missing={details.missing} />
           )}

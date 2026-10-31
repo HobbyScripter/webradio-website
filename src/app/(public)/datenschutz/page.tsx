@@ -1,20 +1,29 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import LegalDocument from '@/components/public/LegalDocument';
 import { getLegalDetails, privacySections } from '@/lib/legal';
+import { getPublishedLegalDocument } from '@/lib/legal-document-service';
 
-export function generateMetadata(): Metadata {
+export const instant = false;
+
+export async function generateMetadata(): Promise<Metadata> {
   const { complete } = getLegalDetails();
   return {
     title: 'Datenschutz',
     description: 'Informationen zur Datenverarbeitung dieser Website.',
-    // The page is always reachable; only a text whose required operator details
-    // are still missing stays out of search indexes.
     robots: complete ? undefined : { index: false, follow: false },
   };
 }
 
-export default function DatenschutzPage() {
+export default async function DatenschutzPage() {
+  if (process.env['NODE_ENV'] !== 'test') {
+    await connection();
+  }
   const details = getLegalDetails();
+  const published =
+    process.env['NEXT_PHASE'] === 'phase-production-build'
+      ? null
+      : await getPublishedLegalDocument('DATENSCHUTZ');
 
   return (
     <LegalDocument
@@ -22,6 +31,7 @@ export default function DatenschutzPage() {
       description="Beschreibung der tatsächlichen Datenverarbeitung dieser Website einschließlich Hosting, Datenbank, Sitzungen und Sicherheitsprotokollen."
       details={details}
       sections={details.complete ? privacySections(details.operator) : []}
+      content={published?.content ?? null}
     />
   );
 }

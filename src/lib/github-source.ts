@@ -9,6 +9,18 @@ class GitHubSourceError extends Error {
   }
 }
 
+export function extractGitHubRepository(value: string): string | null {
+  try {
+    const parsed = new URL(value);
+    if (parsed.hostname.toLowerCase() !== 'github.com') return null;
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (parts.length < 2) return null;
+    return `${parts[0]}/${parts[1]}`.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
 export function isAllowedGitHubSourceUrl(value: string): boolean {
   return gitHubSourceUrlSchema.safeParse(value).success;
 }

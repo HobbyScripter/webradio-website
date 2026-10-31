@@ -32,6 +32,14 @@
       "model": "GitHubToken",
       "namespace": "public"
     },
+    "LegalConsent": {
+      "model": "LegalConsent",
+      "namespace": "public"
+    },
+    "LegalDocument": {
+      "model": "LegalDocument",
+      "namespace": "public"
+    },
     "News": {
       "model": "News",
       "namespace": "public"
@@ -50,6 +58,10 @@
     },
     "PluginVersion": {
       "model": "PluginVersion",
+      "namespace": "public"
+    },
+    "PrivacyImpactNote": {
+      "model": "PrivacyImpactNote",
       "namespace": "public"
     },
     "PublicationReview": {
@@ -153,6 +165,40 @@
               {
                 "name": "WITHDRAWN",
                 "value": "WITHDRAWN"
+              }
+            ]
+          },
+          "LegalDocumentStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
+                "name": "PUBLISHED",
+                "value": "PUBLISHED"
+              },
+              {
+                "name": "ARCHIVED",
+                "value": "ARCHIVED"
+              }
+            ]
+          },
+          "LegalDocumentType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "IMPRESSUM",
+                "value": "IMPRESSUM"
+              },
+              {
+                "name": "DATENSCHUTZ",
+                "value": "DATENSCHUTZ"
+              },
+              {
+                "name": "NUTZUNGSBEDINGUNGEN",
+                "value": "NUTZUNGSBEDINGUNGEN"
               }
             ]
           },
@@ -1206,6 +1252,246 @@
               "table": "GitHubToken"
             }
           },
+          "LegalConsent": {
+            "fields": {
+              "acceptedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "documentType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "LegalDocumentType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "documentVersionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "ipAddress": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userAgent": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "acceptedAt": {
+                  "column": "acceptedAt"
+                },
+                "documentType": {
+                  "column": "documentType"
+                },
+                "documentVersionId": {
+                  "column": "documentVersionId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "ipAddress": {
+                  "column": "ipAddress"
+                },
+                "userAgent": {
+                  "column": "userAgent"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "LegalConsent"
+            }
+          },
+          "LegalDocument": {
+            "fields": {
+              "changeDescription": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "content": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdBy": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "publishedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "publishedBy": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "requiresConsent": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "LegalDocumentStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "title": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "LegalDocumentType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "versionNumber": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "changeDescription": {
+                  "column": "changeDescription"
+                },
+                "content": {
+                  "column": "content"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "createdBy": {
+                  "column": "createdBy"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "publishedAt": {
+                  "column": "publishedAt"
+                },
+                "publishedBy": {
+                  "column": "publishedBy"
+                },
+                "requiresConsent": {
+                  "column": "requiresConsent"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "title": {
+                  "column": "title"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "versionNumber": {
+                  "column": "versionNumber"
+                }
+              },
+              "namespaceId": "public",
+              "table": "LegalDocument"
+            }
+          },
           "News": {
             "fields": {
               "content": {
@@ -1794,6 +2080,87 @@
               },
               "namespaceId": "public",
               "table": "PluginVersion"
+            }
+          },
+          "PrivacyImpactNote": {
+            "fields": {
+              "area": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "markedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "resolvedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "resolvedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "area": {
+                  "column": "area"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "markedById": {
+                  "column": "markedById"
+                },
+                "resolvedAt": {
+                  "column": "resolvedAt"
+                },
+                "resolvedById": {
+                  "column": "resolvedById"
+                }
+              },
+              "namespaceId": "public",
+              "table": "PrivacyImpactNote"
             }
           },
           "PublicationReview": {
@@ -3885,6 +4252,236 @@
                 }
               ]
             },
+            "LegalConsent": {
+              "checks": [
+                {
+                  "expression": "\"documentType\" IN ('IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN')",
+                  "name": "LegalConsent_documentType_check_217db1df",
+                  "prefix": "LegalConsent_documentType_check"
+                }
+              ],
+              "columns": {
+                "acceptedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "documentType": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "LegalDocumentType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "documentVersionId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "ipAddress": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "userAgent": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "acceptedAt"
+                  ],
+                  "name": "LegalConsent_acceptedAt_idx_99f41866",
+                  "prefix": "LegalConsent_acceptedAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "documentVersionId"
+                  ],
+                  "name": "LegalConsent_documentVersionId_idx_efaa8db2",
+                  "prefix": "LegalConsent_documentVersionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId",
+                    "documentType"
+                  ],
+                  "name": "LegalConsent_userId_documentType_idx_3eab46cd",
+                  "prefix": "LegalConsent_userId_documentType_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "LegalDocument": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+                  "name": "LegalDocument_status_check_bc64f66b",
+                  "prefix": "LegalDocument_status_check"
+                },
+                {
+                  "expression": "\"type\" IN ('IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN')",
+                  "name": "LegalDocument_type_check_f1bcc268",
+                  "prefix": "LegalDocument_type_check"
+                }
+              ],
+              "columns": {
+                "changeDescription": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "content": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "createdBy": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "publishedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "publishedBy": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "requiresConsent": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "LegalDocumentStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "title": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "LegalDocumentType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "versionNumber": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "type",
+                    "createdAt"
+                  ],
+                  "name": "LegalDocument_type_createdAt_idx_00d94001",
+                  "prefix": "LegalDocument_type_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type",
+                    "publishedAt"
+                  ],
+                  "name": "LegalDocument_type_publishedAt_idx_a49ab371",
+                  "prefix": "LegalDocument_type_publishedAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type",
+                    "status"
+                  ],
+                  "name": "LegalDocument_type_status_idx_f045f361",
+                  "prefix": "LegalDocument_type_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "type",
+                    "versionNumber"
+                  ]
+                }
+              ]
+            },
             "News": {
               "columns": {
                 "content": {
@@ -4400,6 +4997,70 @@
                   ]
                 }
               ]
+            },
+            "PrivacyImpactNote": {
+              "columns": {
+                "area": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "markedById": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "resolvedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "resolvedById": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "PrivacyImpactNote_createdAt_idx_9575dbd7",
+                  "prefix": "PrivacyImpactNote_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "resolvedAt"
+                  ],
+                  "name": "PrivacyImpactNote_resolvedAt_idx_a13a9d8d",
+                  "prefix": "PrivacyImpactNote_resolvedAt_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
             },
             "PublicationReview": {
               "checks": [
@@ -5472,6 +6133,22 @@
                 "WITHDRAWN"
               ]
             },
+            "LegalDocumentStatus": {
+              "kind": "valueSet",
+              "values": [
+                "DRAFT",
+                "PUBLISHED",
+                "ARCHIVED"
+              ]
+            },
+            "LegalDocumentType": {
+              "kind": "valueSet",
+              "values": [
+                "IMPRESSUM",
+                "DATENSCHUTZ",
+                "NUTZUNGSBEDINGUNGEN"
+              ]
+            },
             "PluginStatus": {
               "kind": "valueSet",
               "values": [
@@ -5569,10 +6246,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "096f7da5a64999bac4aa0d0ae2cfd1ce87b0bc6225c7cd0e2617293297a03c09"
+    "storageHash": "e92699fa49946fb069739ec2d72e7b4c38c68c204707a8fb1b556adfc92e17ef"
   },
   "execution": {
-    "executionHash": "2ea8caf570fc7aca21311af1da4442bf26b0cb7173f20dbe461fbc7bd2ba4438",
+    "executionHash": "1f2193ebaa451e858023d31ead945a2a6b91f9c283b7db8907f162da5eeb0fe8",
     "mutations": {
       "defaults": [
         {
@@ -5795,6 +6472,65 @@
             "kind": "generator"
           },
           "ref": {
+            "entry": "LegalConsent",
+            "field": "acceptedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "LegalConsent",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "LegalDocument",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "LegalDocument",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "LegalDocument",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
             "entry": "News",
             "field": "createdAt",
             "namespace": "public"
@@ -5915,6 +6651,28 @@
           "ref": {
             "entry": "PluginVersion",
             "field": "releasedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "PrivacyImpactNote",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "PrivacyImpactNote",
+            "field": "id",
             "namespace": "public"
           }
         },

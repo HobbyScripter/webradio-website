@@ -208,7 +208,7 @@ enum PluginStatus {
 
 // Plugin version
 model PluginVersion {
-  id                 String   @id @onCreate(uuid(7))
+  id                 String                   @id @onCreate(uuid(7))
   pluginId           String
   version            String
   description        String?
@@ -217,8 +217,8 @@ model PluginVersion {
   checksum           String
   minWebradioVersion String?
   maxWebradioVersion String?
-  releasedAt         DateTime @onCreate(now())
-  isLatest           Boolean  @default(false)
+  releasedAt         DateTime                 @onCreate(now())
+  isLatest           Boolean                  @default(false)
 
   plugin             Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
@@ -294,7 +294,7 @@ enum ThemeStatus {
 
 // Theme version
 model ThemeVersion {
-  id                 String   @id @onCreate(uuid(7))
+  id                 String                   @id @onCreate(uuid(7))
   themeId            String
   version            String
   description        String?
@@ -303,8 +303,8 @@ model ThemeVersion {
   checksum           String
   minWebradioVersion String?
   maxWebradioVersion String?
-  releasedAt         DateTime @onCreate(now())
-  isLatest           Boolean  @default(false)
+  releasedAt         DateTime                 @onCreate(now())
+  isLatest           Boolean                  @default(false)
 
   theme              Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
@@ -521,4 +521,74 @@ model GitHubToken {
   updatedAt DateTime  @onCreate(now()) @onUpdate(now())
 
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Legal documents (central management, versioned)
+// ---------------------------------------------------------------------------
+
+enum LegalDocumentType {
+  IMPRESSUM
+  DATENSCHUTZ
+  NUTZUNGSBEDINGUNGEN
+}
+
+enum LegalDocumentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Each row is one version of a legal document. Drafts and published versions
+// share this table so the full history stays available.
+model LegalDocument {
+  id                String               @id @onCreate(uuid(7))
+  type              LegalDocumentType
+  versionNumber     Int
+  title             String?
+  content           String
+  changeDescription String?
+  status            LegalDocumentStatus  @default(DRAFT)
+  requiresConsent   Boolean              @default(false)
+  createdBy         String?
+  publishedBy       String?
+  createdAt         DateTime             @onCreate(now())
+  updatedAt         DateTime             @onCreate(now()) @onUpdate(now())
+  publishedAt       DateTime?
+
+  @@unique([type, versionNumber])
+  @@index([type, status])
+  @@index([type, createdAt])
+  @@index([type, publishedAt])
+}
+
+// Recorded consent of a user to a specific version of a legal document (used
+// for the terms of use). Never overwritten or deleted.
+model LegalConsent {
+  id                  String            @id @onCreate(uuid(7))
+  userId              String
+  documentType        LegalDocumentType
+  documentVersionId   String
+  acceptedAt          DateTime          @onCreate(now())
+  ipAddress           String?
+  userAgent           String?
+
+  @@index([userId, documentType])
+  @@index([documentVersionId])
+  @@index([acceptedAt])
+}
+
+// Technical marker for changes that may affect the privacy policy. This does
+// not change any legal text automatically.
+model PrivacyImpactNote {
+  id          String    @id @onCreate(uuid(7))
+  area        String
+  description String
+  markedById  String?
+  createdAt   DateTime  @onCreate(now())
+  resolvedAt  DateTime?
+  resolvedById String?
+
+  @@index([createdAt])
+  @@index([resolvedAt])
 }

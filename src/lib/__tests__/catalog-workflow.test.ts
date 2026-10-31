@@ -71,8 +71,19 @@ describe('versions during review', () => {
     });
   });
 
-  it('requires a new review when an approved entry changes', () => {
+  it('publishes a normal update of an already approved entry automatically', () => {
     expect(versionOutcome({ status: 'APPROVED', isPublished: true })).toEqual({
+      blocked: false,
+      status: 'APPROVED',
+      isPublished: true,
+      requiresReReview: false,
+    });
+  });
+
+  it('requires a new review when an approved entry changes repository or identity', () => {
+    expect(
+      versionOutcome({ status: 'APPROVED', isPublished: true }, { requiresManualReview: true }),
+    ).toEqual({
       blocked: false,
       status: 'PENDING_REVIEW',
       isPublished: false,

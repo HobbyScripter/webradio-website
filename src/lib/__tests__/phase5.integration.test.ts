@@ -564,7 +564,7 @@ describe('developer ownership', () => {
 
     expect((await getPublishedPluginBySlug(pluginSlug))?.id).toBe(plugin.id);
 
-    // New version on a published entry requires a fresh review.
+    // A normal update of an already approved entry is published automatically.
     const version = await addCatalogVersion({
       actorId: developerAId,
       kind: 'PLUGIN',
@@ -576,12 +576,12 @@ describe('developer ownership', () => {
         checksum: 'phase5-plugin-checksum-2',
       },
     });
-    expect(version.requiresReReview).toBe(true);
-    expect(await getPublishedPluginBySlug(pluginSlug)).toBeNull();
+    expect(version.requiresReReview).toBe(false);
+    expect(await getPublishedPluginBySlug(pluginSlug)).not.toBeNull();
 
     const row = await db.orm.public.Plugin.first({ id: plugin.id });
-    expect(row?.status).toBe('PENDING_REVIEW');
-    expect(row?.isPublished).toBe(false);
+    expect(row?.status).toBe('APPROVED');
+    expect(row?.isPublished).toBe(true);
   });
 
   it('deletes only an owned entry and audits the deletion', async () => {

@@ -13,6 +13,11 @@
  * pooled runtime URL, a remote `DATABASE_URL` and any unexpected host, and never
  * prints the connection string — then hand over to the real CLI.
  *
+ * Schema-changing commands additionally get a `lock_timeout` through
+ * `PGOPTIONS` (see `src/lib/db-cli-options.ts`): a migration that cannot take
+ * its `ACCESS EXCLUSIVE` lock aborts instead of waiting forever and blocking
+ * every other query on the table. Override with `PRISMA_DB_LOCK_TIMEOUT_MS`.
+ *
  * Usage (see package.json):
  *   node scripts/prisma-db.mts db migrate
  *   node scripts/prisma-db.mts db verify --strict
@@ -23,6 +28,7 @@ import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { DatabaseConfigError, resolveCliDatabaseUrl } from '../src/lib/db-connection.ts';
+import { buildDbCommandEnv, describeLockTimeout } from '../src/lib/db-cli-options.ts';
 
 function fail(message: string): never {
   console.error(`✖ ${message}`);
@@ -55,9 +61,15 @@ const require = createRequire(import.meta.url);
 const prismaPackagePath = require.resolve('prisma/package.json');
 const prismaBin = join(dirname(prismaPackagePath), './dist/prisma.js');
 
+const childEnv = buildDbCommandEnv(process.env, args);
+const lockTimeoutNote = describeLockTimeout(process.env, args);
+if (lockTimeoutNote !== null) {
+  console.error(`→ ${lockTimeoutNote}`);
+}
+
 const child = spawn(process.execPath, [prismaBin, ...args], {
   stdio: 'inherit',
-  env: process.env,
+  env: { ...childEnv } as NodeJS.ProcessEnv,
 });
 
 child.on('error', () => {

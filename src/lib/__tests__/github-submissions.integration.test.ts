@@ -16,7 +16,6 @@ import {
 const RUN = `${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
 
 let developerId = '';
-let profileId = '';
 
 beforeAll(async () => {
   ensureTestDatabase();
@@ -35,11 +34,10 @@ beforeAll(async () => {
     name: 'GH Dev',
   });
   developerId = user.id;
-  const profile = await db.orm.public.DeveloperProfile.create({
+  await db.orm.public.DeveloperProfile.create({
     userId: developerId,
     displayName: `GH Studio ${RUN}`,
   });
-  profileId = profile.id;
 });
 
 afterAll(async () => {

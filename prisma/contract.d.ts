@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'096f7da5a64999bac4aa0d0ae2cfd1ce87b0bc6225c7cd0e2617293297a03c09'>;
+  StorageHashBase<'e92699fa49946fb069739ec2d72e7b4c38c68c204707a8fb1b556adfc92e17ef'>;
 export type ExecutionHash =
-  ExecutionHashBase<'2ea8caf570fc7aca21311af1da4442bf26b0cb7173f20dbe461fbc7bd2ba4438'>;
+  ExecutionHashBase<'1f2193ebaa451e858023d31ead945a2a6b91f9c283b7db8907f162da5eeb0fe8'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -269,6 +269,22 @@ type FieldTypeOverrides = {
           readonly input: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
         };
       };
+      readonly LegalConsent: {
+        readonly documentType: {
+          readonly output: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
+          readonly input: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
+        };
+      };
+      readonly LegalDocument: {
+        readonly status: {
+          readonly output: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+          readonly input: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+        };
+        readonly type: {
+          readonly output: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
+          readonly input: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
+        };
+      };
       readonly Plugin: {
         readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
         readonly status: {
@@ -385,6 +401,22 @@ type ColumnTypeOverrides = {
       readonly status: {
         readonly output: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
         readonly input: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+      };
+    };
+    readonly LegalConsent: {
+      readonly documentType: {
+        readonly output: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
+        readonly input: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
+      };
+    };
+    readonly LegalDocument: {
+      readonly status: {
+        readonly output: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+        readonly input: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+      };
+      readonly type: {
+        readonly output: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
+        readonly input: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
       };
     };
     readonly Plugin: {
@@ -563,6 +595,32 @@ export namespace Models {
     userId: FieldOutputTypes['public']['GitHubToken']['userId'];
     readonly [RelationKeys]?: never;
   };
+  export type public_LegalConsent = {
+    acceptedAt: FieldOutputTypes['public']['LegalConsent']['acceptedAt'];
+    documentType: FieldOutputTypes['public']['LegalConsent']['documentType'];
+    documentVersionId: FieldOutputTypes['public']['LegalConsent']['documentVersionId'];
+    id: FieldOutputTypes['public']['LegalConsent']['id'];
+    ipAddress: FieldOutputTypes['public']['LegalConsent']['ipAddress'];
+    userAgent: FieldOutputTypes['public']['LegalConsent']['userAgent'];
+    userId: FieldOutputTypes['public']['LegalConsent']['userId'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_LegalDocument = {
+    changeDescription: FieldOutputTypes['public']['LegalDocument']['changeDescription'];
+    content: FieldOutputTypes['public']['LegalDocument']['content'];
+    createdAt: FieldOutputTypes['public']['LegalDocument']['createdAt'];
+    createdBy: FieldOutputTypes['public']['LegalDocument']['createdBy'];
+    id: FieldOutputTypes['public']['LegalDocument']['id'];
+    publishedAt: FieldOutputTypes['public']['LegalDocument']['publishedAt'];
+    publishedBy: FieldOutputTypes['public']['LegalDocument']['publishedBy'];
+    requiresConsent: FieldOutputTypes['public']['LegalDocument']['requiresConsent'];
+    status: FieldOutputTypes['public']['LegalDocument']['status'];
+    title: FieldOutputTypes['public']['LegalDocument']['title'];
+    type: FieldOutputTypes['public']['LegalDocument']['type'];
+    updatedAt: FieldOutputTypes['public']['LegalDocument']['updatedAt'];
+    versionNumber: FieldOutputTypes['public']['LegalDocument']['versionNumber'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_News = {
     content: FieldOutputTypes['public']['News']['content'];
     createdAt: FieldOutputTypes['public']['News']['createdAt'];
@@ -625,6 +683,16 @@ export namespace Models {
     version: FieldOutputTypes['public']['PluginVersion']['version'];
     plugin: public_Plugin;
     readonly [RelationKeys]?: 'plugin';
+  };
+  export type public_PrivacyImpactNote = {
+    area: FieldOutputTypes['public']['PrivacyImpactNote']['area'];
+    createdAt: FieldOutputTypes['public']['PrivacyImpactNote']['createdAt'];
+    description: FieldOutputTypes['public']['PrivacyImpactNote']['description'];
+    id: FieldOutputTypes['public']['PrivacyImpactNote']['id'];
+    markedById: FieldOutputTypes['public']['PrivacyImpactNote']['markedById'];
+    resolvedAt: FieldOutputTypes['public']['PrivacyImpactNote']['resolvedAt'];
+    resolvedById: FieldOutputTypes['public']['PrivacyImpactNote']['resolvedById'];
+    readonly [RelationKeys]?: never;
   };
   export type public_PublicationReview = {
     createdAt: FieldOutputTypes['public']['PublicationReview']['createdAt'];
@@ -780,11 +848,14 @@ export declare const models: {
     DeveloperApplication: Models.public_DeveloperApplication;
     DeveloperProfile: Models.public_DeveloperProfile;
     GitHubToken: Models.public_GitHubToken;
+    LegalConsent: Models.public_LegalConsent;
+    LegalDocument: Models.public_LegalDocument;
     News: Models.public_News;
     Plugin: Models.public_Plugin;
     PluginScreenshot: Models.public_PluginScreenshot;
     PluginTag: Models.public_PluginTag;
     PluginVersion: Models.public_PluginVersion;
+    PrivacyImpactNote: Models.public_PrivacyImpactNote;
     PublicationReview: Models.public_PublicationReview;
     RateLimitBucket: Models.public_RateLimitBucket;
     Release: Models.public_Release;
@@ -1427,6 +1498,188 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
+            readonly LegalConsent: {
+              columns: {
+                readonly acceptedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly documentType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly documentVersionId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ipAddress: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly userAgent: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly userId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'LegalConsent_acceptedAt_idx_99f41866';
+                  readonly prefix: 'LegalConsent_acceptedAt_idx';
+                  readonly columns: readonly ['acceptedAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'LegalConsent_documentVersionId_idx_efaa8db2';
+                  readonly prefix: 'LegalConsent_documentVersionId_idx';
+                  readonly columns: readonly ['documentVersionId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'LegalConsent_userId_documentType_idx_3eab46cd';
+                  readonly prefix: 'LegalConsent_userId_documentType_idx';
+                  readonly columns: readonly ['userId', 'documentType'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly LegalDocument: {
+              columns: {
+                readonly changeDescription: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly content: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdBy: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly publishedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly publishedBy: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly requiresConsent: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'DRAFT'>;
+                  };
+                  readonly many: false;
+                };
+                readonly title: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly versionNumber: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['type', 'versionNumber'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'LegalDocument_type_createdAt_idx_00d94001';
+                  readonly prefix: 'LegalDocument_type_createdAt_idx';
+                  readonly columns: readonly ['type', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'LegalDocument_type_publishedAt_idx_a49ab371';
+                  readonly prefix: 'LegalDocument_type_publishedAt_idx';
+                  readonly columns: readonly ['type', 'publishedAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'LegalDocument_type_status_idx_f045f361';
+                  readonly prefix: 'LegalDocument_type_status_idx';
+                  readonly columns: readonly ['type', 'status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly News: {
               columns: {
                 readonly content: {
@@ -1859,6 +2112,69 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly PrivacyImpactNote: {
+              columns: {
+                readonly area: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly description: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly markedById: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly resolvedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly resolvedById: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'PrivacyImpactNote_createdAt_idx_9575dbd7';
+                  readonly prefix: 'PrivacyImpactNote_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PrivacyImpactNote_resolvedAt_idx_a13a9d8d';
+                  readonly prefix: 'PrivacyImpactNote_resolvedAt_idx';
+                  readonly columns: readonly ['resolvedAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
             };
             readonly PublicationReview: {
               columns: {
@@ -2727,6 +3043,14 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN'];
             };
+            readonly LegalDocumentStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+            };
+            readonly LegalDocumentType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN'];
+            };
             readonly PluginStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -2817,6 +3141,14 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GitHubToken';
     };
+    readonly LegalConsent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'LegalConsent';
+    };
+    readonly LegalDocument: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'LegalDocument';
+    };
     readonly News: { readonly namespace: 'public' & NamespaceId; readonly model: 'News' };
     readonly Plugin: { readonly namespace: 'public' & NamespaceId; readonly model: 'Plugin' };
     readonly PluginScreenshot: {
@@ -2827,6 +3159,10 @@ type ContractBase = Omit<
     readonly PluginVersion: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'PluginVersion';
+    };
+    readonly PrivacyImpactNote: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'PrivacyImpactNote';
     };
     readonly PublicationReview: {
       readonly namespace: 'public' & NamespaceId;
@@ -3367,6 +3703,140 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly LegalConsent: {
+            readonly fields: {
+              readonly acceptedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly documentType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly documentVersionId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ipAddress: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly userAgent: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'LegalConsent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly acceptedAt: { readonly column: 'acceptedAt' };
+                readonly documentType: { readonly column: 'documentType' };
+                readonly documentVersionId: { readonly column: 'documentVersionId' };
+                readonly id: { readonly column: 'id' };
+                readonly ipAddress: { readonly column: 'ipAddress' };
+                readonly userAgent: { readonly column: 'userAgent' };
+                readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
+          readonly LegalDocument: {
+            readonly fields: {
+              readonly changeDescription: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly content: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly createdBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly publishedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly publishedBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly requiresConsent: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly title: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly versionNumber: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'LegalDocument';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly changeDescription: { readonly column: 'changeDescription' };
+                readonly content: { readonly column: 'content' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly createdBy: { readonly column: 'createdBy' };
+                readonly id: { readonly column: 'id' };
+                readonly publishedAt: { readonly column: 'publishedAt' };
+                readonly publishedBy: { readonly column: 'publishedBy' };
+                readonly requiresConsent: { readonly column: 'requiresConsent' };
+                readonly status: { readonly column: 'status' };
+                readonly title: { readonly column: 'title' };
+                readonly type: { readonly column: 'type' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly versionNumber: { readonly column: 'versionNumber' };
+              };
+            };
+          };
           readonly News: {
             readonly fields: {
               readonly content: {
@@ -3730,6 +4200,58 @@ type ContractBase = Omit<
                 readonly pluginId: { readonly column: 'pluginId' };
                 readonly releasedAt: { readonly column: 'releasedAt' };
                 readonly version: { readonly column: 'version' };
+              };
+            };
+          };
+          readonly PrivacyImpactNote: {
+            readonly fields: {
+              readonly area: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly description: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly markedById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly resolvedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly resolvedById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'PrivacyImpactNote';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly area: { readonly column: 'area' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly description: { readonly column: 'description' };
+                readonly id: { readonly column: 'id' };
+                readonly markedById: { readonly column: 'markedById' };
+                readonly resolvedAt: { readonly column: 'resolvedAt' };
+                readonly resolvedById: { readonly column: 'resolvedById' };
               };
             };
           };
@@ -4568,6 +5090,22 @@ type ContractBase = Omit<
               { readonly name: 'WITHDRAWN'; readonly value: 'WITHDRAWN' },
             ];
           };
+          readonly LegalDocumentStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
+              { readonly name: 'PUBLISHED'; readonly value: 'PUBLISHED' },
+              { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
+            ];
+          };
+          readonly LegalDocumentType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'IMPRESSUM'; readonly value: 'IMPRESSUM' },
+              { readonly name: 'DATENSCHUTZ'; readonly value: 'DATENSCHUTZ' },
+              { readonly name: 'NUTZUNGSBEDINGUNGEN'; readonly value: 'NUTZUNGSBEDINGUNGEN' },
+            ];
+          };
           readonly PluginStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -4675,6 +5213,16 @@ type ContractBase = Omit<
             { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
             { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
             { readonly name: 'WITHDRAWN'; readonly value: 'WITHDRAWN' },
+          ];
+          readonly LegalDocumentStatus: readonly [
+            { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
+            { readonly name: 'PUBLISHED'; readonly value: 'PUBLISHED' },
+            { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
+          ];
+          readonly LegalDocumentType: readonly [
+            { readonly name: 'IMPRESSUM'; readonly value: 'IMPRESSUM' },
+            { readonly name: 'DATENSCHUTZ'; readonly value: 'DATENSCHUTZ' },
+            { readonly name: 'NUTZUNGSBEDINGUNGEN'; readonly value: 'NUTZUNGSBEDINGUNGEN' },
           ];
           readonly PluginStatus: readonly [
             { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
@@ -4922,6 +5470,47 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
+            readonly entry: 'LegalConsent';
+            readonly field: 'acceptedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'LegalConsent';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'LegalDocument';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'LegalDocument';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'LegalDocument';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
             readonly entry: 'News';
             readonly field: 'createdAt';
             readonly namespace: 'public';
@@ -5006,6 +5595,22 @@ type ContractBase = Omit<
           readonly ref: {
             readonly entry: 'PluginVersion';
             readonly field: 'releasedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PrivacyImpactNote';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PrivacyImpactNote';
+            readonly field: 'id';
             readonly namespace: 'public';
           };
         },

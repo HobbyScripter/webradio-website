@@ -31,6 +31,13 @@ import {
 import { liftSuspension, suspendAccount } from '@/lib/account-suspension';
 import { verifyUserEmailManually } from '@/lib/account-suspension';
 import { removeCatalogEntry } from '@/lib/catalog-moderation-service';
+import {
+  createLegalDocumentDraft,
+  updateLegalDocumentDraft,
+  publishLegalDocument,
+  restoreLegalDocumentVersion,
+  markPrivacyRelevantChange,
+} from '@/lib/legal-document-service';
 
 function readString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -438,3 +445,143 @@ export async function verifyEmailManuallyAction(formData: FormData): Promise<voi
 
 // Alias
 export const manuallyVerifyEmailAction = verifyEmailManuallyAction;
+
+// ---------------------------------------------------------------------------
+// Legal documents
+// ---------------------------------------------------------------------------
+
+const LEGAL_TYPES = ['IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN'] as const;
+type LegalType = (typeof LEGAL_TYPES)[number];
+
+function parseLegalType(value: string): LegalType {
+  if ((LEGAL_TYPES as readonly string[]).includes(value)) return value as LegalType;
+  throw new AuthError('Ungültiger Dokumenttyp.', 400, 'VALIDATION_ERROR');
+}
+
+export async function saveLegalDraftAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const type = parseLegalType(readString(formData, 'type'));
+  const documentId = readString(formData, 'documentId').trim();
+  const content = readString(formData, 'content');
+  const changeDescription = readString(formData, 'changeDescription').trim();
+  const requiresConsent = readString(formData, 'requiresConsent') === 'true';
+  const title = readString(formData, 'title').trim();
+  let target: string;
+  try {
+    await enforceLimit('contentWrite', admin.id);
+    if (documentId) {
+      await updateLegalDocumentDraft({
+        actorId: admin.id,
+        documentId,
+        content,
+        title: title || null,
+        changeDescription: changeDescription || null,
+        requiresConsent,
+        meta: await meta(),
+      });
+    } else {
+      const created = await createLegalDocumentDraft({
+        actorId: admin.id,
+        type,
+        content,
+        title: title || null,
+        changeDescription: changeDescription || null,
+        requiresConsent,
+        meta: await meta(),
+      });
+      target = `/admin/legal/${type}?draft=${created.id}`;
+      revalidatePath(`/admin/legal/${type}`);
+      redirect(target);
+      return;
+    }
+    revalidatePath(`/admin/legal/${type}`);
+    target = `/admin/legal/${type}?saved=1`;
+  } catch (error) {
+    target = failure(`/admin/legal/${type}`, error, 'action:admin:legal:save');
+  }
+  redirect(target);
+}
+
+export async function publishLegalAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const type = parseLegalType(readString(formData, 'type'));
+  const documentId = readString(formData, 'documentId').trim();
+  const content = readString(formData, 'content');
+  const changeDescription = readString(formData, 'changeDescription').trim();
+  const requiresConsent = readString(formData, 'requiresConsent') === 'true';
+  const title = readString(formData, 'title').trim();
+  let target: string;
+  try {
+    await enforceLimit('contentWrite', admin.id);
+    if (documentId) {
+      await publishLegalDocument({
+        actorId: admin.id,
+        documentId,
+        changeDescription: changeDescription || null,
+        requiresConsent,
+        title: title || null,
+        content,
+        meta: await meta(),
+      });
+    } else {
+      await publishLegalDocument({
+        actorId: admin.id,
+        type,
+        content,
+        changeDescription: changeDescription || null,
+        requiresConsent,
+        title: title || null,
+        meta: await meta(),
+      });
+    }
+    revalidatePath(`/admin/legal/${type}`);
+    revalidatePath('/impressum');
+    revalidatePath('/datenschutz');
+    revalidatePath('/nutzungsbedingungen');
+    target = `/admin/legal/${type}?published=1`;
+  } catch (error) {
+    target = failure(`/admin/legal/${type}`, error, 'action:admin:legal:publish');
+  }
+  redirect(target);
+}
+
+export async function restoreLegalVersionAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const type = parseLegalType(readString(formData, 'type'));
+  const versionId = readString(formData, 'versionId');
+  let target: string;
+  try {
+    await enforceLimit('contentWrite', admin.id);
+    const restored = await restoreLegalDocumentVersion({
+      actorId: admin.id,
+      versionId,
+      meta: await meta(),
+    });
+    revalidatePath(`/admin/legal/${type}`);
+    target = `/admin/legal/${type}?draft=${restored.id}`;
+  } catch (error) {
+    target = failure(`/admin/legal/${type}`, error, 'action:admin:legal:restore');
+  }
+  redirect(target);
+}
+
+export async function markPrivacyImpactAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const area = readString(formData, 'area').trim();
+  const description = readString(formData, 'description').trim();
+  let target = '/admin/legal?privacyMarked=1';
+  try {
+    await enforceLimit('contentWrite', admin.id);
+    await markPrivacyRelevantChange({
+      actorId: admin.id,
+      area: area || 'Allgemein',
+      description,
+      meta: await meta(),
+    });
+    revalidatePath('/admin/legal');
+  } catch (error) {
+    target = failure('/admin/legal', error, 'action:admin:legal:privacy');
+  }
+  redirect(target);
+}
+
