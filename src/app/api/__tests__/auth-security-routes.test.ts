@@ -87,6 +87,8 @@ describe('POST /api/auth/register', () => {
         email: 'user@example.com',
         password: 'Password123!',
         confirmPassword: 'Password123!',
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       }),
     );
 
@@ -104,6 +106,8 @@ describe('POST /api/auth/register', () => {
         email: 'User@Example.com',
         password: 'Password123!',
         confirmPassword: 'Password123!',
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       }),
     );
 

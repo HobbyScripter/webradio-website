@@ -22,6 +22,7 @@ import { describeErrorChain } from './db-error-diagnostics';
 import { db } from './db';
 import { hasRole, isAccountAccessible } from './roles';
 import type { AssignableRole, Role, RegisterInput } from './validations';
+import { getPublishedLegalDocument, recordLegalConsent } from './legal-document-service';
 
 // Re-exported so every existing server-side import keeps one hierarchy.
 export { hasRole } from './roles';
@@ -263,6 +264,38 @@ export async function registerUser(
     });
   } catch {
     // Non-critical: failure to log an audit event must not fail registration.
+  }
+
+  // 5. Record legal consent if terms and privacy were accepted
+  if (data.acceptedTerms || data.acceptedPrivacy) {
+    try {
+      if (data.acceptedTerms) {
+        const termsDoc = await getPublishedLegalDocument('NUTZUNGSBEDINGUNGEN');
+        if (termsDoc) {
+          await recordLegalConsent({
+            userId: user.id,
+            documentType: 'NUTZUNGSBEDINGUNGEN',
+            documentVersionId: termsDoc.id,
+            ipAddress: ipAddress ?? null,
+            userAgent: userAgent ?? null,
+          });
+        }
+      }
+      if (data.acceptedPrivacy) {
+        const privacyDoc = await getPublishedLegalDocument('DATENSCHUTZ');
+        if (privacyDoc) {
+          await recordLegalConsent({
+            userId: user.id,
+            documentType: 'DATENSCHUTZ',
+            documentVersionId: privacyDoc.id,
+            ipAddress: ipAddress ?? null,
+            userAgent: userAgent ?? null,
+          });
+        }
+      }
+    } catch {
+      // Non-critical: failure to record consent must not fail registration
+    }
   }
 
   return {

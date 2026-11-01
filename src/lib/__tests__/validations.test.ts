@@ -71,11 +71,29 @@ describe('registerSchema', () => {
     password: 'securepassword123',
     confirmPassword: 'securepassword123',
     name: 'Test User',
+    acceptedTerms: true,
+    acceptedPrivacy: true,
   };
 
   it('accepts valid registration data', () => {
     const result = registerSchema.safeParse(validInput);
     expect(result.success).toBe(true);
+  });
+
+  it('rejects missing terms acceptance', () => {
+    const result = registerSchema.safeParse({
+      ...validInput,
+      acceptedTerms: false,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects missing privacy acceptance', () => {
+    const result = registerSchema.safeParse({
+      ...validInput,
+      acceptedPrivacy: false,
+    });
+    expect(result.success).toBe(false);
   });
 
   it('rejects mismatched passwords', () => {

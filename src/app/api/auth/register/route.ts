@@ -9,12 +9,20 @@ import { errorResponse, isSameOriginRequest } from '@/lib/api-response';
 import { requestEmailVerification } from '@/lib/account-service';
 import { enforceIpRateLimit, enforceRateLimits } from '@/lib/rate-limit-http';
 import { getClientIp } from '@/lib/rate-limit';
+import { env } from '@/lib/env';
 
 export async function POST(request: Request) {
   try {
     if (!isSameOriginRequest(request)) {
       return NextResponse.json(
         { error: 'FORBIDDEN', message: 'Cross-origin request rejected.' },
+        { status: 403 },
+      );
+    }
+
+    if (!env.REGISTRATION_ENABLED) {
+      return NextResponse.json(
+        { error: 'REGISTRATION_DISABLED', message: 'Die Registrierung ist derzeit nicht verfügbar.' },
         { status: 403 },
       );
     }

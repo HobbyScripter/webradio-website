@@ -7,6 +7,9 @@ import DatenschutzPage, {
   generateMetadata as datenschutzMetadata,
 } from '@/app/(public)/datenschutz/page';
 import ImpressumPage, { generateMetadata as impressumMetadata } from '@/app/(public)/impressum/page';
+import NutzungsbedingungenPage, {
+  generateMetadata as termsMetadata,
+} from '@/app/(public)/nutzungsbedingungen/page';
 import { OPERATOR_FIELDS } from '@/lib/legal';
 
 const LEGAL_VARIABLES = OPERATOR_FIELDS.map((field) => field.variable);
@@ -70,6 +73,16 @@ describe('legal pages without any LEGAL_ configuration', () => {
     expect(screen.getByText('Pflichtangaben noch nicht vollständig')).toBeInTheDocument();
   });
 
+  it('renders the Nutzungsbedingungen and states which details are still missing', async () => {
+    const page = await NutzungsbedingungenPage();
+    render(page);
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Nutzungsregeln' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Pflichtangaben noch nicht vollständig')).toBeInTheDocument();
+  });
+
   it('renders both pages without any session or role context', async () => {
     // No NextAuth provider, no session mock, no role: rendering must not require
     // authentication at all.
@@ -89,6 +102,23 @@ describe('legal pages without any LEGAL_ configuration', () => {
   it('keeps incomplete texts out of search indexes without blocking the page', async () => {
     expect((await impressumMetadata()).robots).toEqual({ index: false, follow: false });
     expect((await datenschutzMetadata()).robots).toEqual({ index: false, follow: false });
+    expect((await termsMetadata()).robots).toEqual({ index: false, follow: false });
+  });
+
+  it('renders no bracketed placeholders in the incomplete notice', async () => {
+    const impressum = await ImpressumPage();
+    render(impressum);
+
+    const container = screen.getByText('Pflichtangaben noch nicht vollständig');
+    expect(container.textContent).not.toMatch(/\[.*\]/);
+  });
+
+  it('renders no bracketed placeholders in Nutzungsbedingungen incomplete notice', async () => {
+    const terms = await NutzungsbedingungenPage();
+    render(terms);
+
+    const container = screen.getByText('Pflichtangaben noch nicht vollständig');
+    expect(container.textContent).not.toMatch(/\[.*\]/);
   });
 });
 
@@ -107,20 +137,60 @@ describe('legal pages with complete operator details', () => {
     expect(screen.getByText(/Noch keine veröffentlichte Version/)).toBeInTheDocument();
   });
 
+  it('renders the actual Nutzungsbedingungen text with complete env', async () => {
+    setCompleteEnv();
+
+    const terms = await NutzungsbedingungenPage();
+    render(terms);
+    expect(screen.getByText(/Noch keine veröffentlichte Version/)).toBeInTheDocument();
+  });
+
   it('drops the noindex when the text is complete', async () => {
     setCompleteEnv();
 
     expect((await impressumMetadata()).robots).toBeUndefined();
     expect((await datenschutzMetadata()).robots).toBeUndefined();
+    expect((await termsMetadata()).robots).toBeUndefined();
+  });
+
+  it('renders no bracketed placeholders when complete env is set', async () => {
+    setCompleteEnv();
+
+    const impressum = await ImpressumPage();
+    const { unmount } = render(impressum);
+    const impressumText = document.body.textContent || '';
+    expect(impressumText).not.toMatch(/\[.*\]/);
+    unmount();
+
+    const datenschutz = await DatenschutzPage();
+    render(datenschutz);
+    const datenschutzText = document.body.textContent || '';
+    expect(datenschutzText).not.toMatch(/\[.*\]/);
+  });
+
+  it('does not render fabricated responsible parties like "vercel.com"', async () => {
+    setCompleteEnv();
+
+    const impressum = await ImpressumPage();
+    const { unmount } = render(impressum);
+    const impressumText = document.body.textContent || '';
+    expect(impressumText.toLowerCase()).not.toContain('vercel.com');
+    unmount();
+
+    const datenschutz = await DatenschutzPage();
+    render(datenschutz);
+    const datenschutzText = document.body.textContent || '';
+    expect(datenschutzText.toLowerCase()).not.toContain('vercel.com');
   });
 });
 
 describe('permanent legal links', () => {
-  it('links Impressum and Datenschutz in the footer without any configuration', () => {
+  it('links Impressum, Datenschutz and Nutzungsregeln in the footer without any configuration', () => {
     render(<Footer />);
 
     expect(screen.getByRole('link', { name: 'Impressum' })).toHaveAttribute('href', '/impressum');
     expect(screen.getByRole('link', { name: 'Datenschutz' })).toHaveAttribute('href', '/datenschutz');
+    expect(screen.getByRole('link', { name: 'Nutzungsregeln' })).toHaveAttribute('href', '/nutzungsbedingungen');
   });
 
   it('keeps the footer links when every operator detail is present', () => {

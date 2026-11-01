@@ -307,14 +307,14 @@ export function termsSections(operator: OperatorDetails): LegalSection[] {
     {
       heading: '1. Geltungsbereich',
       paragraphs: [
-        `Diese Regeln gelten für die Nutzung der Website von ${operator.name} sowie für Konten, Entwickleranträge und eingereichte Kataloginhalte.`,
+        `Diese Nutzungsbedingungen gelten für die Nutzung der Website von ${operator.name} sowie für Konten, Entwickleranträge und eingereichte Kataloginhalte.`,
       ],
     },
     {
       heading: '2. Konto',
       paragraphs: [
         'Für Entwicklerfunktionen und Meldungen ist ein Konto erforderlich. Zugangsdaten sind geheim zu halten. Ein Konto darf nicht automatisiert oder missbräuchlich angelegt werden.',
-        'Ein Anspruch auf ein Konto oder auf eine bestimmte Rolle besteht nicht.',
+        'Ein Anspruch auf ein Konto oder auf besondere Rechte besteht nicht.',
       ],
     },
     {
@@ -340,7 +340,8 @@ export function termsSections(operator: OperatorDetails): LegalSection[] {
     {
       heading: '6. Meldungen',
       paragraphs: [
-        `Problematische Inhalte können über die Meldefunktion oder per E-Mail an ${operator.email} gemeldet werden. Eine Meldung ist ein Hinweis und keine Feststellung eines Verstoßes.`,
+        `Problematische Inhalte können über die Meldefunktion unter /report oder per E-Mail an ${operator.email} gemeldet werden. Eine Meldung ist ein Hinweis und keine Feststellung eines Verstoßes.`,
+        'Meldungen werden von Administratoren geprüft. Bei festgestellten Verstößen kann der Inhalt entfernt oder das Konto gemeldet werden.',
       ],
     },
     {
@@ -351,16 +352,17 @@ export function termsSections(operator: OperatorDetails): LegalSection[] {
       ],
     },
     {
-      heading: '8. Entwicklerzugang',
+      heading: '8. Entwicklerantrag',
       paragraphs: [
         'Entwicklerrechte werden nicht automatisch mit der Registrierung vergeben. Ein Antrag wird von der Administration geprüft und kann genehmigt oder abgelehnt werden; ein Anspruch auf Freischaltung besteht nicht.',
-        'Bei Verstößen können Entwicklerrechte entzogen werden.',
+        'Der Antrag enthält eine Begründung und optional eine Portfolio-URL. Bei Ablehnung kann der Antrag neu gestellt werden. Bei Verstößen können Entwicklerrechte entzogen werden.',
       ],
     },
     {
       heading: '9. Änderungen und Kontakt',
       paragraphs: [
-        `Diese Regeln können angepasst werden, wenn sich Funktionen oder rechtliche Anforderungen ändern. Rückfragen und Beschwerden: ${operator.email}.`,
+        `Diese Nutzungsbedingungen können angepasst werden, wenn sich Funktionen oder rechtliche Anforderungen ändern. Rückfragen und Beschwerden: ${operator.email}.`,
+        `Anbieterangaben finden Sie im Impressum auf dieser Seite.`,
       ],
     },
   ];

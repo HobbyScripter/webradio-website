@@ -120,6 +120,8 @@ describe('Auth Service — Registration & duplicate emails', () => {
         email: 'user@webradio.local',
         password: 'Password123!',
         confirmPassword: 'Password123!',
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       }),
     ).rejects.toThrow(DuplicateEmailError);
 
@@ -139,6 +141,8 @@ describe('Auth Service — Registration & duplicate emails', () => {
       password: 'Password123!',
       confirmPassword: 'Password123!',
       name: 'New User',
+      acceptedTerms: true,
+      acceptedPrivacy: true,
     });
 
     expect(user.email).toBe('newuser@webradio.local');

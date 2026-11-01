@@ -65,6 +65,12 @@ export const registerSchema = z
     password: passwordSchema,
     confirmPassword: z.string(),
     name: z.string().min(1, 'Name is required').max(100).trim().optional(),
+    acceptedTerms: z.boolean().refine((val) => val === true, {
+      message: 'Nutzungsbedingungen müssen akzeptiert werden',
+    }),
+    acceptedPrivacy: z.boolean().refine((val) => val === true, {
+      message: 'Datenschutzerklärung muss akzeptiert werden',
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",

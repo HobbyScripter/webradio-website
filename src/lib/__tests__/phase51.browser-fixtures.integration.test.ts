@@ -36,6 +36,8 @@ async function account(
 ): Promise<Account> {
   const email = `${label}_${RUN}@webradio.test`.replace(/[^a-z0-9_@.-]/gi, '');
   const user = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
     email,
     password: PASSWORD,
     confirmPassword: PASSWORD,

@@ -63,6 +63,8 @@ async function createUser(
   role: 'USER' | 'DEVELOPER' | 'ADMIN' | 'SYSTEM_ADMIN',
 ): Promise<string> {
   const user = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
     email: `phase5_${label}_${RUN}@webradio.test`,
     password: PASSWORD,
     confirmPassword: PASSWORD,

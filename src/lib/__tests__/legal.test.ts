@@ -88,4 +88,33 @@ describe('legal sections', () => {
     expect(privacySections(operator)[0]?.heading).toBe('1. Verantwortlicher');
     expect(termsSections(operator)[0]?.heading).toBe('1. Geltungsbereich');
   });
+
+  it('contains no bracketed placeholders in rendered text', () => {
+    const { operator } = getLegalDetails(COMPLETE_ENV);
+
+    const allParagraphs = [
+      ...impressumSections(operator).flatMap((s) => s.paragraphs),
+      ...privacySections(operator).flatMap((s) => s.paragraphs),
+      ...termsSections(operator).flatMap((s) => s.paragraphs),
+    ];
+
+    for (const paragraph of allParagraphs) {
+      // No placeholders like [NAME], [ADDRESS], etc.
+      expect(paragraph).not.toMatch(/\[.*\]/);
+    }
+  });
+
+  it('does not contain fabricated responsible parties like "vercel.com"', () => {
+    const { operator } = getLegalDetails(COMPLETE_ENV);
+
+    const allParagraphs = [
+      ...impressumSections(operator).flatMap((s) => s.paragraphs),
+      ...privacySections(operator).flatMap((s) => s.paragraphs),
+      ...termsSections(operator).flatMap((s) => s.paragraphs),
+    ];
+
+    const text = allParagraphs.join(' ');
+    // The operator name from env is used, not fabricated ones
+    expect(text.toLowerCase()).not.toContain('vercel.com');
+  });
 });

@@ -216,6 +216,8 @@ beforeAll(async () => {
   adminId = admin.id;
 
   const user = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
     email: USER_EMAIL.toUpperCase(), // normalization / case-insensitivity
     password: PASSWORD,
     confirmPassword: PASSWORD,
@@ -224,6 +226,8 @@ beforeAll(async () => {
   regularUserId = user.id;
 
   const developer = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
     email: DEV_EMAIL,
     password: PASSWORD,
     confirmPassword: PASSWORD,
@@ -507,6 +511,8 @@ describe('2. Registration and database reads', () => {
   it('rejects a duplicate email case-insensitively in the service layer', async () => {
     await expect(
       registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
         email: USER_EMAIL.toUpperCase(),
         password: PASSWORD,
         confirmPassword: PASSWORD,
@@ -608,6 +614,8 @@ describe('4. Database session lifecycle', () => {
 
   it('drops all sessions when the user is deleted (cascade)', async () => {
     const temp = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       email: `cascade_${RUN}@webradio.test`,
       password: PASSWORD,
       confirmPassword: PASSWORD,
@@ -749,6 +757,8 @@ describe('5b. SYSTEM_ADMIN bootstrap, recovery and protection', () => {
 
   it('promotes an existing, verified account through the CLI', async () => {
     const candidate = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       email: `promote_${RUN}@webradio.test`,
       password: SYSTEM_ADMIN_PASSWORD,
       confirmPassword: SYSTEM_ADMIN_PASSWORD,
@@ -833,6 +843,8 @@ describe('5b. SYSTEM_ADMIN bootstrap, recovery and protection', () => {
 
   it('requires the recovery confirmation and only adds an account', async () => {
     const second = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       email: `recovery_${RUN}@webradio.test`,
       password: SYSTEM_ADMIN_PASSWORD,
       confirmPassword: SYSTEM_ADMIN_PASSWORD,
@@ -1254,6 +1266,8 @@ describe('10. Password reset and e-mail verification (real PostgreSQL)', () => {
 
   beforeAll(async () => {
     const resetUser = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       email: resetEmail,
       password: PASSWORD,
       confirmPassword: PASSWORD,
@@ -1261,6 +1275,8 @@ describe('10. Password reset and e-mail verification (real PostgreSQL)', () => {
     resetUserId = resetUser.id;
 
     const verificationUser = await registerUser({
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       email: verificationEmail,
       password: PASSWORD,
       confirmPassword: PASSWORD,

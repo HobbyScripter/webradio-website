@@ -3,6 +3,25 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { env } from '@/lib/env';
+
+function RegistrationDisabled() {
+  return (
+    <div className="rounded-2xl border border-white/[0.08] bg-[#0b0b10]/90 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-white">Registrierung deaktiviert</h1>
+        <p className="mt-1 text-sm text-zinc-400">
+          Die Registrierung ist derzeit nicht verfügbar.
+        </p>
+      </div>
+      <div className="mt-6 border-t border-white/[0.07] pt-6 text-center text-xs text-zinc-400">
+        <Link href="/auth/login" className="font-semibold text-violet-300 hover:text-violet-200">
+          Zur Anmeldung
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -10,9 +29,16 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Feature flag check (client-side only; server-side check is in the API route)
+  if (!env.REGISTRATION_ENABLED) {
+    return <RegistrationDisabled />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +54,16 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!acceptedTerms) {
+      setError('Du musst die Nutzungsbedingungen akzeptieren.');
+      return;
+    }
+
+    if (!acceptedPrivacy) {
+      setError('Du musst die Datenschutzerklärung akzeptieren.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -39,6 +75,8 @@ export default function RegisterPage() {
           email,
           password,
           confirmPassword,
+          acceptedTerms,
+          acceptedPrivacy,
         }),
       });
 
@@ -160,6 +198,46 @@ export default function RegisterPage() {
             placeholder="••••••••••••"
             className={inputClass}
           />
+        </div>
+
+        <div className="space-y-3">
+          <label className="flex items-start gap-3 text-sm text-zinc-300">
+            <input
+              type="checkbox"
+              id="register-terms"
+              name="acceptedTerms"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              required
+              className="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/5 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+            />
+            <span>
+              Ich akzeptiere die{' '}
+              <Link href="/nutzungsbedingungen" className="text-violet-300 hover:text-violet-200">
+                Nutzungsbedingungen
+              </Link>
+              .
+            </span>
+          </label>
+
+          <label className="flex items-start gap-3 text-sm text-zinc-300">
+            <input
+              type="checkbox"
+              id="register-privacy"
+              name="acceptedPrivacy"
+              checked={acceptedPrivacy}
+              onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+              required
+              className="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/5 text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+            />
+            <span>
+              Ich akzeptiere die{' '}
+              <Link href="/datenschutz" className="text-violet-300 hover:text-violet-200">
+                Datenschutzerklärung
+              </Link>
+              .
+            </span>
+          </label>
         </div>
 
         <button
