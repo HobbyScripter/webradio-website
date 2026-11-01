@@ -23,6 +23,7 @@ import { db } from './db';
 import { hasRole, isAccountAccessible } from './roles';
 import type { AssignableRole, Role, RegisterInput } from './validations';
 import { getPublishedLegalDocument, recordLegalConsent } from './legal-document-service';
+import { BUILTIN_LEGAL_DOCUMENT_IDS } from './legal';
 
 // Re-exported so every existing server-side import keeps one hierarchy.
 export { hasRole } from './roles';
@@ -266,32 +267,32 @@ export async function registerUser(
     // Non-critical: failure to log an audit event must not fail registration.
   }
 
-  // 5. Record legal consent if terms and privacy were accepted
+  // 5. Record legal consent if terms and privacy were accepted.
+  //    The accepted document version is stored together with the timestamp
+  //    (the consent row's `acceptedAt`). When the operator has published a
+  //    version in the administration, its id is used; otherwise the built-in
+  //    text version is recorded, so an acceptance is never silently dropped.
   if (data.acceptedTerms || data.acceptedPrivacy) {
     try {
       if (data.acceptedTerms) {
         const termsDoc = await getPublishedLegalDocument('NUTZUNGSBEDINGUNGEN');
-        if (termsDoc) {
-          await recordLegalConsent({
-            userId: user.id,
-            documentType: 'NUTZUNGSBEDINGUNGEN',
-            documentVersionId: termsDoc.id,
-            ipAddress: ipAddress ?? null,
-            userAgent: userAgent ?? null,
-          });
-        }
+        await recordLegalConsent({
+          userId: user.id,
+          documentType: 'NUTZUNGSBEDINGUNGEN',
+          documentVersionId: termsDoc?.id ?? BUILTIN_LEGAL_DOCUMENT_IDS.NUTZUNGSBEDINGUNGEN,
+          ipAddress: ipAddress ?? null,
+          userAgent: userAgent ?? null,
+        });
       }
       if (data.acceptedPrivacy) {
         const privacyDoc = await getPublishedLegalDocument('DATENSCHUTZ');
-        if (privacyDoc) {
-          await recordLegalConsent({
-            userId: user.id,
-            documentType: 'DATENSCHUTZ',
-            documentVersionId: privacyDoc.id,
-            ipAddress: ipAddress ?? null,
-            userAgent: userAgent ?? null,
-          });
-        }
+        await recordLegalConsent({
+          userId: user.id,
+          documentType: 'DATENSCHUTZ',
+          documentVersionId: privacyDoc?.id ?? BUILTIN_LEGAL_DOCUMENT_IDS.DATENSCHUTZ,
+          ipAddress: ipAddress ?? null,
+          userAgent: userAgent ?? null,
+        });
       }
     } catch {
       // Non-critical: failure to record consent must not fail registration

@@ -36,6 +36,9 @@ export const RATE_LIMITS = {
   loginAccount: { limit: 8, windowSeconds: 15 * 60 },
   registerIp: { limit: 5, windowSeconds: 60 * 60 },
   registerAccount: { limit: 3, windowSeconds: 60 * 60 },
+  // Prepared contact form (only active behind CONTACT_FORM_ENABLED).
+  contactIp: { limit: 5, windowSeconds: 60 * 60 },
+  contactAccount: { limit: 3, windowSeconds: 60 * 60 },
   passwordResetRequestIp: { limit: 10, windowSeconds: 15 * 60 },
   passwordResetRequestAccount: { limit: 3, windowSeconds: 15 * 60 },
   authTokenIp: { limit: 20, windowSeconds: 15 * 60 },

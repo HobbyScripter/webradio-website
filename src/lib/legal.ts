@@ -1,18 +1,20 @@
 /**
- * Legal pages.
+ * Central operator dataset and legal page content.
  *
- * `/impressum` and `/datenschutz` are permanent parts of the site. Their routes,
- * the footer links and the in-page navigation are unconditional: no environment
- * variable, role, account status or feature flag enables or disables them.
+ * Impressum, Datenschutzerklärung and Nutzungsbedingungen are generated from a
+ * single `OperatorDetails` record, so the three pages cannot drift apart. The
+ * `LEGAL_*` variables carry the operator facts; they are not an activation
+ * switch and never enable or disable a page.
  *
- * The `LEGAL_*` variables below are not an activation switch. They only carry
- * the operator facts the texts need. While a required fact is missing, the page
- * still answers normally but renders a clearly marked notice instead of a
- * plausible-looking placeholder, because inventing operator details is not an
- * option. As soon as every required value is present, the texts are rendered.
+ * While a required fact is missing, the page answers normally but renders a
+ * clearly marked notice instead of a plausible-looking placeholder, because
+ * inventing operator details is not an option. As soon as every required value
+ * is present, the texts below are rendered.
  *
- * `noindex` is not access control: the page is reachable for every visitor in
- * both states.
+ * Every statement about processing is derived from this application's code:
+ * session cookie, database session row, audit log, hashed rate-limit counters,
+ * abuse reports and the (currently paused) transactional e-mail path. There is
+ * no analytics, no tracking, no consent banner and no cookie settings page.
  *
  * Nothing here is legal advice. The texts describe the verified technical state
  * of the application and must be reviewed by a qualified person together with
@@ -82,13 +84,13 @@ export const OPERATOR_FIELDS: readonly FieldSpec[] = [
   {
     key: 'retentionAuditLogs',
     variable: 'LEGAL_RETENTION_AUDIT_LOGS',
-    label: 'Speicherdauer des Audit-Protokolls',
+    label: 'Speicherdauer des Sicherheitsprotokolls',
     required: true,
   },
   {
     key: 'retentionRateLimits',
     variable: 'LEGAL_RETENTION_RATE_LIMITS',
-    label: 'Speicherdauer der Rate-Limit-Daten',
+    label: 'Speicherdauer der Missbrauchszähler',
     required: true,
   },
   {
@@ -160,11 +162,58 @@ export function getLegalDetails(
   };
 }
 
-export type LegalSection = { heading: string; paragraphs: string[] };
+export type LegalTable = {
+  columns: string[];
+  rows: string[][];
+};
+
+export type LegalSection = {
+  heading: string;
+  paragraphs: string[];
+  /** Rendered as an `<address>` element with real line breaks. */
+  address?: string[];
+  table?: LegalTable;
+};
 
 /**
- * Impressum. Only the operator details are variable; the structure follows the
- * usual § 5 DDG facts and adds nothing that has not been confirmed.
+ * Name of the session cookie. NextAuth prefixes its cookies with `__Secure-`
+ * when the site is served over HTTPS, so both spellings are documented.
+ */
+export const SESSION_COOKIE_NAME = 'next-auth.session-token';
+export const SESSION_COOKIE_NAME_SECURE = '__Secure-next-auth.session-token';
+
+/**
+ * Transactional e-mail is only delivered when delivery is switched on and a
+ * provider plus sender are configured — the same gate `src/lib/email.ts`
+ * applies. The privacy text states exactly that, instead of claiming a delivery
+ * that does not take place.
+ */
+export function isMailDeliveryConfigured(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  if (read(env, 'EMAIL_DELIVERY_ENABLED').toLowerCase() !== 'true') {
+    return false;
+  }
+
+  const configured =
+    read(env, 'RESEND_API_KEY') !== '' || read(env, 'EMAIL_SERVER_HOST') !== '';
+  return read(env, 'EMAIL_FROM') !== '' && configured;
+}
+
+/**
+ * Identifiers for the built-in texts of this module. They are written to the
+ * consent record when no operator-published version exists, so a registration
+ * always stores which version was accepted and when.
+ */
+export const BUILTIN_LEGAL_DOCUMENT_IDS = {
+  IMPRESSUM: 'builtin:impressum:1',
+  DATENSCHUTZ: 'builtin:datenschutz:1',
+  NUTZUNGSBEDINGUNGEN: 'builtin:nutzungsbedingungen:1',
+} as const;
+
+/**
+ * Impressum. The structure follows the usual § 5 DDG facts and adds nothing
+ * that has not been confirmed.
  */
 export function impressumSections(operator: OperatorDetails): LegalSection[] {
   const contact = [
@@ -185,11 +234,18 @@ export function impressumSections(operator: OperatorDetails): LegalSection[] {
 
   return [
     {
-      heading: 'Angaben gemäß § 5 DDG',
-      paragraphs: [
-        `${operator.name}\n${operator.street}\n${operator.postalCode} ${operator.city}\n${operator.country}`,
-        contact,
+      heading: 'Anbieter',
+      address: [
+        operator.name,
+        operator.street,
+        `${operator.postalCode} ${operator.city}`,
+        operator.country,
       ],
+      paragraphs: [],
+    },
+    {
+      heading: 'Kontakt',
+      paragraphs: [contact],
     },
     ...(operator.representedBy
       ? [{ heading: 'Vertretung', paragraphs: [operator.representedBy] }]
@@ -197,88 +253,148 @@ export function impressumSections(operator: OperatorDetails): LegalSection[] {
     ...(register ? [{ heading: 'Registereintrag', paragraphs: [register] }] : []),
     {
       heading: 'Verantwortlich für den Inhalt',
-      paragraphs: [`${operator.responsibleForContent}`],
+      paragraphs: [operator.responsibleForContent],
     },
     {
-      heading: 'Hinweis zu dieser Website',
+      heading: 'Über diese Website',
       paragraphs: [
         'Diese Website stellt Informationen, Downloads und einen Katalog für das quelloffene Desktop-Programm WebRadio bereit. Plugins und Themes werden von Dritten eingereicht und vor der Veröffentlichung geprüft.',
-        'Diese Seite ersetzt keine rechtliche Prüfung der Angaben.',
       ],
     },
   ];
 }
 
 /**
- * Datenschutzerklärung. Every statement below describes the verified technical
- * state of the application:
- *   - transactional e-mail delivery is paused (no provider is called),
- *   - there is no analytics, tracking or advertising,
- *   - sessions use one HttpOnly cookie plus the database session row.
+ * Datenschutzerklärung. A short summary at the top, then one section per
+ * processing activity that actually exists in this application.
  */
-export function privacySections(operator: OperatorDetails): LegalSection[] {
+export function privacySections(operator: OperatorDetails, mailConfigured = false): LegalSection[] {
+  const sharedRecipients = `${operator.hostingProvider}, ${operator.databaseProvider}`;
+
+  const categories: LegalTable = {
+    columns: ['Zweck', 'Daten', 'Rechtsgrundlage', 'Speicherdauer', 'Empfänger'],
+    rows: [
+      [
+        'Konto bereitstellen und anmelden',
+        'E-Mail-Adresse, Anzeigename, nicht umkehrbarer Prüfwert des Passworts, Rolle des Kontos, Zeitstempel',
+        'Art. 6 Abs. 1 lit. b DSGVO',
+        'bis zur Löschung des Kontos',
+        sharedRecipients,
+      ],
+      [
+        'Sitzung aufrechterhalten',
+        'Sitzungskennung im Cookie, Zeitpunkt, IP-Adresse, Browserkennung',
+        'Art. 6 Abs. 1 lit. b und lit. f DSGVO',
+        operator.retentionSessions,
+        sharedRecipients,
+      ],
+      [
+        'Sicherheitsvorfälle nachvollziehen',
+        'Zeitpunkt, Vorgang, beteiligtes Konto, IP-Adresse, Browserkennung',
+        'Art. 6 Abs. 1 lit. f DSGVO',
+        operator.retentionAuditLogs,
+        sharedRecipients,
+      ],
+      [
+        'Automatisierte Angriffe abwehren',
+        'Zählerstand, nicht umkehrbarer Prüfwert der Kennung, Zeitfenster',
+        'Art. 6 Abs. 1 lit. f DSGVO',
+        operator.retentionRateLimits,
+        operator.databaseProvider,
+      ],
+      [
+        'Meldungen zu Kataloginhalten bearbeiten',
+        'meldendes Konto, gemeldetes Ziel, Grund, Beschreibung',
+        'Art. 6 Abs. 1 lit. f DSGVO',
+        operator.retentionAuditLogs,
+        sharedRecipients,
+      ],
+      ...(mailConfigured
+        ? [
+            [
+              'Bestätigungs- und Passwort-Reset-E-Mails zustellen',
+              'E-Mail-Adresse, einmalig gültiger Link, Zeitpunkt',
+              'Art. 6 Abs. 1 lit. b DSGVO',
+              'bis zum Ablauf oder zur Verwendung des Links',
+              operator.mailProvider,
+            ],
+          ]
+        : []),
+    ],
+  };
+
   return [
+    {
+      heading: 'Kurzfassung',
+      paragraphs: [
+        'Diese Website verarbeitet nur Daten, die für Konto, Anmeldung, Katalog und Missbrauchsschutz erforderlich sind. Es gibt keine Analyse- oder Werbedienste, keine Profile und keine Weitergabe zu Werbezwecken.',
+      ],
+      table: categories,
+    },
     {
       heading: '1. Verantwortlicher',
       paragraphs: [
-        `${operator.name}, ${operator.street}, ${operator.postalCode} ${operator.city}, ${operator.country}`,
-        `Kontakt: ${operator.email}${operator.phone ? `, ${operator.phone}` : ''}`,
+        `Verantwortlich für die Datenverarbeitung auf dieser Website ist ${operator.name}, ${operator.street}, ${operator.postalCode} ${operator.city}, ${operator.country}.`,
+        `Kontakt: ${operator.email}${operator.phone ? `, Telefon ${operator.phone}` : ''}. Die Anbieterangaben stehen auch im [Impressum](/impressum).`,
       ],
     },
     {
       heading: '2. Hosting und Datenbank',
       paragraphs: [
         `Die Website wird bei ${operator.hostingProvider} betrieben (Region: ${operator.hostingRegion}). Die Datenbank wird bei ${operator.databaseProvider} betrieben (Region: ${operator.databaseRegion}).`,
-        'Dabei verarbeitet der Hosting-Anbieter technisch notwendige Verbindungs- und Serverprotokolldaten. Mit den Anbietern sind die erforderlichen Vereinbarungen zur Auftragsverarbeitung zu schließen; die Angaben hierzu sind vor der Veröffentlichung zu prüfen.',
+        'Der Hosting-Anbieter verarbeitet beim Aufruf einer Seite technisch notwendige Verbindungsdaten: IP-Adresse, Zeitpunkt, aufgerufene Adresse, übertragene Datenmenge und Statuscode. Diese Protokolle dienen dem sicheren Betrieb und der Fehleranalyse.',
       ],
     },
     {
       heading: '3. Konto und Anmeldung',
       paragraphs: [
-        'Bei der Registrierung speichern wir die E-Mail-Adresse, den freiwilligen Anzeigenamen, einen bcrypt-Hash des Passworts, die Rolle des Kontos sowie Zeitstempel.',
-        'Ein Konto ist nach der Registrierung sofort nutzbar. Eine Bestätigung der E-Mail-Adresse ist derzeit nicht erforderlich und wird derzeit nicht versendet; die E-Mail-Adresse gilt damit nicht als nachgewiesen bestätigt.',
-        'Rechtsgrundlage und Speicherdauer sind vor der Veröffentlichung zu bestätigen.',
+        'Bei der Registrierung speichert die Website die E-Mail-Adresse, den freiwilligen Anzeigenamen, einen nicht umkehrbaren Prüfwert des Passworts, die Rolle des Kontos und Zeitstempel. Das Passwort selbst wird nicht gespeichert.',
+        'Ein Konto ist nach der Registrierung sofort nutzbar. Eine Bestätigung der E-Mail-Adresse ist nicht erforderlich.',
+        'Bei der Registrierung wird festgehalten, welcher Fassung der Nutzungsbedingungen und der Datenschutzerklärung zugestimmt wurde und zu welchem Zeitpunkt. Diese Angaben werden nicht überschrieben.',
       ],
     },
     {
-      heading: '4. Sitzungen und Cookies',
+      heading: '4. Sitzung und Cookie',
       paragraphs: [
-        'Für die Anmeldung wird ein technisch notwendiges Cookie gesetzt (HttpOnly, SameSite=Lax, unter HTTPS Secure). Es enthält ein verschlüsseltes Token, das auf einen Datensatz in der Sitzungstabelle verweist. Die Sitzung endet nach 30 Tagen, beim Abmelden oder wenn sie widerrufen wird.',
-        `Speicherdauer: ${operator.retentionSessions}`,
-        'Es werden keine Analyse-, Marketing- oder Tracking-Cookies eingesetzt.',
+        `Für die Anmeldung setzt die Website ein technisch notwendiges Cookie mit dem Namen \`${SESSION_COOKIE_NAME}\`, unter HTTPS \`${SESSION_COOKIE_NAME_SECURE}\`. Es ist für Skripte unlesbar (HttpOnly), wird nur bei same-site Anfragen gesendet (SameSite=Lax) und ist unter HTTPS verschlüsselt übertragen (Secure).`,
+        'Der Inhalt ist eine verschlüsselte Sitzungskennung, die auf einen Datensatz in der Datenbank verweist. Weitere Cookies werden nicht gesetzt; insbesondere keine Analyse-, Marketing- oder Tracking-Cookies. Eine Einwilligung ist für dieses Cookie nicht erforderlich, weil es für die Anmeldung unentbehrlich ist.',
+        `Die Sitzung endet nach 30 Tagen, beim Abmelden oder wenn sie beendet wird. ${operator.retentionSessions}`,
       ],
     },
     {
-      heading: '5. Sicherheits- und Audit-Protokoll',
+      heading: '5. Sicherheitsprotokoll',
       paragraphs: [
-        'Sicherheitsrelevante Vorgänge (z. B. Registrierung, Anmeldung, Rollenwechsel, Moderations- und Sperrentscheidungen) werden mit Zeitpunkt, Aktion und einer reduzierten Akteursangabe protokolliert.',
+        'Sicherheitsrelevante Vorgänge werden mit Zeitpunkt, Vorgang, beteiligtem Konto, IP-Adresse und Browserkennung protokolliert. Dazu gehören Registrierung, Anmeldung, Passwort- und Rollenänderungen, Moderationsentscheidungen, Meldungen und Kontosperren. Das Protokoll dient dem Nachweis und der Nachvollziehbarkeit von Entscheidungen.',
         `Speicherdauer: ${operator.retentionAuditLogs}`,
       ],
     },
     {
-      heading: '6. Missbrauchserkennung und Rate-Limits',
+      heading: '6. Missbrauchsschutz',
       paragraphs: [
-        'Zur Abwehr von automatisierten Angriffen und Massenanfragen werden Zähler gespeichert. Der Schlüssel ist ein SHA-256-Digest aus Zweck, normalisierter Kennung und Zeitfenster; E-Mail-Adressen oder IP-Adressen werden dafür nicht im Klartext gespeichert.',
+        'Zur Abwehr automatisierter Anmelde- und Registrierversuche speichert die Website Zähler. Der Schlüssel ist ein nicht umkehrbarer Prüfwert aus Zweck, normalisierter Kennung und Zeitfenster; E-Mail-Adressen und IP-Adressen werden dafür nicht im Klartext abgelegt.',
         `Speicherdauer: ${operator.retentionRateLimits}`,
       ],
     },
     {
       heading: '7. E-Mail-Versand',
+      paragraphs: mailConfigured
+        ? [
+            `Bestätigungs- und Passwort-Reset-E-Mails werden über ${operator.mailProvider} an die bei der Registrierung angegebene Adresse versendet. Die Links sind zeitlich begrenzt und nur einmal verwendbar; gespeichert wird nur ein nicht umkehrbarer Prüfwert des Links.`,
+          ]
+        : [
+            'Der Versand von Bestätigungs- und Passwort-Reset-E-Mails ist derzeit nicht eingerichtet. Es werden daher keine solchen E-Mails versendet und keine Adressen an einen Zustelldienst übergeben.',
+          ],
+    },
+    {
+      heading: '8. Meldungen zu Kataloginhalten',
       paragraphs: [
-        `Ein Versand von Verifizierungs- und Passwort-Reset-E-Mails ist derzeit deaktiviert; es findet kein Versand statt, und es werden dafür keine Nachrichten an einen Zustelldienst übergeben. Vorgesehener Anbieter für eine spätere Aktivierung: ${operator.mailProvider}.`,
-        'Bestehende Bestätigungs- und Passwort-Reset-Funktionen bleiben technisch vorhanden und können nach einer Aktivierung genutzt werden. Über die Aktivierung wird an dieser Stelle informiert.',
+        'Angemeldete Konten können Kataloginhalte melden. Gespeichert werden das meldende Konto, das gemeldete Ziel, der gewählte Grund und eine optionale Beschreibung. Meldungen prüft ausschließlich die Administration; eine Meldung allein löst keine Maßnahme aus.',
       ],
     },
     {
-      heading: '8. Meldungen und Moderation',
+      heading: '9. Empfänger',
       paragraphs: [
-        'Angemeldete Nutzer können Katalogeinträge melden. Gespeichert werden dabei die meldende Person, das gemeldete Ziel, ein Grund und der optionale Freitext der Meldung. Meldungen werden ausschließlich von berechtigten Administratoren geprüft; eine Meldung allein löst keine Maßnahme aus.',
-      ],
-    },
-    {
-      heading: '9. Empfänger und Drittlandtransfers',
-      paragraphs: [
-        'Eine Weitergabe an Dritte erfolgt nur an die genannten Dienstleister (Hosting, Datenbank) sowie im Rahmen gesetzlicher Pflichten. Ob dabei Daten in Drittländer übermittelt werden, hängt von den tatsächlich gewählten Regionen ab und ist vor der Veröffentlichung zu prüfen.',
+        `Empfänger der Daten sind ausschließlich die genannten Dienstleister (${operator.hostingProvider}, ${operator.databaseProvider}${mailConfigured ? `, ${operator.mailProvider}` : ''}) sowie Stellen, an die eine gesetzliche Pflicht zur Weitergabe besteht. Andere Empfänger gibt es nicht.`,
       ],
     },
     {
@@ -291,14 +407,14 @@ export function privacySections(operator: OperatorDetails): LegalSection[] {
     {
       heading: '11. Stand',
       paragraphs: [
-        'Diese Informationen beschreiben den technischen Stand der Anwendung. Sie sind vor einer Veröffentlichung rechtlich zu prüfen und an den tatsächlichen Betrieb anzupassen.',
+        'Diese Erklärung beschreibt die Datenverarbeitung der derzeit betriebenen Website. Änderungen an der Anwendung werden in dieser Erklärung nachgeführt.',
       ],
     },
   ];
 }
 
 /**
- * Nutzungsregeln. Deliberately factual: the site hosts a catalogue of
+ * Nutzungsbedingungen. Deliberately factual: the site hosts a catalogue of
  * third-party submissions, reviews them before publication, and can remove
  * content or restrict accounts. No automatic detection is claimed.
  */
@@ -307,18 +423,19 @@ export function termsSections(operator: OperatorDetails): LegalSection[] {
     {
       heading: '1. Geltungsbereich',
       paragraphs: [
-        `Diese Nutzungsbedingungen gelten für die Nutzung der Website von ${operator.name} sowie für Konten, Entwickleranträge und eingereichte Kataloginhalte.`,
+        `Diese Nutzungsbedingungen gelten für die Nutzung der Website von ${operator.name} sowie für Konten, Entwickleranträge und eingereichte Kataloginhalte. Anbieterangaben und Kontakt stehen im [Impressum](/impressum).`,
       ],
     },
     {
       heading: '2. Konto',
       paragraphs: [
         'Für Entwicklerfunktionen und Meldungen ist ein Konto erforderlich. Zugangsdaten sind geheim zu halten. Ein Konto darf nicht automatisiert oder missbräuchlich angelegt werden.',
+        'Konten haben eine von drei Stufen: registrierte Nutzer, Entwicklerkonten und Administration. Eine Registrierung vergibt immer nur die Stufe „registrierter Nutzer“; Entwicklerrechte werden über einen Antrag vergeben, Administrationsrechte ausschließlich durch die Betreiber.',
         'Ein Anspruch auf ein Konto oder auf besondere Rechte besteht nicht.',
       ],
     },
     {
-      heading: '3. Verbotene Inhalte',
+      heading: '3. Nutzungsregeln',
       paragraphs: [
         'Nicht zulässig sind insbesondere rechtswidrige Inhalte, Malware oder Schadcode, Inhalte, die Rechte Dritter verletzen, irreführende Angaben sowie Spam.',
         'Katalogeinträge sind ausschließlich für das Programm WebRadio bestimmt. Beschreibungen, Screenshots und Versionslinks müssen den eingereichten Inhalt zutreffend darstellen.',
@@ -333,36 +450,35 @@ export function termsSections(operator: OperatorDetails): LegalSection[] {
     {
       heading: '5. Prüfung und Entfernung',
       paragraphs: [
-        'Einreichungen werden vor der Veröffentlichung geprüft. Es findet keine automatische Erkennung aller rechtswidrigen Inhalte statt; eine Prüfung ist keine Garantie für die Rechtmäßigkeit eines Inhalts.',
-        'Bei hinreichendem Verdacht kann ein Inhalt vorläufig eingeschränkt, bei festgestellten Verstößen entfernt und dauerhaft gesperrt werden. Eine Entfernung ist für die einreichende Person nicht erneut einreichbar.',
+        'Einreichungen prüft die Administration vor der Veröffentlichung. Eine solche Prüfung ist keine Garantie für die Rechtmäßigkeit eines Inhalts.',
+        'Bei hinreichendem Verdacht wird ein Inhalt vorläufig eingeschränkt; bei festgestellten Verstößen wird er entfernt und dauerhaft gesperrt. Ein entferntes Angebot kann nicht erneut eingereicht werden.',
       ],
     },
     {
       heading: '6. Meldungen',
       paragraphs: [
-        `Problematische Inhalte können über die Meldefunktion unter /report oder per E-Mail an ${operator.email} gemeldet werden. Eine Meldung ist ein Hinweis und keine Feststellung eines Verstoßes.`,
-        'Meldungen werden von Administratoren geprüft. Bei festgestellten Verstößen kann der Inhalt entfernt oder das Konto gemeldet werden.',
+        'Angemeldete Konten können problematische Inhalte über die [Meldefunktion](/report) melden. Die Meldung enthält das gemeldete Ziel, einen Grund und optional eine Beschreibung. Dasselbe Ziel kann pro Konto einmal gemeldet werden. Alternativ ist eine Nachricht an die im Impressum genannte Kontaktadresse möglich.',
+        'Eine Meldung ist ein Hinweis und keine Feststellung eines Verstoßes. Die Administration prüft jede Meldung und hält die Entscheidung mit Begründung fest. Gegen eine Entscheidung kann Widerspruch über die im Impressum genannte Kontaktadresse eingelegt werden.',
       ],
     },
     {
       heading: '7. Maßnahmen bei Verstößen',
       paragraphs: [
-        'Je nach Schwere, Wiederholung und Umständen kommen eine Verwarnung, die Einschränkung oder Entfernung von Inhalten sowie eine befristete oder dauerhafte Sperrung des Kontos in Betracht.',
+        'Je nach Schwere, Wiederholung und Umständen kommt eine Verwarnung, die Einschränkung oder Entfernung von Inhalten sowie eine befristete oder dauerhafte Sperrung des Kontos in Betracht.',
         'Maßnahmen werden mit Zeitpunkt, handelnder Administration und Begründung protokolliert. Eine Sperre beendet bestehende Sitzungen sofort.',
       ],
     },
     {
       heading: '8. Entwicklerantrag',
       paragraphs: [
-        'Entwicklerrechte werden nicht automatisch mit der Registrierung vergeben. Ein Antrag wird von der Administration geprüft und kann genehmigt oder abgelehnt werden; ein Anspruch auf Freischaltung besteht nicht.',
-        'Der Antrag enthält eine Begründung und optional eine Portfolio-URL. Bei Ablehnung kann der Antrag neu gestellt werden. Bei Verstößen können Entwicklerrechte entzogen werden.',
+        'Entwicklerrechte werden nicht mit der Registrierung vergeben. Ein Antrag enthält eine Begründung von mindestens 50 Zeichen und optional eine Portfolio-Adresse. Pro Konto ist ein offener Antrag möglich; ein gestellter Antrag kann zurückgezogen werden.',
+        'Die Administration entscheidet über den Antrag und begründet eine Ablehnung. Nach einer Ablehnung kann ein neuer Antrag gestellt werden. Bei Verstößen werden Entwicklerrechte entzogen.',
       ],
     },
     {
       heading: '9. Änderungen und Kontakt',
       paragraphs: [
-        `Diese Nutzungsbedingungen können angepasst werden, wenn sich Funktionen oder rechtliche Anforderungen ändern. Rückfragen und Beschwerden: ${operator.email}.`,
-        `Anbieterangaben finden Sie im Impressum auf dieser Seite.`,
+        `Diese Nutzungsbedingungen werden angepasst, wenn sich Funktionen oder rechtliche Anforderungen ändern. Es gilt die bei der Registrierung angenommene Fassung; der Zeitpunkt der Annahme wird festgehalten. Rückfragen und Beschwerden: ${operator.email}.`,
       ],
     },
   ];

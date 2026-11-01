@@ -51,7 +51,7 @@ const LINK_GROUPS = [
     links: [
       { label: 'Impressum', href: '/impressum' },
       { label: 'Datenschutz', href: '/datenschutz' },
-      { label: 'Nutzungsregeln', href: '/nutzungsbedingungen' },
+      { label: 'Nutzungsbedingungen', href: '/nutzungsbedingungen' },
     ],
   },
 ] as const;
@@ -137,7 +137,7 @@ export default function Footer() {
             Plugins und Themes in diesem Katalog sind ausschließlich für WebRadio bestimmt.
           </p>
           <p>
-            Impressum, Datenschutzerklärung und Nutzungsregeln sind jederzeit über die Links im
+            Impressum, Datenschutzerklärung und Nutzungsbedingungen sind jederzeit über die Links im
             Footer erreichbar. Es werden keine Analyse- oder Marketing-Cookies eingesetzt.{' '}
             Die Datenschutzhinweise des Desktop-Programms stehen in der{' '}
             <a

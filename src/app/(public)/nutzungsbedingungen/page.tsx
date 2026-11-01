@@ -27,7 +27,7 @@ export default async function NutzungsbedingungenPage() {
 
   return (
     <LegalDocument
-      title="Nutzungsregeln"
+      title="Nutzungsbedingungen"
       description="Verbindliche Regeln für Konten, Entwicklerzugang, eingereichte Inhalte, Meldungen und mögliche Maßnahmen."
       details={details}
       sections={details.complete ? termsSections(details.operator) : []}

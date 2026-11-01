@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
 import LegalDocument from '@/components/public/LegalDocument';
-import { getLegalDetails, privacySections } from '@/lib/legal';
+import { getLegalDetails, isMailDeliveryConfigured, privacySections } from '@/lib/legal';
 import { getPublishedLegalDocument } from '@/lib/legal-document-service';
 
 export const instant = false;
@@ -10,7 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const { complete } = getLegalDetails();
   return {
     title: 'Datenschutz',
-    description: 'Informationen zur Datenverarbeitung dieser Website.',
+    description:
+      'Welche Daten diese Website verarbeitet: Konto, Sitzung, Sicherheitsprotokoll, Missbrauchsschutz und Meldungen.',
     robots: complete ? undefined : { index: false, follow: false },
   };
 }
@@ -28,9 +29,11 @@ export default async function DatenschutzPage() {
   return (
     <LegalDocument
       title="Datenschutzerklärung"
-      description="Beschreibung der tatsächlichen Datenverarbeitung dieser Website einschließlich Hosting, Datenbank, Sitzungen und Sicherheitsprotokollen."
+      description="Welche Daten diese Website verarbeitet, zu welchem Zweck und wie lange."
       details={details}
-      sections={details.complete ? privacySections(details.operator) : []}
+      sections={
+        details.complete ? privacySections(details.operator, isMailDeliveryConfigured()) : []
+      }
       content={published?.content ?? null}
     />
   );

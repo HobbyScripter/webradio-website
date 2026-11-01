@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
 import LegalDocument from '@/components/public/LegalDocument';
+import ContactForm from '@/components/public/ContactForm';
 import { getLegalDetails, impressumSections } from '@/lib/legal';
+import { isContactFormEnabled } from '@/lib/contact';
 import { getPublishedLegalDocument } from '@/lib/legal-document-service';
 
 export const instant = false;
@@ -26,12 +28,19 @@ export default async function ImpressumPage() {
       : await getPublishedLegalDocument('IMPRESSUM');
 
   return (
-    <LegalDocument
-      title="Impressum"
-      description="Anbieterangaben gemäß § 5 DDG."
-      details={details}
-      sections={details.complete ? impressumSections(details.operator) : []}
-      content={published?.content ?? null}
-    />
+    <>
+      <LegalDocument
+        title="Impressum"
+        description="Anbieterangaben gemäß § 5 DDG."
+        details={details}
+        sections={details.complete ? impressumSections(details.operator) : []}
+        content={published?.content ?? null}
+      />
+      {isContactFormEnabled() ? (
+        <div className="mx-auto -mt-16 w-full max-w-3xl px-4 sm:px-6 lg:px-8">
+          <ContactForm />
+        </div>
+      ) : null}
+    </>
   );
 }
