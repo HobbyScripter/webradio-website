@@ -3,11 +3,14 @@ import { z } from 'zod';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { db } from '@/lib/db';
 import { verifyPassword, hashPassword, AuthError, logServerError } from '@/lib/auth-service';
+import { enforceRateLimits } from '@/lib/rate-limit-http';
+import { passwordSchema } from '@/lib/validations';
+import { validatePassword } from '@/lib/password-policy';
 import { and, not } from '@prisma/orm-postgres/orm-client';
 
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(8).max(128),
+const changePasswordBodySchema = z.object({
+  currentPassword: z.string().min(1, 'Bitte gib dein aktuelles Passwort ein.'),
+  newPassword: passwordSchema,
 });
 
 export async function PUT(request: Request) {
@@ -21,17 +24,29 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const parsed = passwordSchema.safeParse(body);
+    const parsed = changePasswordBodySchema.safeParse(body);
     if (!parsed.success) {
+      const messages = Object.values(parsed.error.flatten().fieldErrors)
+        .flat()
+        .filter((message): message is string => Boolean(message));
       return NextResponse.json(
-        { error: 'VALIDATION_ERROR', message: parsed.error.message },
+        {
+          error: 'VALIDATION_ERROR',
+          message: messages[0] ?? 'Bitte prüfe deine Eingaben.',
+        },
         { status: 400 },
       );
     }
 
     const { currentPassword, newPassword } = parsed.data;
 
-    // Get current user
+    const limited = await enforceRateLimits([
+      { scope: 'passwordChange', identifier: session.user.id },
+    ]);
+    if (limited) {
+      return limited;
+    }
+
     const user = await db.orm.public.User.first({ id: session.user.id });
     if (!user) {
       return NextResponse.json(
@@ -40,28 +55,40 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Verify current password
     const isValid = await verifyPassword(currentPassword, user.passwordHash);
     if (!isValid) {
       return NextResponse.json(
-        { error: 'INVALID_PASSWORD', message: 'Current password is incorrect' },
+        {
+          error: 'INVALID_PASSWORD',
+          message: 'Das aktuelle Passwort ist nicht korrekt.',
+        },
         { status: 401 },
       );
     }
 
-    // Check if new password is different
     const isSamePassword = await verifyPassword(newPassword, user.passwordHash);
     if (isSamePassword) {
       return NextResponse.json(
-        { error: 'SAME_PASSWORD', message: 'New password must be different from current password' },
+        {
+          error: 'SAME_PASSWORD',
+          message: 'Das neue Passwort muss sich vom bisherigen unterscheiden.',
+        },
         { status: 400 },
       );
     }
 
-    // Hash new password
+    // Re-check here as well: the schema is the boundary, this keeps the policy
+    // in force if a future caller bypasses it.
+    const problems = validatePassword(newPassword);
+    if (problems.length > 0) {
+      return NextResponse.json(
+        { error: 'WEAK_PASSWORD', message: problems[0] },
+        { status: 400 },
+      );
+    }
+
     const newPasswordHash = await hashPassword(newPassword);
 
-    // Update user password
     await db.orm.public.User.where({ id: session.user.id }).update({
       passwordHash: newPasswordHash,
     });
@@ -72,7 +99,6 @@ export async function PUT(request: Request) {
       and(s.userId.eq(session.user.id), not(s.id.eq(session.user.sessionId))),
     ).delete();
 
-    // Create audit log
     try {
       await db.orm.public.AuditLog.create({
         userId: session.user.id,
@@ -86,7 +112,7 @@ export async function PUT(request: Request) {
     }
 
     return NextResponse.json(
-      { success: true, message: 'Password changed successfully' },
+      { success: true, message: 'Passwort geändert.' },
       { status: 200 },
     );
   } catch (error) {

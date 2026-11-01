@@ -9,6 +9,7 @@
  */
 import { z } from 'zod';
 import { WEBRADIO_PRODUCT } from './product';
+import { validatePassword } from './password-policy';
 import {
   GitHubRepositoryError,
   normalizeGitHubSourceUrl,
@@ -25,10 +26,13 @@ export const emailSchema = z
   .toLowerCase()
   .trim();
 
-export const passwordSchema = z
-  .string()
-  .min(8, 'Password must be at least 8 characters')
-  .max(128, 'Password must not exceed 128 characters');
+// One shared rule set for registration, password reset and password changes.
+// The messages come from the policy module so client and server cannot drift.
+export const passwordSchema = z.string().superRefine((value, ctx) => {
+  for (const message of validatePassword(value)) {
+    ctx.addIssue({ code: 'custom', message });
+  }
+});
 
 export const slugSchema = z
   .string()

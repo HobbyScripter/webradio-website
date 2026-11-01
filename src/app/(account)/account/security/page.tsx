@@ -7,6 +7,7 @@ import { Container, SectionHeading } from '@/components/ui/layout';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { ShieldIcon, CheckIcon, AlertIcon, ArrowLeftIcon, TrashIcon, CalendarIcon } from '@/components/ui/icons';
 import { accountErrorMessage } from '@/lib/account-messages';
+import { PASSWORD_MIN_LENGTH, validatePassword } from '@/lib/password-policy';
 
 type PasswordFormData = {
   currentPassword: string;
@@ -67,8 +68,9 @@ export default function AccountSecurityPage() {
       return;
     }
     
-    if (passwordForm.newPassword.length < 8) {
-      setError('Das Passwort muss mindestens 8 Zeichen lang sein.');
+    const problems = validatePassword(passwordForm.newPassword);
+    if (problems.length > 0) {
+      setError(problems[0] ?? 'Das Passwort erfüllt die Regeln nicht.');
       return;
     }
 
@@ -242,8 +244,8 @@ export default function AccountSecurityPage() {
               type="password"
               value={passwordForm.newPassword}
               onChange={handlePasswordChange}
-              placeholder="Neues Passwort (min. 8 Zeichen)"
-              minLength={8}
+              placeholder={`Neues Passwort (min. ${PASSWORD_MIN_LENGTH} Zeichen)`}
+              minLength={PASSWORD_MIN_LENGTH}
               required
               className="w-full rounded-xl border border-white/10 bg-[#07070a] px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
             />
@@ -363,8 +365,8 @@ export default function AccountSecurityPage() {
             <span>Überprüfe regelmäßig deine aktiven Sitzungen und beende unbekannte Geräte.</span>
           </li>
           <li className="flex items-start gap-2">
-            <AlertIcon className="h-4 w-4 text-zinc-500 mt-0.5 flex-shrink-0" />
-            <span>Aktiviere die Zwei-Faktor-Authentifizierung (2FA) für zusätzlichen Schutz. (Kommt bald)</span>
+            <ShieldIcon className="h-4 w-4 text-zinc-500 mt-0.5 flex-shrink-0" />
+            <span>Verwende ein möglichst langes, einzigartiges Passwort für dein Konto.</span>
           </li>
         </ul>
       </div>

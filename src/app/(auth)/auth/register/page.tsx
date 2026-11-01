@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { env } from '@/lib/env';
+import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_TEXT, validatePassword } from '@/lib/password-policy';
 
 function RegistrationDisabled() {
   return (
@@ -49,8 +50,9 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Das Passwort muss mindestens 8 Zeichen lang sein.');
+    const passwordProblems = validatePassword(password);
+    if (passwordProblems.length > 0) {
+      setError(passwordProblems[0] ?? 'Das Passwort erfüllt die Regeln nicht.');
       return;
     }
 
@@ -166,14 +168,14 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="register-password" className={labelClass}>
-            Passwort (mindestens 8 Zeichen)
+            Passwort (mindestens {PASSWORD_MIN_LENGTH} Zeichen)
           </label>
           <input
             id="register-password"
             name="password"
             type="password"
             required
-            minLength={8}
+            minLength={PASSWORD_MIN_LENGTH}
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -191,7 +193,7 @@ export default function RegisterPage() {
             name="confirmPassword"
             type="password"
             required
-            minLength={8}
+            minLength={PASSWORD_MIN_LENGTH}
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -248,6 +250,10 @@ export default function RegisterPage() {
           {loading ? 'Konto wird erstellt …' : success ? 'Konto erstellt' : 'Registrieren'}
         </button>
       </form>
+
+      <p className="mt-4 text-[11px] leading-relaxed text-zinc-500">
+        {PASSWORD_RULES_TEXT}
+      </p>
 
       <p className="mt-4 text-[11px] leading-relaxed text-zinc-500">
         Eine Administrator- oder Entwicklerrolle kann nicht über dieses Formular vergeben werden.

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { PASSWORD_MIN_LENGTH, validatePassword } from '@/lib/password-policy';
 
 const inputClass =
   'w-full rounded-xl border border-white/10 bg-[#07070a] px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20';
@@ -28,8 +29,9 @@ function ResetPasswordForm() {
       setError('Die Passwörter stimmen nicht überein.');
       return;
     }
-    if (password.length < 8) {
-      setError('Das Passwort muss mindestens 8 Zeichen lang sein.');
+    const problems = validatePassword(password);
+    if (problems.length > 0) {
+      setError(problems[0] ?? 'Das Passwort erfüllt die Regeln nicht.');
       return;
     }
 
@@ -118,14 +120,14 @@ function ResetPasswordForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="reset-password" className={labelClass}>
-              Neues Passwort (mindestens 8 Zeichen)
+              Neues Passwort (mindestens {PASSWORD_MIN_LENGTH} Zeichen)
             </label>
             <input
               id="reset-password"
               name="password"
               type="password"
               required
-              minLength={8}
+              minLength={PASSWORD_MIN_LENGTH}
               autoComplete="new-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -143,7 +145,7 @@ function ResetPasswordForm() {
               name="confirmPassword"
               type="password"
               required
-              minLength={8}
+              minLength={PASSWORD_MIN_LENGTH}
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}

@@ -58,6 +58,12 @@ export const RATE_LIMITS = {
   // Abuse reports: ten per day per account. Both scopes are per account, never
   // per client-supplied identifier.
   reportCreate: { limit: 10, windowSeconds: 24 * 60 * 60 },
+  // Password changes require the current password, so this only stops a
+  // signed-in script from hammering the hashing function.
+  passwordChange: { limit: 10, windowSeconds: 15 * 60 },
+  // Destructive account actions (deletion, data export). Per account.
+  accountDeletion: { limit: 3, windowSeconds: 24 * 60 * 60 },
+  dataExport: { limit: 3, windowSeconds: 24 * 60 * 60 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 export type RateLimitScope = keyof typeof RATE_LIMITS;
