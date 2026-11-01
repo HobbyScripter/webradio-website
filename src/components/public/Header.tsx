@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { connection } from 'next/server';
 import Link from 'next/link';
 import { getServerAuthSession } from '@/lib/server-auth';
+import { hasPublishedNews } from '@/lib/catalog';
 import Brand from './Brand';
 import MobileMenu from './MobileMenu';
 import { ButtonLink } from '@/components/ui/button';
@@ -9,13 +10,49 @@ import { GitHubIcon } from '@/components/ui/icons';
 import { PRODUCT_REPOSITORY_URL } from '@/lib/site';
 import AccountDropdown from './AccountDropdown';
 
-const NAV_ITEMS = [
+type NavItem = { label: string; href: string; disabled?: boolean };
+
+const NAV_ITEMS: NavItem[] = [
   { label: 'Plugins', href: '/plugins' },
   { label: 'Themes', href: '/themes' },
   { label: 'Releases', href: '/releases' },
   { label: 'Dokumentation', href: '/docs' },
-  { label: 'Neuigkeiten', href: '/news' },
-] as const;
+];
+
+const NEWS_ITEM: NavItem = { label: 'Neuigkeiten', href: '/news' };
+
+/**
+ * "Neuigkeiten" only appears once at least one article is published and dated.
+ * The check runs on the server, so an empty news section is not advertised in
+ * the navigation at all.
+ */
+async function visibleNavItems(): Promise<NavItem[]> {
+  try {
+    const hasNews = await hasPublishedNews();
+    return hasNews ? [...NAV_ITEMS, NEWS_ITEM] : NAV_ITEMS;
+  } catch {
+    return NAV_ITEMS;
+  }
+}
+
+async function MainNav() {
+  await connection();
+  const items = await visibleNavItems();
+
+  return (
+    <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
+      {items.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-white"
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
 
 /** Signed-out controls, used for anonymous visitors. */
 function SignedOutControls() {
@@ -66,12 +103,12 @@ async function AuthControls() {
  */
 async function AuthMobileMenu() {
   await connection();
-  const session = await getServerAuthSession();
+  const [session, items] = await Promise.all([getServerAuthSession(), visibleNavItems()]);
   const isAuthenticated = Boolean(session?.user);
 
   return (
     <MobileMenu
-      items={NAV_ITEMS}
+      items={items}
       isAuthenticated={isAuthenticated}
       userEmail={session?.user.email ?? ''}
       userRole={session?.user.role ?? 'USER'}
@@ -94,17 +131,9 @@ export default function Header() {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-7">
           <Brand />
-          <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-white"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <Suspense fallback={<nav aria-label="Hauptnavigation" className="hidden md:block" />}>
+            <MainNav />
+          </Suspense>
         </div>
 
         {/* Desktop Navigation - Right Side */}

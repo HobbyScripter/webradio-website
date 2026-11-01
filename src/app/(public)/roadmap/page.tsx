@@ -10,10 +10,22 @@ import { listRoadmapItems } from '@/lib/catalog';
 import { formatDate } from '@/lib/format';
 import { absoluteUrl } from '@/lib/site';
 
+const ROADMAP_DESCRIPTION =
+  'Woran beim WebRadio-Projekt gearbeitet wird: geplante, laufende und abgeschlossene Vorhaben mit Status und Zieltermin.';
+
 export const metadata: Metadata = {
   title: 'Roadmap',
-  description:
-    'Öffentliche Projekt-Roadmap von WebRadio. Einträge und Status stammen aus der Datenbank und werden nicht redaktionell erfunden.',
+  description: ROADMAP_DESCRIPTION,
+  openGraph: {
+    title: 'Roadmap · WebRadio',
+    description: ROADMAP_DESCRIPTION,
+    ...(absoluteUrl('/roadmap') ? { url: absoluteUrl('/roadmap') } : {}),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Roadmap · WebRadio',
+    description: ROADMAP_DESCRIPTION,
+  },
   ...(absoluteUrl('/roadmap') ? { alternates: { canonical: absoluteUrl('/roadmap') } } : {}),
 };
 
@@ -34,7 +46,7 @@ async function RoadmapContent() {
     return (
       <ErrorState
         title="Roadmap konnte nicht geladen werden"
-        description="Die Datenbank ist momentan nicht erreichbar. Es werden keine Ersatzphasen angezeigt."
+        description="Die Roadmap ist momentan nicht erreichbar. Bitte versuche es später erneut."
         retryHref="/roadmap"
       />
     );

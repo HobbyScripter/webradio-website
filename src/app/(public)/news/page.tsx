@@ -1,21 +1,57 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { io } from 'next/cache';
 import { ButtonLink } from '@/components/ui/button';
 import { Container, PageHeader } from '@/components/ui/layout';
-import { ArrowRightIcon, CalendarIcon, NewsIcon } from '@/components/ui/icons';
+import { ArrowRightIcon, CalendarIcon, ExternalLinkIcon, GitHubIcon, NewsIcon } from '@/components/ui/icons';
 import { EmptyState, ErrorState } from '@/components/ui/states';
 import { listPublishedNews } from '@/lib/catalog';
 import { formatDate } from '@/lib/format';
-import { absoluteUrl } from '@/lib/site';
+import {
+  PRODUCT_DISCUSSIONS_URL,
+  PRODUCT_RELEASES_URL,
+  absoluteUrl,
+} from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: 'Neuigkeiten',
-  description:
-    'Veröffentlichte Neuigkeiten und Projektupdates zu WebRadio. Einträge erscheinen erst, wenn sie veröffentlicht und datiert sind.',
-  ...(absoluteUrl('/news') ? { alternates: { canonical: absoluteUrl('/news') } } : {}),
-};
+// The page decides per request whether articles exist (navigation and robots),
+// so it must not be prerendered with an empty database.
+export const instant = false;
+
+const TITLE = 'Neuigkeiten';
+const DESCRIPTION = 'Projektupdates und Ankündigungen zu WebRadio.';
+
+/**
+ * The section stays out of search indexes while it has no articles: a list of
+ * nothing is not useful for a visitor arriving from a search engine.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  await connection();
+  let hasEntries = false;
+  try {
+    const entries = await listPublishedNews(1);
+    hasEntries = entries.length > 0;
+  } catch {
+    hasEntries = false;
+  }
+
+  return {
+    title: TITLE,
+    description: DESCRIPTION,
+    ...(hasEntries ? {} : { robots: { index: false, follow: true } }),
+    openGraph: {
+      title: `${TITLE} · WebRadio`,
+      description: DESCRIPTION,
+      ...(absoluteUrl('/news') ? { url: absoluteUrl('/news') } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title: `${TITLE} · WebRadio`,
+      description: DESCRIPTION,
+    },
+  };
+}
 
 async function NewsContent() {
   await io();
@@ -27,7 +63,7 @@ async function NewsContent() {
     return (
       <ErrorState
         title="Neuigkeiten konnten nicht geladen werden"
-        description="Die Datenbank ist momentan nicht erreichbar. Es werden keine Ersatzmeldungen angezeigt."
+        description="Die Beiträge sind momentan nicht erreichbar. Bitte versuche es später erneut."
         retryHref="/news"
       />
     );
@@ -37,12 +73,24 @@ async function NewsContent() {
     return (
       <EmptyState
         icon={<NewsIcon className="h-5 w-5" />}
-        title="Noch keine veröffentlichten Neuigkeiten"
-        description="Es sind derzeit keine veröffentlichten und datierten Beiträge hinterlegt. Projektberichte findest du bis dahin in der Dokumentation im Repository."
+        title="Hier gibt es noch nichts zu lesen"
+        description="Neue Beiträge erscheinen, sobald es etwas zu berichten gibt. Aktuelle Versionen und den Austausch findest du solange an diesen Stellen:"
         action={
-          <ButtonLink href="/docs#dokumente" variant="secondary" size="sm">
-            Zur Dokumentation
-          </ButtonLink>
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href={PRODUCT_RELEASES_URL} variant="secondary" size="sm">
+              <GitHubIcon className="h-4 w-4" /> Releases <ExternalLinkIcon className="h-3 w-3" />
+            </ButtonLink>
+            <ButtonLink
+              href={`${PRODUCT_RELEASES_URL}.atom`}
+              variant="ghost"
+              size="sm"
+            >
+              Release-Feed <ExternalLinkIcon className="h-3 w-3" />
+            </ButtonLink>
+            <ButtonLink href={PRODUCT_DISCUSSIONS_URL} variant="ghost" size="sm">
+              Austausch <ExternalLinkIcon className="h-3 w-3" />
+            </ButtonLink>
+          </div>
         }
       />
     );
@@ -51,10 +99,7 @@ async function NewsContent() {
   return (
     <div className="space-y-5">
       {entries.map((entry) => (
-        <article
-          key={entry.id}
-          className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6"
-        >
+        <article key={entry.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
             {formatDate(entry.publishedAt) ? (
               <span className="inline-flex items-center gap-1.5">
@@ -86,8 +131,8 @@ export default function NewsPage() {
     <>
       <PageHeader
         eyebrow="Projekt"
-        title="Neuigkeiten"
-        description="Veröffentlichte Projektupdates aus der Datenbank. Beiträge ohne Veröffentlichungsdatum oder mit isPublished = false bleiben unsichtbar."
+        title={TITLE}
+        description="Projektupdates und Ankündigungen rund um WebRadio."
       />
       <Container className="py-10">
         <Suspense
