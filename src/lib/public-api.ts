@@ -21,16 +21,24 @@ const NO_STORE = 'no-store';
 
 export function publicJson(
   body: unknown,
-  init: { status?: number; cache?: boolean } = {},
+  init: { status?: number; cache?: boolean; cacheControl?: string } = {},
 ): NextResponse {
   return NextResponse.json(body, {
     status: init.status ?? 200,
     headers: {
-      'Cache-Control': init.cache === false ? NO_STORE : PUBLIC_CACHE_CONTROL,
+      'Cache-Control':
+        init.cacheControl ?? (init.cache === false ? NO_STORE : PUBLIC_CACHE_CONTROL),
       'X-Content-Type-Options': 'nosniff',
     },
   });
 }
+
+/**
+ * Release data comes from GitHub, is not personal and changes at most a few
+ * times per week. A short shared cache keeps the GitHub rate limit comfortable;catalogue
+ * responses stay `no-store` because a withdrawal must take effect immediately.
+ */
+export const RELEASES_CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=600';
 
 export type CatalogQueryResult =
   | { ok: true; query: CatalogQuery }

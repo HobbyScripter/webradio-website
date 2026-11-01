@@ -1,6 +1,6 @@
 import { io } from 'next/cache';
 import { GitHubError, getGitHubSnapshot } from '@/lib/github';
-import { publicJson } from '@/lib/public-api';
+import { RELEASES_CACHE_CONTROL, publicJson } from '@/lib/public-api';
 
 /**
  * GET /api/releases
@@ -9,9 +9,10 @@ import { publicJson } from '@/lib/public-api';
  * reads the website database Release table and never returns a download URL
  * that did not come from a validated GitHub asset of this repository.
  *
- * Responses are `no-store`: a withdrawn or replaced release must not survive in
- * a shared CDN cache. The server-side GitHub client keeps a bounded five-minute
- * cache and reports `source.stale` when it had to use older public data.
+ * Responses are cacheable for a short time (`s-maxage=300` with
+ * `stale-while-revalidate`), because release data is public and changes rarely.
+ * Catalogue endpoints keep `no-store`: a withdrawn entry must disappear at
+ * once. The payload reports `source.fetchedAt` and `source.stale`.
  */
 export async function GET() {
   // Keep the route out of the build-time prerender attempt: GitHub is a
@@ -47,7 +48,7 @@ export async function GET() {
         fetchedAt: snapshot.fetchedAt,
         stale: snapshot.stale,
       },
-    });
+    }, { cacheControl: RELEASES_CACHE_CONTROL });
   } catch (error) {
     const code = error instanceof GitHubError ? error.code : 'GITHUB_UNAVAILABLE';
     // Log only a stable code. Never log response bodies, headers, tokens or

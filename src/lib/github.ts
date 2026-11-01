@@ -25,7 +25,8 @@ export const GITHUB_RELEASES_URL = `${GITHUB_REPOSITORY_URL}/releases` as const;
 export const GITHUB_LATEST_RELEASE_URL = `${GITHUB_RELEASES_URL}/latest` as const;
 
 const GITHUB_API_BASE = 'https://api.github.com';
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_SECONDS = 300;
+const CACHE_TTL_MS = CACHE_TTL_SECONDS * 1000;
 const MAX_STALE_AGE_MS = 24 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 6_000;
 const MAX_RELEASES = 40;
@@ -212,7 +213,10 @@ async function fetchFromGitHub<T>(
     response = await fetch(url, {
       headers: githubHeaders(accept),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      cache: 'no-store',
+      // The Next data cache is shared across server instances, so a deployment
+      // does not hammer GitHub once per instance. The in-memory entry below is
+      // only the bounded stale fallback for a GitHub outage.
+      next: { revalidate: CACHE_TTL_SECONDS },
     });
   } catch (error) {
     const isTimeout = error instanceof Error && error.name === 'TimeoutError';

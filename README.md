@@ -178,17 +178,25 @@ Die Routen liefern keine E-Mail-Adressen, Sessions, Audit-Logs oder Entwürfe.
   Metadaten (`*.yml`, `*.blockmap`, `SHA256SUMS.txt`) sind keine Downloads.
 - Download-URLs müssen auf `github.com/YourEliteSystems/WebRadio/releases/download/`
   zeigen. Dateigröße und SHA-256-Digest stammen aus den GitHub-Asset-Daten.
-- Erfolgreiche Antworten werden pro Serverinstanz fünf Minuten
-  zwischengespeichert. Bei einem Ausfall oder Rate-Limit dient ein höchstens
-  24 Stunden alter Bestand als ausdrücklich gekennzeichneter Fallback. Die
-  öffentliche API sendet `Cache-Control: no-store`; der Datenstand wird als
+- GitHub-Antworten laufen über den Next-Daten-Cache (`revalidate` 300 s), der
+  über Serverinstanzen hinweg geteilt wird. Bei einem Ausfall oder Rate-Limit
+  dient ein höchstens 24 Stunden alter Bestand als ausdrücklich gekennzeichneter
+  Fallback. `/api/releases` sendet `s-maxage=300, stale-while-revalidate=600`;
+  die Katalog-Endpunkte bleiben `no-store`. Der Datenstand wird als
   `source.fetchedAt` und `source.stale` ausgegeben.
-- Ohne Token gilt das öffentliche GitHub-Rate-Limit. Ein serverseitiger
-  `GITHUB_TOKEN` ist optional und wird nie an den Browser ausgeliefert.
+- Ohne Token gilt das öffentliche GitHub-Rate-Limit. Für den Produktivbetrieb
+  ist ein serverseitiger `GITHUB_TOKEN` empfohlen (nur `contents: read`); er
+  wird nie an den Browser ausgeliefert.
 
 Ohne `NEXT_PUBLIC_SITE_URL` werden keine Canonical-URLs, Open-Graph-URLs oder
-Sitemap-Einträge erzeugt. Datenschutz und Impressum sind noch nicht
-veröffentlicht; die Website verlinkt daher bewusst keine Platzhalterseiten.
+Sitemap-Einträge erzeugt.
+
+Impressum, Datenschutzerklärung und Nutzungsbedingungen werden aus einem
+zentralen Betreiberdatensatz erzeugt (`LEGAL_*` in `.env.example`). Fehlen
+Pflichtangaben, zeigt die Seite die fehlenden Punkte statt Platzhaltern und
+bleibt aus Suchindizes ausgeschlossen. Das Kontaktformular im Impressum ist
+vorbereitet und erscheint nur mit `CONTACT_FORM_ENABLED=true` und
+eingerichtetem E-Mail-Versand.
 
 Den vollständigen Stand, die Testergebnisse und offenen Punkte dokumentiert
 [`docs/PHASE4_REPORT.md`](docs/PHASE4_REPORT.md).
@@ -315,7 +323,9 @@ Alle Variablen sind in [`.env.example`](.env.example) dokumentiert (nur Platzhal
 | Variable | Beschreibung |
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | Öffentliche Basis-URL; aktiviert Canonical-URLs, Open Graph und Sitemap |
-| `GITHUB_TOKEN` | Optionaler serverseitiger Token für höhere GitHub-API-Limits; niemals `NEXT_PUBLIC_*` |
+| `GITHUB_TOKEN` | Serverseitiger Token für höhere GitHub-API-Limits (Produktion empfohlen, nur `contents: read`); niemals `NEXT_PUBLIC_*` |
+| `REGISTRATION_ENABLED` | `false` schaltet die Registrierung ab; Standard: aktiv |
+| `CONTACT_FORM_ENABLED` | `true` aktiviert das vorbereitete Kontaktformular im Impressum (zusätzlich ist E-Mail-Versand nötig) |
 | `TEST_DATABASE_URL` | Ausschließlich für `npm run test:integration` (Name muss auf `_test` enden) |
 | `TRUST_PROXY` | `1` nur hinter einem Proxy, der `x-forwarded-for` überschreibt; sonst bleiben IP-Limits aus |
 | `EMAIL_FROM`, `EMAIL_SERVER_*` | SMTP für Reset- und Verifizierungsmails; ohne sie nur lokale Outbox |

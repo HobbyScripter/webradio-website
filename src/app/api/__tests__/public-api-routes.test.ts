@@ -200,7 +200,11 @@ describe('GET /api/releases', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    // Release data is public and changes rarely: a short shared cache is fine.
+    // Catalogue endpoints keep `no-store` so a withdrawal is immediate.
+    expect(response.headers.get('Cache-Control')).toBe(
+      'public, s-maxage=300, stale-while-revalidate=600',
+    );
     expect(body.data).toHaveLength(1);
     expect(body.data[0]).toMatchObject({
       tagName: 'v1.0.6',

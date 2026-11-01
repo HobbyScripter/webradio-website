@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import ReleaseAssets from '../public/ReleaseAssets';
-import ReleaseNotes from '../public/ReleaseNotes';
+import ReleaseNotes, { truncateAtParagraph } from '../public/ReleaseNotes';
 import type { GitHubAsset } from '@/lib/github';
 
 const expectedDigest = 'sha256:' + 'a'.repeat(64);
@@ -61,5 +61,36 @@ describe('ReleaseNotes', () => {
     expect(screen.getByText('Stabiler Build')).toBeInTheDocument();
     expect(container.querySelector('script')).toBeNull();
     expect(screen.getByText('alert(1)')).toBeInTheDocument();
+  });
+
+  it('drops repeated boilerplate header rows', () => {
+    render(
+      <ReleaseNotes notes={'Release Stage: stable\nVersion: 1.2.3\nRelease Date: 1. Oktober\n\n- Neu'} />,
+    );
+
+    expect(screen.queryByText(/Release Stage/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Release Date/)).not.toBeInTheDocument();
+    expect(screen.getByText('Neu')).toBeInTheDocument();
+  });
+
+  it('collapses fenced technical details', () => {
+    render(<ReleaseNotes notes={'Kurz\n\n```\nnpm run build\n```'} />);
+
+    expect(screen.getByText('Technische Details')).toBeInTheDocument();
+    expect(screen.getByText('npm run build')).toBeInTheDocument();
+  });
+});
+
+describe('truncateAtParagraph', () => {
+  it('does not cut inside a word', () => {
+    const text = 'Erster Absatz mit Inhalt.\n\nZweiter Absatz mit deutlich mehr Text als erlaubt.';
+    const cut = truncateAtParagraph(text, 40);
+
+    expect(cut.endsWith('Inhalt.')).toBe(true);
+    expect(text.startsWith(cut)).toBe(true);
+  });
+
+  it('returns short text unchanged', () => {
+    expect(truncateAtParagraph('Kurz.', 100)).toBe('Kurz.');
   });
 });
