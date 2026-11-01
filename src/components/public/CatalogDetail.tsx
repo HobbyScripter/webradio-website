@@ -13,27 +13,45 @@ import {
   PlugIcon,
 } from '@/components/ui/icons';
 import type { PluginDetail, ThemeDetail } from '@/lib/catalog';
+import {
+  formatCompatibility,
+  githubLinkLabel,
+  isPreviewVersion,
+  requiresNewerStable,
+} from '@/lib/catalog-display';
 import { formatDate, formatFileSize } from '@/lib/format';
 import { WEBRADIO_PRODUCT_LABEL } from '@/lib/product';
-import { safeHttpUrl } from '@/lib/site';
+import { PRODUCT_PLUGIN_SDK_URL, PRODUCT_THEME_SDK_URL, safeHttpUrl } from '@/lib/site';
+import MarkdownText from '@/components/public/MarkdownText';
+import ChecksumCopy from '@/components/public/ChecksumCopy';
 
 type DetailItem = PluginDetail | ThemeDetail;
 
 export default function CatalogDetail({
   item,
   kind,
+  latestStableVersion = null,
 }: {
   item: DetailItem;
   kind: 'plugin' | 'theme';
+  /** Newest stable WebRadio tag, when the release data is available. */
+  latestStableVersion?: string | null;
 }) {
   const isPlugin = kind === 'plugin';
   const Icon = isPlugin ? PlugIcon : PaletteIcon;
   const basePath = isPlugin ? '/plugins' : '/themes';
   const kindLabel = isPlugin ? 'Plugin' : 'Theme';
+  const sdkUrl = isPlugin ? PRODUCT_PLUGIN_SDK_URL : PRODUCT_THEME_SDK_URL;
   const latest = item.versions.find((version) => version.isLatest) ?? item.versions[0] ?? null;
   const downloadUrl = safeHttpUrl(latest?.fileUrl);
   const githubUrl = safeHttpUrl(item.developer.githubUrl);
   const websiteUrl = safeHttpUrl(item.developer.websiteUrl);
+  const sourceUrl = safeHttpUrl(item.sourceUrl);
+  const compatibility = latest
+    ? formatCompatibility(latest.minWebradioVersion, latest.maxWebradioVersion)
+    : null;
+  const needsBeta =
+    latest !== null && requiresNewerStable(latest.minWebradioVersion, latestStableVersion);
 
   return (
     <>
@@ -65,18 +83,21 @@ export default function CatalogDetail({
                 <Badge tone="neutral">
                   <Icon className="h-3 w-3" /> {kindLabel}
                 </Badge>
+                <Badge tone="neutral">Community</Badge>
                 <Badge tone="neutral">Für {WEBRADIO_PRODUCT_LABEL}</Badge>
                 {latest ? <Badge tone="accent">Version {latest.version}</Badge> : null}
-                <Badge tone="success">Veröffentlicht</Badge>
+                {latest && isPreviewVersion(latest.version) ? (
+                  <Badge tone="warning">Vorschauversion vor 1.0</Badge>
+                ) : null}
               </div>
 
               <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 {item.name}
               </h1>
               <p className="mt-2 text-sm text-zinc-400">Entwickelt von {item.developer.displayName}</p>
-              <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-zinc-300">
-                {item.description}
-              </p>
+              <div className="mt-5">
+                <MarkdownText text={item.description} className="text-base leading-relaxed text-zinc-300" />
+              </div>
 
               {item.tags.length > 0 ? (
                 <div className="mt-5 flex flex-wrap gap-2">
@@ -101,22 +122,25 @@ export default function CatalogDetail({
                   <p className="mt-2 font-mono text-sm text-zinc-200">v{latest.version}</p>
                   <dl className="mt-3 space-y-2 text-xs">
                     <div className="flex justify-between gap-3">
-                      <dt className="text-zinc-500">Größe</dt>
+                      <dt className="text-zinc-500">Paketgröße</dt>
                       <dd className="text-zinc-300">{formatFileSize(latest.fileSize) ?? 'unbekannt'}</dd>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <dt className="text-zinc-500">Veröffentlicht</dt>
+                      <dt className="text-zinc-500">Zuletzt aktualisiert</dt>
                       <dd className="text-zinc-300">{formatDate(latest.releasedAt) ?? 'unbekannt'}</dd>
                     </div>
                     <div className="flex justify-between gap-3">
                       <dt className="text-zinc-500">Kompatibel</dt>
-                      <dd className="text-right text-zinc-300">
-                        {latest.minWebradioVersion ?? latest.maxWebradioVersion
-                          ? `${latest.minWebradioVersion ?? '–'} bis ${latest.maxWebradioVersion ?? '–'}`
-                          : 'nicht angegeben'}
-                      </dd>
+                      <dd className="text-right text-zinc-300">{compatibility ?? 'alle Versionen'}</dd>
                     </div>
                   </dl>
+
+                  {needsBeta && latest.minWebradioVersion ? (
+                    <p className="mt-3 rounded-lg border border-amber-400/20 bg-amber-500/[0.06] p-3 text-xs leading-relaxed text-amber-200/90">
+                      Benötigt WebRadio {latest.minWebradioVersion}, derzeit nur als Beta
+                      {latestStableVersion ? ` (stabil ist ${latestStableVersion})` : ''}.
+                    </p>
+                  ) : null}
 
                   {downloadUrl ? (
                     <ButtonLink href={downloadUrl} size="sm" className="mt-4 w-full">
@@ -124,18 +148,15 @@ export default function CatalogDetail({
                     </ButtonLink>
                   ) : (
                     <p className="mt-4 rounded-lg border border-amber-400/15 bg-amber-500/[0.05] p-3 text-xs leading-relaxed text-amber-200/90">
-                      Für diese Version ist kein gültiger Download-Link hinterlegt.
+                      Für diese Version ist kein Download-Link hinterlegt.
                     </p>
                   )}
 
-                  <details className="mt-4">
-                    <summary className="cursor-pointer text-[11px] font-medium text-zinc-500 hover:text-zinc-300">
-                      SHA-256-Prüfsumme
-                    </summary>
-                    <code className="mt-2 block break-all rounded-lg bg-black/40 p-2 font-mono text-[10px] text-zinc-400">
-                      {latest.checksum}
-                    </code>
-                  </details>
+                  {latest.checksum ? (
+                    <ChecksumCopy checksum={latest.checksum} />
+                  ) : (
+                    <p className="mt-4 text-xs text-zinc-500">Für diese Version ist kein Prüfwert hinterlegt.</p>
+                  )}
                 </>
               ) : (
                 <p className="mt-2 rounded-lg border border-dashed border-white/10 p-3 text-xs leading-relaxed text-zinc-500">
@@ -163,7 +184,7 @@ export default function CatalogDetail({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-xs font-medium text-zinc-300 transition-colors hover:text-white"
                     >
-                      <GitHubIcon className="h-3.5 w-3.5" /> GitHub-Profil
+                      <GitHubIcon className="h-3.5 w-3.5" /> {githubLinkLabel(githubUrl)}
                       <ExternalLinkIcon className="h-3 w-3 text-zinc-500" />
                     </a>
                   ) : null}
@@ -188,6 +209,50 @@ export default function CatalogDetail({
       </div>
 
       <Container className="space-y-12 py-12">
+        <section aria-labelledby="installation-heading">
+          <h2 id="installation-heading" className="text-lg font-semibold text-white">
+            Installation
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+            Lade das Paket herunter und prüfe die Prüfsumme. Jedes {kindLabel} liegt in einem eigenen
+            Ordner mit einer <code className="font-mono text-zinc-300">manifest.json</code>; genau
+            diesen Ordner lädt das Programm.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+              <h3 className="text-sm font-semibold text-zinc-200">Windows</h3>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-zinc-400">
+                <li>WebRadio starten und im Programm den Bereich für {kindLabel}s öffnen.</li>
+                <li>Dort den Ordner für Erweiterungen öffnen.</li>
+                <li>Das entpackte Paket als eigenen Ordner hineinlegen.</li>
+                <li>Das Programm neu starten und das {kindLabel} aktivieren.</li>
+              </ol>
+            </div>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+              <h3 className="text-sm font-semibold text-zinc-200">Linux</h3>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-zinc-400">
+                <li>WebRadio starten und im Programm den Bereich für {kindLabel}s öffnen.</li>
+                <li>Dort den Ordner für Erweiterungen öffnen.</li>
+                <li>Das entpackte Paket als eigenen Ordner hineinlegen.</li>
+                <li>Das Programm neu starten und das {kindLabel} aktivieren.</li>
+              </ol>
+            </div>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+            Der Erweiterungsordner liegt im Benutzerverzeichnis der Anwendung; sein vollständiger
+            Pfad unterscheidet sich je nach Betriebssystem. Details stehen im{' '}
+            <a
+              href={sdkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-400 underline-offset-4 hover:text-white hover:underline"
+            >
+              SDK
+            </a>
+            .
+          </p>
+        </section>
+
         {item.screenshots.length > 0 ? (
           <section aria-labelledby="screenshots-heading">
             <h2 id="screenshots-heading" className="text-lg font-semibold text-white">
@@ -259,9 +324,20 @@ export default function CatalogDetail({
                         {formatFileSize(version.fileSize)
                           ? ` · ${formatFileSize(version.fileSize)}`
                           : ''}
+                        {formatCompatibility(version.minWebradioVersion, version.maxWebradioVersion)
+                          ? ` · ab WebRadio ${formatCompatibility(
+                              version.minWebradioVersion,
+                              version.maxWebradioVersion,
+                            )}`
+                          : ''}
                       </p>
                       {version.description ? (
-                        <p className="mt-1 text-sm text-zinc-400">{version.description}</p>
+                        <div className="mt-1">
+                          <MarkdownText
+                            text={version.description}
+                            className="text-sm text-zinc-400"
+                          />
+                        </div>
                       ) : null}
                     </div>
                     {fileUrl ? (
@@ -283,12 +359,46 @@ export default function CatalogDetail({
           )}
         </section>
 
+        {(sourceUrl || githubUrl) ? (
+          <section aria-labelledby="source-heading">
+            <h2 id="source-heading" className="text-lg font-semibold text-white">
+              Quellcode
+            </h2>
+            <ul className="mt-3 space-y-2 text-sm">
+              {sourceUrl ? (
+                <li>
+                  <a
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-zinc-300 underline-offset-4 hover:text-white hover:underline"
+                  >
+                    <GitHubIcon className="h-4 w-4" /> Quellcode des {kindLabel}s
+                    <ExternalLinkIcon className="h-3 w-3 text-zinc-500" />
+                  </a>
+                </li>
+              ) : null}
+              {githubUrl ? (
+                <li>
+                  <a
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-zinc-300 underline-offset-4 hover:text-white hover:underline"
+                  >
+                    <ExternalLinkIcon className="h-4 w-4" /> {githubLinkLabel(githubUrl)}
+                  </a>
+                </li>
+              ) : null}
+            </ul>
+          </section>
+        ) : null}
+
         <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
             <PackageIcon className="h-5 w-5 text-zinc-500" />
             <p className="text-sm text-zinc-400">
-              Alle Angaben stammen aus dem öffentlichen Katalog. Private Entwürfe und abgelehnte
-              Einträge werden nicht ausgeliefert.
+              Fragen zum {kindLabel}? Melde dich beim Entwickler oder reiche einen Hinweis ein.
             </p>
           </div>
           <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">

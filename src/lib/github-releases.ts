@@ -23,6 +23,7 @@ import {
   parseGitHubRepositoryInput,
   type GitHubRepositoryRef,
 } from './github-repository';
+import { isReleaseMetadataAsset, rankReleaseAssets } from './release-asset-selection';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -226,6 +227,14 @@ function normalizeAsset(
     return null;
   }
 
+  // Updater metadata (latest.yml, *.blockmap, checksum lists, small JSON
+  // manifests) is not an installable package. Offering it as the download is
+  // what produced the "575 B with checksum" entry: a manifest instead of the
+  // archive.
+  if (isReleaseMetadataAsset(raw.name)) {
+    return null;
+  }
+
   const downloadUrl = safeAssetDownloadUrl(raw.browser_download_url, ref);
   if (!downloadUrl) {
     return null;
@@ -266,10 +275,13 @@ function normalizeRelease(
     htmlUrl,
     isPrerelease: raw.prerelease,
     notes: (raw.body ?? '').trim().slice(0, MAX_NOTES_CHARS),
-    assets: raw.assets
-      .map((asset) => normalizeAsset(asset, ref))
-      .filter((asset): asset is GitHubReleaseAssetOption => asset !== null)
-      .slice(0, MAX_ASSETS),
+    // Packages are listed first so a pre-filled form uses the archive, not a
+    // side file that happens to be uploaded earlier.
+    assets: rankReleaseAssets(
+      raw.assets
+        .map((asset) => normalizeAsset(asset, ref))
+        .filter((asset): asset is GitHubReleaseAssetOption => asset !== null),
+    ).slice(0, MAX_ASSETS),
   };
 }
 

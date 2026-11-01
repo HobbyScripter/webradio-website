@@ -1,23 +1,38 @@
+'use client';
+
 import Link from 'next/link';
+import { useRef } from 'react';
 import type { CatalogQuery } from '@/lib/catalog-query';
 import { SearchIcon } from '@/components/ui/icons';
 import { buttonStyles } from '@/components/ui/button';
 
+/**
+ * Search and sort for the catalogue.
+ *
+ * Sorting applies immediately (it is a plain GET form that submits on change),
+ * so there is no "Anwenden" button to hunt for. The sort control only appears
+ * once there is something to sort. Search still submits with Enter; the
+ * visually hidden submit button keeps the form usable without JavaScript.
+ */
 export default function CatalogToolbar({
   action,
   query,
   idPrefix,
   placeholder,
+  showSort = false,
 }: {
   action: string;
   query: CatalogQuery;
   idPrefix: string;
   placeholder: string;
+  showSort?: boolean;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const hasFilters = query.q.length > 0 || query.sort !== 'newest';
 
   return (
     <form
+      ref={formRef}
       action={action}
       method="get"
       role="search"
@@ -40,22 +55,28 @@ export default function CatalogToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        <label htmlFor={`${idPrefix}-sort`} className="sr-only">
-          Sortierung
-        </label>
-        <select
-          id={`${idPrefix}-sort`}
-          name="sort"
-          defaultValue={query.sort}
-          className="rounded-xl border border-white/10 bg-[#0b0b10] px-3 py-2.5 text-sm text-zinc-200 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-        >
-          <option value="newest">Neueste zuerst</option>
-          <option value="name">Name (A–Z)</option>
-          <option value="downloads">Meiste Downloads</option>
-        </select>
+        {showSort ? (
+          <>
+            <label htmlFor={`${idPrefix}-sort`} className="sr-only">
+              Sortierung
+            </label>
+            <select
+              id={`${idPrefix}-sort`}
+              name="sort"
+              defaultValue={query.sort}
+              onChange={() => formRef.current?.requestSubmit()}
+              className="rounded-xl border border-white/10 bg-[#0b0b10] px-3 py-2.5 text-sm text-zinc-200 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+            >
+              <option value="newest">Neueste zuerst</option>
+              <option value="name">Name (A–Z)</option>
+              <option value="downloads">Meiste Downloads</option>
+            </select>
+          </>
+        ) : null}
 
+        {/* No-JS fallback; the sort select submits on its own with JavaScript. */}
         <button type="submit" className={buttonStyles('secondary', 'sm', 'shrink-0')}>
-          Anwenden
+          Suchen
         </button>
 
         {hasFilters ? (

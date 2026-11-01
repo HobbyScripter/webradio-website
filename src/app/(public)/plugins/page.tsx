@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Suspense } from 'react';
 import { io } from 'next/cache';
-import CatalogCard from '@/components/public/CatalogCard';
+import CatalogCard, { CatalogSubmitCard } from '@/components/public/CatalogCard';
 import CatalogPagination from '@/components/public/CatalogPagination';
 import CatalogToolbar from '@/components/public/CatalogToolbar';
 import { ButtonLink } from '@/components/ui/button';
@@ -16,12 +15,25 @@ import {
   parseCatalogQuery,
   type RawCatalogParams,
 } from '@/lib/catalog-query';
-import { absoluteUrl } from '@/lib/site';
+import { shouldShowSortControls } from '@/lib/catalog-display';
+import { PRODUCT_PLUGIN_SDK_URL, absoluteUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Plugin-Katalog',
   description:
-    'Veröffentlichte Plugins für WebRadio: durchsuche freigegebene Erweiterungen nach Name und Beschreibung, sortiert nach Aktualität, Name oder Downloads.',
+    'Plugins für WebRadio: durchsuche die von der Community beigesteuerten Erweiterungen nach Name und Beschreibung.',
+  openGraph: {
+    title: 'Plugin-Katalog · WebRadio',
+    description:
+      'Plugins für WebRadio: durchsuche die von der Community beigesteuerten Erweiterungen nach Name und Beschreibung.',
+    ...(absoluteUrl('/plugins') ? { url: absoluteUrl('/plugins') } : {}),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Plugin-Katalog · WebRadio',
+    description:
+      'Plugins für WebRadio: durchsuche die von der Community beigesteuerten Erweiterungen nach Name und Beschreibung.',
+  },
   ...(absoluteUrl('/plugins') ? { alternates: { canonical: absoluteUrl('/plugins') } } : {}),
 };
 
@@ -42,7 +54,7 @@ async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalo
     return (
       <ErrorState
         title="Plugin-Katalog nicht erreichbar"
-        description="Die Datenbank konnte nicht abgefragt werden. Es werden keine zwischengespeicherten oder erfundenen Einträge angezeigt."
+        description="Der Katalog konnte nicht geladen werden. Bitte versuche es in einem Moment erneut."
         retryHref="/plugins"
       />
     );
@@ -55,6 +67,7 @@ async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalo
         query={query}
         idPrefix="plugins"
         placeholder="Plugins nach Name oder Beschreibung durchsuchen …"
+        showSort={shouldShowSortControls(result.items.length, result.hasNext)}
       />
 
       {result.items.length === 0 ? (
@@ -67,14 +80,14 @@ async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalo
                 ? 'Keine Einträge auf dieser Seite'
                 : query.q
                   ? `Keine Plugins für „${query.q}“ gefunden`
-                  : 'Noch keine veröffentlichten Plugins'
+                  : 'Noch keine Plugins im Katalog'
             }
             description={
               query.page > 1
                 ? 'Die gewählte Seite liegt hinter dem Ende des Katalogs.'
                 : query.q
                   ? 'Versuche einen anderen Suchbegriff oder setze die Filter zurück.'
-                  : 'Der Katalog ist leer, weil noch kein Plugin freigegeben wurde. Es werden bewusst keine Beispieldaten erzeugt.'
+                  : 'Sobald ein Plugin freigegeben ist, erscheint es hier.'
             }
             action={
               query.page > 1 ? (
@@ -90,8 +103,14 @@ async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalo
                   Filter zurücksetzen
                 </ButtonLink>
               ) : (
-                <ButtonLink href="/docs#website-katalog" variant="secondary" size="sm">
-                  Katalogregeln ansehen
+                <ButtonLink
+                  href={PRODUCT_PLUGIN_SDK_URL}
+                  variant="secondary"
+                  size="sm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Plugin SDK ansehen
                 </ButtonLink>
               )
             }
@@ -108,6 +127,7 @@ async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalo
             {result.items.map((item) => (
               <CatalogCard key={item.id} item={item} kind="plugin" basePath="/plugins" />
             ))}
+            <CatalogSubmitCard kind="plugin" sdkHref={PRODUCT_PLUGIN_SDK_URL} />
           </div>
           <CatalogPagination basePath="/plugins" query={query} hasNext={result.hasNext} />
         </>
@@ -126,10 +146,10 @@ export default function PluginsPage({
       <PageHeader
         eyebrow="Katalog"
         title="Plugins für dein WebRadio"
-        description="Freigegebene Plugins für das WebRadio-Desktop-Programm – mit Versionen, Tags und Download-Paketen. Private Entwürfe, ausstehende Einreichungen und abgelehnte Einträge bleiben unsichtbar."
+        description="Erweiterungen aus der Community – mit Versionen, Tags und Paketen. Jeder Eintrag ist für das WebRadio-Programm bestimmt."
         actions={
           <>
-            <ButtonLink href="/docs#erweiterungen" variant="secondary">
+            <ButtonLink href={PRODUCT_PLUGIN_SDK_URL} variant="secondary">
               Plugin SDK
             </ButtonLink>
             <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
@@ -138,20 +158,15 @@ export default function PluginsPage({
       />
 
       <Container className="py-10">
+        <p className="mb-6 max-w-3xl text-sm leading-relaxed text-zinc-400">
+          Plugins erweitern WebRadio um neue Funktionen. Öffne den Katalog im Programm und
+          installiere ein Plugin direkt aus seinem Download; die Detailseite nennt die passende
+          Version und den Prüfwert.
+        </p>
+
         <Suspense fallback={<CatalogueSkeleton />}>
           <PluginResults searchParams={searchParams} />
         </Suspense>
-
-        <p className="mt-10 text-xs leading-relaxed text-zinc-500">
-          Hinweis: Alle Einträge sind ausschließlich für das WebRadio-Desktop-Programm bestimmt.
-          Der Katalog zeigt nur Daten, die in PostgreSQL als veröffentlicht und freigegeben markiert
-          sind. Die Installation im Programm erfolgt über das Plugin-System von WebRadio; diese
-          Website ist nicht die Downloadquelle der Desktop-Anwendung.{' '}
-          <Link href="/docs#website-katalog" className="text-zinc-400 underline-offset-4 hover:underline">
-            Mehr zum Katalog
-          </Link>
-          .
-        </p>
       </Container>
     </>
   );

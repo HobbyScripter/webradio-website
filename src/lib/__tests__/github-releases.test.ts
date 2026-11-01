@@ -248,4 +248,48 @@ describe('listGitHubReleases', () => {
     expect(second.releases).toHaveLength(1);
     nowSpy.mockRestore();
   });
+
+  it('ignores updater metadata and lists the package first', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse([
+        release({
+          assets: [
+            {
+              name: 'manifest.json',
+              size: 575,
+              state: 'uploaded',
+              digest: `sha256:${'b'.repeat(64)}`,
+              content_type: 'application/json',
+              browser_download_url:
+                'https://github.com/owner/repo/releases/download/v1.2.3/manifest.json',
+            },
+            {
+              name: 'latest.yml',
+              size: 320,
+              state: 'uploaded',
+              browser_download_url:
+                'https://github.com/owner/repo/releases/download/v1.2.3/latest.yml',
+            },
+            {
+              name: 'mediahub-1.2.3.zip',
+              size: 4_194_304,
+              state: 'uploaded',
+              digest: `sha256:${'c'.repeat(64)}`,
+              content_type: 'application/zip',
+              browser_download_url:
+                'https://github.com/owner/repo/releases/download/v1.2.3/mediahub-1.2.3.zip',
+            },
+          ],
+        }),
+      ]),
+    );
+
+    const result = await listGitHubReleases('https://github.com/owner/repo');
+
+    // The 575 B manifest is not the package and must not become the download.
+    expect(result.releases[0]?.assets.map((asset) => asset.name)).toEqual([
+      'mediahub-1.2.3.zip',
+    ]);
+    expect(result.releases[0]?.assets[0]?.size).toBe(4_194_304);
+  });
 });

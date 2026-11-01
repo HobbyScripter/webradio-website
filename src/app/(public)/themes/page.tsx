@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { io } from 'next/cache';
-import CatalogCard from '@/components/public/CatalogCard';
+import CatalogCard, { CatalogSubmitCard } from '@/components/public/CatalogCard';
 import CatalogPagination from '@/components/public/CatalogPagination';
 import CatalogToolbar from '@/components/public/CatalogToolbar';
 import { ButtonLink } from '@/components/ui/button';
@@ -15,12 +15,25 @@ import {
   parseCatalogQuery,
   type RawCatalogParams,
 } from '@/lib/catalog-query';
-import { absoluteUrl } from '@/lib/site';
+import { shouldShowSortControls } from '@/lib/catalog-display';
+import { PRODUCT_THEME_SDK_URL, absoluteUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Theme-Katalog',
   description:
-    'Veröffentlichte Themes für WebRadio: freigegebene Oberflächen-Anpassungen mit Versionen, Tags und Vorschauen aus dem öffentlichen Katalog.',
+    'Themes für WebRadio: Oberflächen aus der Community mit Versionen, Tags und Vorschauen.',
+  openGraph: {
+    title: 'Theme-Katalog · WebRadio',
+    description:
+      'Themes für WebRadio: Oberflächen aus der Community mit Versionen, Tags und Vorschauen.',
+    ...(absoluteUrl('/themes') ? { url: absoluteUrl('/themes') } : {}),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Theme-Katalog · WebRadio',
+    description:
+      'Themes für WebRadio: Oberflächen aus der Community mit Versionen, Tags und Vorschauen.',
+  },
   ...(absoluteUrl('/themes') ? { alternates: { canonical: absoluteUrl('/themes') } } : {}),
 };
 
@@ -41,7 +54,7 @@ async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalog
     return (
       <ErrorState
         title="Theme-Katalog nicht erreichbar"
-        description="Die Datenbank konnte nicht abgefragt werden. Es werden keine zwischengespeicherten oder erfundenen Einträge angezeigt."
+        description="Der Katalog konnte nicht geladen werden. Bitte versuche es in einem Moment erneut."
         retryHref="/themes"
       />
     );
@@ -54,6 +67,7 @@ async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalog
         query={query}
         idPrefix="themes"
         placeholder="Themes nach Name oder Beschreibung durchsuchen …"
+        showSort={shouldShowSortControls(result.items.length, result.hasNext)}
       />
 
       {result.items.length === 0 ? (
@@ -66,14 +80,14 @@ async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalog
                 ? 'Keine Einträge auf dieser Seite'
                 : query.q
                   ? `Keine Themes für „${query.q}“ gefunden`
-                  : 'Noch keine veröffentlichten Themes'
+                  : 'Noch keine Themes im Katalog'
             }
             description={
               query.page > 1
                 ? 'Die gewählte Seite liegt hinter dem Ende des Katalogs.'
                 : query.q
                   ? 'Versuche einen anderen Suchbegriff oder setze die Filter zurück.'
-                  : 'Der Katalog ist leer, weil noch kein Theme freigegeben wurde. Es werden bewusst keine Vorschauen oder Beispieldaten erzeugt.'
+                  : 'Sobald ein Theme freigegeben ist, erscheint es hier.'
             }
             action={
               query.page > 1 ? (
@@ -89,7 +103,13 @@ async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalog
                   Filter zurücksetzen
                 </ButtonLink>
               ) : (
-                <ButtonLink href="/docs#erweiterungen" variant="secondary" size="sm">
+                <ButtonLink
+                  href={PRODUCT_THEME_SDK_URL}
+                  variant="secondary"
+                  size="sm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Theme SDK ansehen
                 </ButtonLink>
               )
@@ -107,6 +127,7 @@ async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalog
             {result.items.map((item) => (
               <CatalogCard key={item.id} item={item} kind="theme" basePath="/themes" />
             ))}
+            <CatalogSubmitCard kind="theme" sdkHref={PRODUCT_THEME_SDK_URL} />
           </div>
           <CatalogPagination basePath="/themes" query={query} hasNext={result.hasNext} />
         </>
@@ -125,10 +146,10 @@ export default function ThemesPage({
       <PageHeader
         eyebrow="Katalog"
         title="Themes für deine Oberfläche"
-        description="Freigegebene Themes für das WebRadio-Desktop-Programm – mit Versionen, Tags und optionalen Vorschaubildern. Externe Vorschauen werden nur als absolute HTTP(S)-URLs eingebunden."
+        description="Oberflächen aus der Community – mit Versionen, Tags und Vorschaubildern. Jedes Theme ist für das WebRadio-Programm bestimmt."
         actions={
           <>
-            <ButtonLink href="/docs#erweiterungen" variant="secondary">
+            <ButtonLink href={PRODUCT_THEME_SDK_URL} variant="secondary">
               Theme SDK
             </ButtonLink>
             <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
@@ -137,15 +158,15 @@ export default function ThemesPage({
       />
 
       <Container className="py-10">
+        <p className="mb-6 max-w-3xl text-sm leading-relaxed text-zinc-400">
+          Themes ändern das Aussehen von WebRadio, ohne Funktionen zu verändern. Wähle ein Theme aus
+          und installiere es im Programm; die Detailseite nennt die passende Version und den
+          Prüfwert.
+        </p>
+
         <Suspense fallback={<CatalogueSkeleton />}>
           <ThemeResults searchParams={searchParams} />
         </Suspense>
-
-        <p className="mt-10 text-xs leading-relaxed text-zinc-500">
-          Hinweis: Alle Einträge sind ausschließlich für das WebRadio-Desktop-Programm bestimmt.
-          Themes werden im Programm über das Theme-System angewendet. Vorschauen erscheinen nur,
-          wenn für einen freigegebenen Eintrag tatsächlich Bild-URLs hinterlegt sind.
-        </p>
       </Container>
     </>
   );

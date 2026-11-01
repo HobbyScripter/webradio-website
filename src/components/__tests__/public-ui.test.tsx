@@ -25,7 +25,7 @@ describe('CatalogCard', () => {
     expect(screen.getByText('von Studio Nord')).toBeInTheDocument();
     expect(screen.getByText('v1.4.0')).toBeInTheDocument();
     expect(screen.getByText('audio')).toBeInTheDocument();
-    expect(screen.getByText('Stand 24. Oktober 2026')).toBeInTheDocument();
+    expect(screen.getByText(/Zuletzt aktualisiert 24\. Oktober 2026/)).toBeInTheDocument();
   });
 
   it('does not label a theme as a plugin', () => {

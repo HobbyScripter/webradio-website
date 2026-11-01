@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { AlertIcon, CheckIcon } from '@/components/ui/icons';
+import { selectPrimaryReleaseAsset } from '@/lib/release-asset-selection';
 
 type ReleaseAsset = {
   name: string;
@@ -140,10 +141,11 @@ export default function VersionForm({
   }
 
   function applyRelease(release: Release, assetName?: string) {
+    // Never fall back to `assets[0]`: a release may lead with updater metadata
+    // (latest.yml, a small manifest), whose size and digest are not the package.
     const asset =
       release.assets.find((candidate) => candidate.name === assetName) ??
-      release.assets[0] ??
-      null;
+      selectPrimaryReleaseAsset(release.assets);
 
     setSelectedReleaseId(release.id);
 
@@ -160,7 +162,7 @@ export default function VersionForm({
         ? asset.digest
           ? null
           : 'Dieses Release liefert keine Prüfsumme. Bitte ergänze sie manuell, bevor du einreichst.'
-        : 'Für dieses Release sind keine Download-Dateien hinterlegt. Ergänze Download-URL, Dateigröße und Prüfsumme manuell.',
+        : 'Dieses Release enthält keine installierbare Datei. Lade das Paket als Release-Anhang hoch oder ergänze Download-URL, Dateigröße und Prüfsumme manuell.',
     );
   }
 

@@ -1,10 +1,22 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import CatalogDetail from '@/components/public/CatalogDetail';
+import { markdownToPlainText } from '@/components/public/MarkdownText';
 import { Container } from '@/components/ui/layout';
 import { ErrorState } from '@/components/ui/states';
 import { getPublishedThemeBySlug } from '@/lib/catalog';
+import { getReleases } from '@/lib/github';
 import { absoluteUrl } from '@/lib/site';
+
+/** Newest stable WebRadio tag, or null when the release data is unavailable. */
+async function latestStableVersion(): Promise<string | null> {
+  try {
+    const { data } = await getReleases();
+    return data.find((release) => release.channel === 'stable')?.tagName ?? null;
+  } catch {
+    return null;
+  }
+}
 
 // Detail pages must be able to answer with a real 404 status, so this route
 // opts out of instant-navigation streaming and blocks on the slug lookup.
@@ -22,18 +34,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       notFound();
     }
 
-    const description =
-      theme.description.length > 155 ? `${theme.description.slice(0, 152)}…` : theme.description;
+    const description = markdownToPlainText(theme.description, 155);
     const canonical = absoluteUrl(`/themes/${theme.slug}`);
+    const socialTitle = `${theme.name} · WebRadio`;
 
     return {
       title: theme.name,
       description,
       openGraph: {
         type: 'article',
-        title: theme.name,
+        title: socialTitle,
         description,
         ...(canonical ? { url: canonical } : {}),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: socialTitle,
+        description,
       },
       ...(canonical ? { alternates: { canonical } } : {}),
     };
@@ -64,5 +81,5 @@ export default async function ThemeDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  return <CatalogDetail item={theme} kind="theme" />;
+  return <CatalogDetail item={theme} kind="theme" latestStableVersion={await latestStableVersion()} />;
 }

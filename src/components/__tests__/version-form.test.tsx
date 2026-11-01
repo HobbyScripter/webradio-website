@@ -134,7 +134,7 @@ describe('VersionForm', () => {
     fireEvent.click(await screen.findByRole('radio', { name: /v2\.0\.0-beta\.1/ }));
 
     expect(
-      screen.getByText(/keine Download-Dateien hinterlegt/),
+      screen.getByText(/keine installierbare Datei/),
     ).toBeInTheDocument();
     expect((screen.getByLabelText(/Version \(SemVer\)/) as HTMLInputElement).value).toBe('2.0.0');
     expect((screen.getByLabelText(/Dateigröße/) as HTMLInputElement).value).toBe('');

@@ -24,6 +24,8 @@ export type PluginSummary = {
 };
 
 export type PluginDetail = PluginSummary & {
+  /** Canonical repository of the plugin, when the developer declared one. */
+  sourceUrl: string | null;
   developer: {
     displayName: string;
     githubUrl: string | null;
@@ -57,6 +59,8 @@ export type ThemeSummary = {
 };
 
 export type ThemeDetail = ThemeSummary & {
+  /** Themes carry no repository field; the developer profile link is used. */
+  sourceUrl: null;
   developer: PluginDetail['developer'];
   screenshots: { url: string; caption: string | null }[];
   versions: {
@@ -311,6 +315,7 @@ async function queryPublishedPluginBySlug(slug: string): Promise<PluginDetail | 
 
   return {
     ...summary,
+    sourceUrl: (row as { repositoryUrl?: string | null }).repositoryUrl ?? null,
     developer: {
       displayName: row.developer?.displayName ?? 'Unbekannt',
       githubUrl: row.developer?.githubUrl ?? null,
@@ -371,6 +376,7 @@ async function queryPublishedThemeBySlug(slug: string): Promise<ThemeDetail | nu
 
   return {
     ...summary,
+    sourceUrl: null,
     developer: {
       displayName: row.developer?.displayName ?? 'Unbekannt',
       githubUrl: row.developer?.githubUrl ?? null,
@@ -442,6 +448,22 @@ export async function listPublishedNews(limit = 20): Promise<NewsEntry[]> {
     content: row.content,
     publishedAt: row.publishedAt ? row.publishedAt.toString() : null,
   }));
+}
+
+/**
+ * True when at least one published, dated article exists. The navigation uses
+ * this to hide "Neuigkeiten" until there is something to read.
+ */
+export async function hasPublishedNews(): Promise<boolean> {
+  try {
+    const now = Temporal.Now.instant();
+    const row = await db.orm.public.News.where((n) =>
+      and(n.isPublished.eq(true), n.publishedAt.lte(now)),
+    ).first();
+    return row !== null && row !== undefined;
+  } catch {
+    return false;
+  }
 }
 
 async function queryPublishedNewsBySlug(slug: string): Promise<NewsEntry | null> {
