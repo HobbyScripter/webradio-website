@@ -11,6 +11,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Nutzungsbedingungen',
     description: 'Regeln für Konten, Entwickleranträge und eingereichte Kataloginhalte.',
+    openGraph: {
+      title: 'Nutzungsbedingungen · WebRadio',
+      description: 'Regeln für Konten, Entwickleranträge und eingereichte Kataloginhalte.',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Nutzungsbedingungen · WebRadio',
+      description: 'Regeln für Konten, Entwickleranträge und eingereichte Kataloginhalte.',
+    },
     robots: complete ? undefined : { index: false, follow: false },
   };
 }

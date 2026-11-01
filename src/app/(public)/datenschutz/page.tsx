@@ -12,6 +12,17 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'Datenschutz',
     description:
       'Welche Daten diese Website verarbeitet: Konto, Sitzung, Sicherheitsprotokoll, Missbrauchsschutz und Meldungen.',
+    openGraph: {
+      title: 'Datenschutz · WebRadio',
+      description:
+        'Welche Daten diese Website verarbeitet: Konto, Sitzung, Sicherheitsprotokoll, Missbrauchsschutz und Meldungen.',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Datenschutz · WebRadio',
+      description:
+        'Welche Daten diese Website verarbeitet: Konto, Sitzung, Sicherheitsprotokoll, Missbrauchsschutz und Meldungen.',
+    },
     robots: complete ? undefined : { index: false, follow: false },
   };
 }

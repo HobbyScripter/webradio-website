@@ -13,6 +13,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Impressum',
     description: 'Anbieterangaben für diese Website gemäß § 5 DDG.',
+    openGraph: {
+      title: 'Impressum · WebRadio',
+      description: 'Anbieterangaben für diese Website gemäß § 5 DDG.',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Impressum · WebRadio',
+      description: 'Anbieterangaben für diese Website gemäß § 5 DDG.',
+    },
     robots: complete ? undefined : { index: false, follow: false },
   };
 }
