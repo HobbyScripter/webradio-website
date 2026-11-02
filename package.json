@@ -36,7 +36,7 @@
     "bcryptjs": "^3.0.3",
     "next": "16.4.3",
     "next-auth": "^4.24.15",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^10.1.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "temporal-polyfill": "^1.0.6",
