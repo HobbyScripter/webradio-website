@@ -159,9 +159,8 @@ export default function PluginsPage({
 
       <Container className="py-10">
         <p className="mb-6 max-w-3xl text-sm leading-relaxed text-zinc-400">
-          Plugins erweitern WebRadio um neue Funktionen. Öffne den Katalog im Programm und
-          installiere ein Plugin direkt aus seinem Download; die Detailseite nennt die passende
-          Version und den Prüfwert.
+          Plugins erweitern WebRadio um neue Funktionen. Installiere ein Plugin über den Katalog im Programm
+          oder lade es von der Detailseite herunter.
         </p>
 
         <Suspense fallback={<CatalogueSkeleton />}>

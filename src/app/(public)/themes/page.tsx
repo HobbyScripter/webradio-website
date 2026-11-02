@@ -159,9 +159,8 @@ export default function ThemesPage({
 
       <Container className="py-10">
         <p className="mb-6 max-w-3xl text-sm leading-relaxed text-zinc-400">
-          Themes ändern das Aussehen von WebRadio, ohne Funktionen zu verändern. Wähle ein Theme aus
-          und installiere es im Programm; die Detailseite nennt die passende Version und den
-          Prüfwert.
+          Themes ändern das Aussehen von WebRadio. Installiere ein Theme über den Katalog im Programm
+          oder lade es von der Detailseite herunter.
         </p>
 
         <Suspense fallback={<CatalogueSkeleton />}>
