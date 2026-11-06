@@ -199,6 +199,45 @@ describe('legal sections', () => {
   });
 });
 
+describe('Impressum and terms wording', () => {
+  it('names the operator and the project separately and never a fabricated party', () => {
+    const { operator } = getLegalDetails(COMPLETE_ENV);
+    const text = impressumSections(operator)
+      .flatMap((section) => section.paragraphs)
+      .join(' ');
+
+    expect(text).toContain('Anbieter dieser Website ist Testwert name');
+    expect(text).toContain('WebRadio');
+    expect(text.toLowerCase()).not.toContain('vercel.com');
+    expect(text.toLowerCase()).not.toContain('verantwortlicher: vercel.com');
+  });
+
+  it('uses user-facing role names and no internal role keys', () => {
+    const { operator } = getLegalDetails(COMPLETE_ENV);
+    const text = termsSections(operator)
+      .flatMap((section) => section.paragraphs)
+      .join(' ');
+
+    expect(text).toContain('Nutzer, Entwickler und Administratoren');
+    for (const internal of ['SYSTEM_ADMIN', 'USER', 'ADMIN']) {
+      expect(text).not.toContain(internal);
+    }
+    expect(text).not.toContain('Nutzungsregeln');
+    expect(text).not.toContain('Legal-Bereich');
+  });
+
+  it('describes reporting, objection and the developer application as implemented', () => {
+    const { operator } = getLegalDetails(COMPLETE_ENV);
+    const sections = termsSections(operator);
+    const text = sections.flatMap((section) => section.paragraphs).join(' ');
+
+    expect(sections.map((section) => section.heading)).toContain('3. Zulässige Inhalte');
+    expect(text).toContain('[Meldefunktion](/report)');
+    expect(text).toContain('Widerspruch');
+    expect(text).toContain('50 Zeichen');
+  });
+});
+
 describe('legal configuration helpers', () => {
   it('treats paused e-mail delivery as not configured', () => {
     expect(

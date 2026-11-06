@@ -259,6 +259,8 @@ export function impressumSections(operator: OperatorDetails): LegalSection[] {
       heading: 'Über diese Website',
       paragraphs: [
         'Diese Website stellt Informationen, Downloads und einen Katalog für das quelloffene Desktop-Programm WebRadio bereit. Plugins und Themes werden von Dritten eingereicht und vor der Veröffentlichung geprüft.',
+        `Anbieter dieser Website ist ${operator.name}. Die Website begleitet das Projekt „WebRadio“; Hosting- und Datenbankanbieter sind Dienstleister und nicht Anbieter dieser Website.`,
+        'Das Kontaktformular ist nur aktiv, wenn der Betreiber es ausdrücklich eingeschaltet hat; ansonsten steht die im Impressum genannte E-Mail-Adresse als Kontaktweg bereit.',
       ],
     },
   ];
@@ -423,19 +425,20 @@ export function termsSections(operator: OperatorDetails): LegalSection[] {
     {
       heading: '1. Geltungsbereich',
       paragraphs: [
-        `Diese Nutzungsbedingungen gelten für die Nutzung der Website von ${operator.name} sowie für Konten, Entwickleranträge und eingereichte Kataloginhalte. Anbieterangaben und Kontakt stehen im [Impressum](/impressum).`,
+        `Diese Nutzungsbedingungen gelten für die Nutzung der Website von ${operator.name} sowie für Konten, Entwickleranträge und eingereichte Kataloginhalte.`,
+        `Betreiber der Website ist ${operator.name}. Anbieterangaben, Vertretung und Kontakt stehen im [Impressum](/impressum).`,
       ],
     },
     {
       heading: '2. Konto',
       paragraphs: [
         'Für Entwicklerfunktionen und Meldungen ist ein Konto erforderlich. Zugangsdaten sind geheim zu halten. Ein Konto darf nicht automatisiert oder missbräuchlich angelegt werden.',
-        'Konten haben eine von drei Stufen: registrierte Nutzer, Entwicklerkonten und Administration. Eine Registrierung vergibt immer nur die Stufe „registrierter Nutzer“; Entwicklerrechte werden über einen Antrag vergeben, Administrationsrechte ausschließlich durch die Betreiber.',
+        'Es gibt drei Rollen: Nutzer, Entwickler und Administratoren. Eine Registrierung vergibt immer nur die Rolle „Nutzer“; Entwicklerrechte werden über einen Antrag vergeben, Administratorenrechte ausschließlich durch die Betreiber.',
         'Ein Anspruch auf ein Konto oder auf besondere Rechte besteht nicht.',
       ],
     },
     {
-      heading: '3. Nutzungsregeln',
+      heading: '3. Zulässige Inhalte',
       paragraphs: [
         'Nicht zulässig sind insbesondere rechtswidrige Inhalte, Malware oder Schadcode, Inhalte, die Rechte Dritter verletzen, irreführende Angaben sowie Spam.',
         'Katalogeinträge sind ausschließlich für das Programm WebRadio bestimmt. Beschreibungen, Screenshots und Versionslinks müssen den eingereichten Inhalt zutreffend darstellen.',
@@ -450,29 +453,29 @@ export function termsSections(operator: OperatorDetails): LegalSection[] {
     {
       heading: '5. Prüfung und Entfernung',
       paragraphs: [
-        'Einreichungen prüft die Administration vor der Veröffentlichung. Eine solche Prüfung ist keine Garantie für die Rechtmäßigkeit eines Inhalts.',
+        'Einreichungen prüfen Administratoren vor der Veröffentlichung. Eine solche Prüfung ist keine Garantie für die Rechtmäßigkeit eines Inhalts.',
         'Bei hinreichendem Verdacht wird ein Inhalt vorläufig eingeschränkt; bei festgestellten Verstößen wird er entfernt und dauerhaft gesperrt. Ein entferntes Angebot kann nicht erneut eingereicht werden.',
       ],
     },
     {
       heading: '6. Meldungen',
       paragraphs: [
-        'Angemeldete Konten können problematische Inhalte über die [Meldefunktion](/report) melden. Die Meldung enthält das gemeldete Ziel, einen Grund und optional eine Beschreibung. Dasselbe Ziel kann pro Konto einmal gemeldet werden. Alternativ ist eine Nachricht an die im Impressum genannte Kontaktadresse möglich.',
-        'Eine Meldung ist ein Hinweis und keine Feststellung eines Verstoßes. Die Administration prüft jede Meldung und hält die Entscheidung mit Begründung fest. Gegen eine Entscheidung kann Widerspruch über die im Impressum genannte Kontaktadresse eingelegt werden.',
+        'Angemeldete Konten können problematische Inhalte über die [Meldefunktion](/report) melden. Gemeldet werden können Katalogeinträge (Plugins und Themes); die Meldung enthält das gemeldete Ziel, einen Grund und optional eine Beschreibung. Dasselbe Ziel kann pro Konto einmal gemeldet werden. Alternativ ist eine Nachricht an die im Impressum genannte Kontaktadresse möglich.',
+        'Eine Meldung ist ein Hinweis und keine Feststellung eines Verstoßes. Administratoren prüfen jede Meldung und halten die Entscheidung mit Begründung fest. Gegen eine Entscheidung kann Widerspruch über die im Impressum genannte Kontaktadresse eingelegt werden.',
       ],
     },
     {
       heading: '7. Maßnahmen bei Verstößen',
       paragraphs: [
         'Je nach Schwere, Wiederholung und Umständen kommt eine Verwarnung, die Einschränkung oder Entfernung von Inhalten sowie eine befristete oder dauerhafte Sperrung des Kontos in Betracht.',
-        'Maßnahmen werden mit Zeitpunkt, handelnder Administration und Begründung protokolliert. Eine Sperre beendet bestehende Sitzungen sofort.',
+        'Maßnahmen werden mit Zeitpunkt, handelnden Administratoren und Begründung protokolliert. Eine Sperre beendet bestehende Sitzungen sofort.',
       ],
     },
     {
       heading: '8. Entwicklerantrag',
       paragraphs: [
         'Entwicklerrechte werden nicht mit der Registrierung vergeben. Ein Antrag enthält eine Begründung von mindestens 50 Zeichen und optional eine Portfolio-Adresse. Pro Konto ist ein offener Antrag möglich; ein gestellter Antrag kann zurückgezogen werden.',
-        'Die Administration entscheidet über den Antrag und begründet eine Ablehnung. Nach einer Ablehnung kann ein neuer Antrag gestellt werden. Bei Verstößen werden Entwicklerrechte entzogen.',
+        'Administratoren entscheiden über den Antrag und begründen eine Ablehnung. Nach einer Ablehnung kann ein neuer Antrag gestellt werden. Bei Verstößen werden Entwicklerrechte entzogen.',
       ],
     },
     {

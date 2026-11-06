@@ -198,6 +198,26 @@ bleibt aus Suchindizes ausgeschlossen. Das Kontaktformular im Impressum ist
 vorbereitet und erscheint nur mit `CONTACT_FORM_ENABLED=true` und
 eingerichtetem E-Mail-Versand.
 
+### Rechtstexte veröffentlichen
+
+Die drei Rechtsseiten zeigen zuerst die **veröffentlichte Fassung aus der
+Datenbank** (`LegalDocument`). Der eingebaute Text aus `src/lib/legal.ts`
+erscheint nur, solange es für den Typ keine veröffentlichte Fassung gibt. Ein
+neuer Code-Text allein ändert die Live-Seite deshalb nicht.
+
+1. `LEGAL_*`-Variablen in der Zielumgebung setzen (Vercel: Project → Settings →
+   Environment Variables; lokal: `.env`). Solange Pflichtangaben fehlen, zeigen
+   die Seiten die Liste der fehlenden Angaben und bleiben auf `noindex`.
+2. Als Administrator anmelden und `/admin/legal` öffnen.
+3. Für den gewünschten Typ eine **neue Fassung** anlegen, den Text einfügen und
+   **veröffentlichen**. Frühere Fassungen bleiben als Version erhalten und
+   lassen sich über *Wiederherstellen* als neuer Entwurf übernehmen.
+4. Nach dem Veröffentlichen werden `/impressum`, `/datenschutz`,
+   `/nutzungsbedingungen` und die Startseite automatisch neu validiert; ein
+   zusätzlicher Deploy ist dafür nicht nötig.
+5. Prüfen: Seite ohne angemeldete Sitzung im Browser aufrufen. Datum,
+   Betreibername und Kontakt müssen der neuen Fassung entsprechen.
+
 Den vollständigen Stand, die Testergebnisse und offenen Punkte dokumentiert
 [`docs/PHASE4_REPORT.md`](docs/PHASE4_REPORT.md).
 
