@@ -18,6 +18,7 @@ import {
   PaletteIcon,
   PlugIcon,
   RadioIcon,
+  ShieldIcon,
 } from '@/components/ui/icons';
 import { CatalogueSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
 import { listCachedPlugins, listCachedThemes } from '@/lib/cached-content';
@@ -27,6 +28,10 @@ import {
   type GitHubSnapshot,
 } from '@/lib/github';
 import { formatDate } from '@/lib/format';
+import {
+  PACKAGE_UNDER_REVIEW_LABEL,
+  isPlausibleDownloadPackage,
+} from '@/lib/release-asset-quality';
 import {
   PRODUCT_CONTRIBUTING_URL,
   PRODUCT_DOCS_URL,
@@ -102,20 +107,35 @@ function primaryAsset(release: GitHubRelease, platform: string) {
 }
 
 function DownloadShortcuts({ release }: { release: GitHubRelease }) {
-  const assets = [
+  const candidates = [
     primaryAsset(release, 'windows'),
     primaryAsset(release, 'linux'),
     primaryAsset(release, 'arch'),
   ].filter((asset): asset is NonNullable<typeof asset> => asset !== null);
 
+  // A file that is implausibly small for a desktop build is not offered as a
+  // button. The card still says that a package exists. See
+  // `src/lib/release-asset-quality.ts`.
+  const assets = candidates.filter((asset) =>
+    isPlausibleDownloadPackage(asset.name, asset.size),
+  );
+  const underReview = assets.length === 0 && candidates.length > 0;
+
   if (assets.length === 0) {
     return (
-      <Link
-        href="/releases"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 transition-colors hover:text-white"
-      >
-        Release-Details <ArrowRightIcon className="h-3.5 w-3.5" />
-      </Link>
+      <div className="flex flex-wrap items-center gap-2">
+        {underReview ? (
+          <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/25 bg-amber-500/[0.06] px-2.5 py-1.5 text-[11px] font-semibold text-amber-200">
+            <ShieldIcon className="h-3 w-3" /> {PACKAGE_UNDER_REVIEW_LABEL}
+          </span>
+        ) : null}
+        <Link
+          href="/releases"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 transition-colors hover:text-white"
+        >
+          Release-Details <ArrowRightIcon className="h-3.5 w-3.5" />
+        </Link>
+      </div>
     );
   }
 

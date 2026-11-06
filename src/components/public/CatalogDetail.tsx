@@ -11,6 +11,7 @@ import {
   PackageIcon,
   PaletteIcon,
   PlugIcon,
+  ShieldIcon,
 } from '@/components/ui/icons';
 import type { PluginDetail, ThemeDetail } from '@/lib/catalog';
 import {
@@ -24,6 +25,10 @@ import { WEBRADIO_PRODUCT_LABEL } from '@/lib/product';
 import { PRODUCT_PLUGIN_SDK_URL, PRODUCT_THEME_SDK_URL, safeHttpUrl } from '@/lib/site';
 import MarkdownText from '@/components/public/MarkdownText';
 import ChecksumCopy from '@/components/public/ChecksumCopy';
+import {
+  PACKAGE_UNDER_REVIEW_LABEL,
+  assessDownloadUrl,
+} from '@/lib/release-asset-quality';
 
 type DetailItem = PluginDetail | ThemeDetail;
 
@@ -44,6 +49,7 @@ export default function CatalogDetail({
   const sdkUrl = isPlugin ? PRODUCT_PLUGIN_SDK_URL : PRODUCT_THEME_SDK_URL;
   const latest = item.versions.find((version) => version.isLatest) ?? item.versions[0] ?? null;
   const downloadUrl = safeHttpUrl(latest?.fileUrl);
+  const downloadPlausibility = assessDownloadUrl(downloadUrl, latest?.fileSize);
   const githubUrl = safeHttpUrl(item.developer.githubUrl);
   const websiteUrl = safeHttpUrl(item.developer.websiteUrl);
   const sourceUrl = safeHttpUrl(item.sourceUrl);
@@ -142,10 +148,18 @@ export default function CatalogDetail({
                     </p>
                   ) : null}
 
-                  {downloadUrl ? (
+                  {downloadUrl && downloadPlausibility === 'ok' ? (
                     <ButtonLink href={downloadUrl} size="sm" className="mt-4 w-full">
                       <DownloadIcon className="h-4 w-4" /> Paket herunterladen
                     </ButtonLink>
+                  ) : downloadUrl ? (
+                    <p className="mt-4 flex items-start gap-2 rounded-lg border border-amber-400/20 bg-amber-500/[0.06] p-3 text-xs leading-relaxed text-amber-200/90">
+                      <ShieldIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      <span>
+                        {PACKAGE_UNDER_REVIEW_LABEL}: Die hinterlegte Datei ist auffällig klein und
+                        wird erst nach einer Prüfung zum Download angeboten.
+                      </span>
+                    </p>
                   ) : (
                     <p className="mt-4 rounded-lg border border-amber-400/15 bg-amber-500/[0.05] p-3 text-xs leading-relaxed text-amber-200/90">
                       Für diese Version ist kein Download-Link hinterlegt.
@@ -340,7 +354,7 @@ export default function CatalogDetail({
                         </div>
                       ) : null}
                     </div>
-                    {fileUrl ? (
+                    {fileUrl && assessDownloadUrl(fileUrl, version.fileSize) === 'ok' ? (
                       <a
                         href={fileUrl}
                         target="_blank"
@@ -349,6 +363,10 @@ export default function CatalogDetail({
                       >
                         <DownloadIcon className="h-3.5 w-3.5" /> Paket
                       </a>
+                    ) : fileUrl ? (
+                      <span className="text-xs font-medium text-amber-200/90">
+                        {PACKAGE_UNDER_REVIEW_LABEL}
+                      </span>
                     ) : (
                       <span className="text-xs text-zinc-500">Kein Link hinterlegt</span>
                     )}

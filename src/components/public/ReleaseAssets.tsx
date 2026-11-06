@@ -1,6 +1,10 @@
-import { DownloadIcon, PackageIcon } from '@/components/ui/icons';
+import { DownloadIcon, PackageIcon, ShieldIcon } from '@/components/ui/icons';
 import type { GitHubAsset } from '@/lib/github';
 import { formatFileSize } from '@/lib/format';
+import {
+  PACKAGE_UNDER_REVIEW_LABEL,
+  assessDownloadPackage,
+} from '@/lib/release-asset-quality';
 
 /**
  * Download buttons are rendered exclusively from `GitHubAsset` entries that
@@ -59,15 +63,24 @@ export default function ReleaseAssets({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <a
-              href={asset.downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${asset.platformLabel}: ${asset.name} herunterladen`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07070a]"
-            >
-              <DownloadIcon className="h-3.5 w-3.5" /> Download
-            </a>
+            {assessDownloadPackage(asset.name, asset.size) === 'ok' ? (
+              <a
+                href={asset.downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${asset.platformLabel}: ${asset.name} herunterladen`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07070a]"
+              >
+                <DownloadIcon className="h-3.5 w-3.5" /> Download
+              </a>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/25 bg-amber-500/[0.06] px-3 py-1.5 text-xs font-semibold text-amber-200"
+                title="Die Datei ist auffällig klein und wird deshalb noch nicht zum Download angeboten."
+              >
+                <ShieldIcon className="h-3.5 w-3.5" /> {PACKAGE_UNDER_REVIEW_LABEL}
+              </span>
+            )}
 
             {asset.digest ? (
               <details className="min-w-0 text-[11px] text-zinc-500">

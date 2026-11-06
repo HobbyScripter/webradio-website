@@ -47,6 +47,27 @@ describe('ReleaseAssets', () => {
     expect(screen.getByText('130,3 MB')).toBeInTheDocument();
     expect(screen.getByText(expectedDigest)).toBeInTheDocument();
   });
+
+  it('does not offer an implausibly small package as a download', () => {
+    const archAsset: GitHubAsset = {
+      name: 'webradio-1.0.6-1-x86_64.pkg.tar.zst',
+      size: 66 * 1024,
+      digest: null,
+      downloadUrl:
+        'https://github.com/YourEliteSystems/WebRadio/releases/download/v1.0.6/webradio-1.0.6-1-x86_64.pkg.tar.zst',
+      platform: 'arch',
+      platformLabel: 'Arch Linux (x86_64)',
+      format: 'Arch-Paket (.pkg.tar.zst)',
+    };
+
+    render(<ReleaseAssets assets={[archAsset]} releaseUrl={releaseUrl} />);
+
+    expect(screen.getByText('Paket wird geprüft')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /Arch Linux \(x86_64\).*herunterladen/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(archAsset.name)).toBeInTheDocument();
+  });
 });
 
 describe('ReleaseNotes', () => {
