@@ -11,6 +11,7 @@ import ReleaseAssets from '@/components/public/ReleaseAssets';
 import ReleaseNotes from '@/components/public/ReleaseNotes';
 import { getGitHubSnapshot, type GitHubRelease, type GitHubSnapshot } from '@/lib/github';
 import { formatDate, formatDateTime } from '@/lib/format';
+import { defaultSocialImages } from '@/lib/metadata';
 import {
   PRODUCT_DOCS_URL,
   PRODUCT_LATEST_RELEASE_URL,
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
     title: 'Releases & Downloads · WebRadio',
     description:
       'Offizielle WebRadio-Releases von GitHub: neueste stabile Version, Beta-Builds, Release Notes sowie Windows- und Linux-Downloads.',
+    images: defaultSocialImages(),
     ...(absoluteUrl('/releases') ? { url: absoluteUrl('/releases') } : {}),
   },
   twitter: {

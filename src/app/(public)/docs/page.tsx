@@ -20,6 +20,7 @@ import {
   PRODUCT_THEME_SDK_URL,
   absoluteUrl,
 } from '@/lib/site';
+import { defaultSocialImages } from '@/lib/metadata';
 
 export const metadata: Metadata = {
   title: 'Über das Projekt',
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
     title: 'Über das Projekt · WebRadio',
     description:
       'Was WebRadio kann, wie du es unter Windows und Linux installierst und wie Plugins und Themes funktionieren.',
+    images: defaultSocialImages(),
     ...(absoluteUrl('/docs') ? { url: absoluteUrl('/docs') } : {}),
   },
   twitter: {
@@ -87,7 +89,7 @@ const FAQ = [
   {
     question: 'Muss ich etwas installieren, damit Plugins funktionieren?',
     answer:
-      'Nein. Das Programm bringt die Erweiterungen mit. Ein Plugin entpackst du in seinen Ordner, ein Theme wählst du im Programm aus.',
+      'Nein. Plugins und Themes sind Erweiterungen für das Programm; zusätzliche Software musst du dafür nicht installieren. Ein Plugin entpackst du in den Erweiterungsordner, ein Theme wählst du im Programm aus.',
   },
   {
     question: 'Warum startet das AppImage unter Linux nicht?',
@@ -201,6 +203,11 @@ export default function DocsPage() {
                 Debian und Ubuntu ein <Code>.deb</Code>-Paket, sofern es im jeweiligen Release
                 enthalten ist.
               </p>
+              <p>
+                Automatische Updates gelten für die Windows-Version und das AppImage. Das
+                Arch-Paket und das <Code>.deb</Code>-Paket aktualisierst du über die
+                Paketverwaltung deiner Distribution.
+              </p>
               <div className="flex flex-wrap gap-2">
                 <ButtonLink href="/releases" variant="secondary" size="sm">
                   <DownloadIcon className="h-4 w-4" /> Downloads
@@ -273,7 +280,7 @@ export default function DocsPage() {
                 <ButtonLink href={PRODUCT_DISCUSSIONS_URL} variant="ghost" size="sm">
                   Austausch <ExternalLinkIcon className="h-3.5 w-3.5" />
                 </ButtonLink>
-                <ButtonLink href="/developer" variant="ghost" size="sm">
+                <ButtonLink href="/plugin-einreichen" variant="ghost" size="sm">
                   Eigenes Plugin einreichen <ArrowRightIcon className="h-3.5 w-3.5" />
                 </ButtonLink>
               </div>

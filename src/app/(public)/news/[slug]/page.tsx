@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/ui/states';
 import { getPublishedNewsBySlug } from '@/lib/catalog';
 import { formatDate } from '@/lib/format';
 import { absoluteUrl } from '@/lib/site';
+import { defaultSocialImages } from '@/lib/metadata';
 
 export const instant = false;
 
@@ -33,8 +34,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         type: 'article',
         title: entry.title,
         description,
+        images: defaultSocialImages(),
         ...(canonical ? { url: canonical } : {}),
         ...(entry.publishedAt ? { publishedTime: entry.publishedAt } : {}),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: entry.title,
+        description,
       },
       ...(canonical ? { alternates: { canonical } } : {}),
     };

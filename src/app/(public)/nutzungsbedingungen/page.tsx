@@ -4,6 +4,7 @@ import LegalDocument from '@/components/public/LegalDocument';
 import { getLegalDetails, termsSections } from '@/lib/legal';
 import { getCachedLegalDocument } from '@/lib/cached-content';
 import { TERMS_LABEL } from '@/lib/legal-labels';
+import { defaultSocialImages } from '@/lib/metadata';
 
 export const instant = false;
 
@@ -15,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `${TERMS_LABEL} · WebRadio`,
       description: 'Regeln für Konten, Entwickleranträge und eingereichte Kataloginhalte.',
+      images: defaultSocialImages(),
     },
     twitter: {
       card: 'summary_large_image',

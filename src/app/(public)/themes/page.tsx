@@ -17,6 +17,7 @@ import {
 } from '@/lib/catalog-query';
 import { shouldShowSortControls } from '@/lib/catalog-display';
 import { PRODUCT_THEME_SDK_URL, absoluteUrl } from '@/lib/site';
+import { defaultSocialImages } from '@/lib/metadata';
 
 export const metadata: Metadata = {
   title: 'Theme-Katalog',
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
     title: 'Theme-Katalog · WebRadio',
     description:
       'Themes für WebRadio: Oberflächen aus der Community mit Versionen, Tags und Vorschauen.',
+    images: defaultSocialImages(),
     ...(absoluteUrl('/themes') ? { url: absoluteUrl('/themes') } : {}),
   },
   twitter: {
@@ -152,7 +154,7 @@ export default function ThemesPage({
             <ButtonLink href={PRODUCT_THEME_SDK_URL} variant="secondary">
               Theme SDK
             </ButtonLink>
-            <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
+            <ButtonLink href="/developer">Entwicklerbereich (Anmeldung erforderlich)</ButtonLink>
           </>
         }
       />

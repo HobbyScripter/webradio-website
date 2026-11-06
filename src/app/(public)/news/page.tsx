@@ -9,6 +9,7 @@ import { ArrowRightIcon, CalendarIcon, ExternalLinkIcon, GitHubIcon, NewsIcon } 
 import { EmptyState, ErrorState } from '@/components/ui/states';
 import { listPublishedNews } from '@/lib/catalog';
 import { formatDate } from '@/lib/format';
+import { defaultSocialImages } from '@/lib/metadata';
 import {
   PRODUCT_DISCUSSIONS_URL,
   PRODUCT_RELEASES_URL,
@@ -43,6 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `${TITLE} · WebRadio`,
       description: DESCRIPTION,
+      images: defaultSocialImages(),
       ...(absoluteUrl('/news') ? { url: absoluteUrl('/news') } : {}),
     },
     twitter: {

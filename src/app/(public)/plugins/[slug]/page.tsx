@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/ui/states';
 import { getCachedPluginBySlug } from '@/lib/cached-content';
 import { getReleases } from '@/lib/github';
 import { absoluteUrl } from '@/lib/site';
+import { socialImagesFor } from '@/lib/metadata';
 
 /** Newest stable WebRadio tag, or null when the release data is unavailable. */
 async function latestStableVersion(): Promise<string | null> {
@@ -47,6 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         type: 'article',
         title: socialTitle,
         description,
+        images: socialImagesFor(plugin.screenshots[0]?.url),
         ...(canonical ? { url: canonical } : {}),
       },
       twitter: {

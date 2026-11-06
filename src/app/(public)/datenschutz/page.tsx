@@ -3,6 +3,7 @@ import { connection } from 'next/server';
 import LegalDocument from '@/components/public/LegalDocument';
 import { getLegalDetails, isMailDeliveryConfigured, privacySections } from '@/lib/legal';
 import { getCachedLegalDocument } from '@/lib/cached-content';
+import { defaultSocialImages } from '@/lib/metadata';
 
 export const instant = false;
 
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: 'Datenschutz · WebRadio',
       description:
         'Welche Daten diese Website verarbeitet: Konto, Sitzung, Sicherheitsprotokoll, Missbrauchsschutz und Meldungen.',
+      images: defaultSocialImages(),
     },
     twitter: {
       card: 'summary_large_image',

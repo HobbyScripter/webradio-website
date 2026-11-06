@@ -17,6 +17,7 @@ import {
 } from '@/lib/catalog-query';
 import { shouldShowSortControls } from '@/lib/catalog-display';
 import { PRODUCT_PLUGIN_SDK_URL, absoluteUrl } from '@/lib/site';
+import { defaultSocialImages } from '@/lib/metadata';
 
 export const metadata: Metadata = {
   title: 'Plugin-Katalog',
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
     title: 'Plugin-Katalog · WebRadio',
     description:
       'Plugins für WebRadio: durchsuche die von der Community beigesteuerten Erweiterungen nach Name und Beschreibung.',
+    images: defaultSocialImages(),
     ...(absoluteUrl('/plugins') ? { url: absoluteUrl('/plugins') } : {}),
   },
   twitter: {
@@ -152,7 +154,7 @@ export default function PluginsPage({
             <ButtonLink href={PRODUCT_PLUGIN_SDK_URL} variant="secondary">
               Plugin SDK
             </ButtonLink>
-            <ButtonLink href="/developer">Entwicklerbereich</ButtonLink>
+            <ButtonLink href="/developer">Entwicklerbereich (Anmeldung erforderlich)</ButtonLink>
           </>
         }
       />

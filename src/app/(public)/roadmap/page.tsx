@@ -9,6 +9,7 @@ import { EmptyState, ErrorState } from '@/components/ui/states';
 import { listRoadmapItems } from '@/lib/catalog';
 import { formatDate } from '@/lib/format';
 import { absoluteUrl } from '@/lib/site';
+import { defaultSocialImages } from '@/lib/metadata';
 
 const ROADMAP_DESCRIPTION =
   'Woran beim WebRadio-Projekt gearbeitet wird: geplante, laufende und abgeschlossene Vorhaben mit Status und Zieltermin.';
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Roadmap · WebRadio',
     description: ROADMAP_DESCRIPTION,
+    images: defaultSocialImages(),
     ...(absoluteUrl('/roadmap') ? { url: absoluteUrl('/roadmap') } : {}),
   },
   twitter: {

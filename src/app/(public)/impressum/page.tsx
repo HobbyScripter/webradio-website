@@ -5,6 +5,7 @@ import ContactForm from '@/components/public/ContactForm';
 import { getLegalDetails, impressumSections } from '@/lib/legal';
 import { isContactFormEnabled } from '@/lib/contact';
 import { getCachedLegalDocument } from '@/lib/cached-content';
+import { defaultSocialImages } from '@/lib/metadata';
 
 export const instant = false;
 
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: 'Impressum · WebRadio',
       description: 'Anbieterangaben für diese Website gemäß § 5 DDG.',
+      images: defaultSocialImages(),
     },
     twitter: {
       card: 'summary_large_image',
