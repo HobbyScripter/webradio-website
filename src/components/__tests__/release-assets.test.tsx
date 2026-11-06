@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import ReleaseAssets from '../public/ReleaseAssets';
 import ReleaseNotes, { truncateAtParagraph } from '../public/ReleaseNotes';
+import DownloadButton from '../public/DownloadButton';
 import type { GitHubAsset } from '@/lib/github';
 
 const expectedDigest = 'sha256:' + 'a'.repeat(64);
@@ -97,8 +99,50 @@ describe('ReleaseNotes', () => {
   it('collapses fenced technical details', () => {
     render(<ReleaseNotes notes={'Kurz\n\n```\nnpm run build\n```'} />);
 
-    expect(screen.getByText('Technische Details')).toBeInTheDocument();
+    expect(screen.getByText('Codeausschnitt')).toBeInTheDocument();
     expect(screen.getByText('npm run build')).toBeInTheDocument();
+  });
+
+  it('shows the summary first and keeps the technical part collapsed', () => {
+    render(
+      <ReleaseNotes
+        notes={
+          '## Was ist neu\n\n- Schnellere Sendersuche\n\n## Technische Details\n\n- Neues Protokoll'
+        }
+      />,
+    );
+
+    expect(screen.getByText('Was ist neu?')).toBeInTheDocument();
+    expect(screen.getByText('Schnellere Sendersuche')).toBeInTheDocument();
+
+    const summary = screen.getByText('Technische Details', { selector: 'summary' });
+    expect(summary.closest('details')).not.toHaveAttribute('open');
+    expect(screen.getByText('Neues Protokoll')).toBeInTheDocument();
+  });
+});
+
+describe('DownloadButton server rendering', () => {
+  it('renders the system download and the other-platforms link without JavaScript', () => {
+    const html = renderToStaticMarkup(
+      <DownloadButton
+        version="1.0.6"
+        otherPlatformsHref="#stable-heading"
+        assets={[
+          {
+            name: asset.name,
+            platform: 'windows',
+            platformLabel: 'Windows (x64)',
+            downloadUrl: asset.downloadUrl,
+            size: asset.size,
+          },
+        ]}
+      />,
+    );
+
+    expect(html).toContain('Für Windows (x64) herunterladen (v1.0.6, stabil)');
+    expect(html).toContain('Andere Plattformen');
+    expect(html).toContain('href="#stable-heading"');
+    expect(html).toContain(asset.downloadUrl);
   });
 });
 

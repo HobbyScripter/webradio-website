@@ -134,10 +134,7 @@ function ReleaseGroup({
 
   return (
     <section aria-labelledby={id} className="scroll-mt-24">
-      <SectionHeading eyebrow={eyebrow} title={title} description={description} />
-      <h2 id={id} className="sr-only">
-        {title}
-      </h2>
+      <SectionHeading id={id} eyebrow={eyebrow} title={title} description={description} />
 
       {downloadable.length === 0 && withoutDownloads.length === 0 ? (
         <p className="rounded-xl border border-dashed border-white/10 p-6 text-sm text-zinc-500">

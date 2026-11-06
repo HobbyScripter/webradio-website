@@ -45,26 +45,50 @@ export function truncateAtParagraph(text: string, maxChars: number): string {
 }
 
 /**
+ * Split the notes into the short summary and the technical remainder.
+ *
+ * The summary is everything before the first heading. Notes that start with a
+ * heading keep the first section (usually "What's new") as the summary; the
+ * remainder is collapsed behind "Technische Details".
+ */
+function splitAtFirstTechnicalSection(lines: string[]): { intro: string[]; details: string[] } {
+  const headingIndices: number[] = [];
+  let inCodeBlock = false;
+
+  lines.forEach((line, index) => {
+    if (/^\s*```/.test(line)) {
+      inCodeBlock = !inCodeBlock;
+      return;
+    }
+    if (!inCodeBlock && /^#{1,6}\s+/.test(line)) {
+      headingIndices.push(index);
+    }
+  });
+
+  const firstHeading = headingIndices[0];
+  if (firstHeading === undefined) {
+    return { intro: lines, details: [] };
+  }
+
+  if (lines.slice(0, firstHeading).some((line) => line.trim().length > 0)) {
+    return { intro: lines.slice(0, firstHeading), details: lines.slice(firstHeading) };
+  }
+
+  const secondHeading = headingIndices[1];
+  if (secondHeading === undefined) {
+    return { intro: lines, details: [] };
+  }
+
+  return { intro: lines.slice(0, secondHeading), details: lines.slice(secondHeading) };
+}
+
+/**
  * GitHub release bodies are Markdown written by the project maintainers. The
  * website does not render that Markdown as HTML: every line becomes a React text
  * node, links and images are reduced to their labels, and only headings and list
- * markers receive styling. Code blocks are collapsed as technical details.
+ * markers receive styling. Code blocks are collapsed separately.
  */
-export default function ReleaseNotes({
-  notes,
-  maxChars = 12_000,
-}: {
-  notes: string;
-  maxChars?: number;
-}) {
-  if (!notes.trim()) {
-    return (
-      <p className="text-sm text-zinc-500">Für dieses Release sind keine Release Notes hinterlegt.</p>
-    );
-  }
-
-  const truncated = truncateAtParagraph(notes, maxChars);
-  const lines = truncated.replace(/\r/g, '').split('\n');
+function parseNoteLines(lines: string[], keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   let codeBuffer: string[] = [];
   let inCodeBlock = false;
@@ -77,11 +101,11 @@ export default function ReleaseNotes({
       if (inCodeBlock) {
         nodes.push(
           <details
-            key={`code-${index}`}
+            key={`${keyPrefix}-code-${index}`}
             className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2"
           >
             <summary className="cursor-pointer text-[11px] font-semibold text-zinc-400 hover:text-zinc-200">
-              Technische Details
+              Codeausschnitt
             </summary>
             <pre className="mt-2 overflow-x-auto font-mono text-[11px] leading-5 text-zinc-300">
               {codeBuffer.join('\n')}
@@ -122,7 +146,7 @@ export default function ReleaseNotes({
       }
       nodes.push(
         <p
-          key={`heading-${index}`}
+          key={`${keyPrefix}-heading-${index}`}
           className={
             level <= 2
               ? 'mt-4 text-sm font-semibold text-zinc-100 first:mt-0'
@@ -140,7 +164,7 @@ export default function ReleaseNotes({
       const text = cleanInline(bullet[1]!);
       if (text) {
         nodes.push(
-          <p key={`bullet-${index}`} className="flex gap-2.5 text-sm text-zinc-300">
+          <p key={`${keyPrefix}-bullet-${index}`} className="flex gap-2.5 text-sm text-zinc-300">
             <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-violet-400" aria-hidden="true" />
             <span>{text}</span>
           </p>,
@@ -154,7 +178,7 @@ export default function ReleaseNotes({
       const text = cleanInline(numbered[2]!);
       if (text) {
         nodes.push(
-          <p key={`numbered-${index}`} className="flex gap-2.5 text-sm text-zinc-300">
+          <p key={`${keyPrefix}-numbered-${index}`} className="flex gap-2.5 text-sm text-zinc-300">
             <span className="shrink-0 font-mono text-[11px] text-zinc-500">{numbered[1]}.</span>
             <span>{text}</span>
           </p>,
@@ -166,14 +190,47 @@ export default function ReleaseNotes({
     const text = cleanInline(line);
     if (text) {
       nodes.push(
-        <p key={`text-${index}`} className="text-sm leading-relaxed text-zinc-400">
+        <p key={`${keyPrefix}-text-${index}`} className="text-sm leading-relaxed text-zinc-400">
           {text}
         </p>,
       );
     }
   });
 
-  if (nodes.length === 0) {
+  if (inCodeBlock && codeBuffer.length > 0) {
+    nodes.push(
+      <pre
+        key={`${keyPrefix}-code-open`}
+        className="overflow-x-auto rounded-lg border border-white/[0.06] bg-black/20 p-3 font-mono text-[11px] leading-5 text-zinc-300"
+      >
+        {codeBuffer.join('\n')}
+      </pre>,
+    );
+  }
+
+  return nodes;
+}
+
+export default function ReleaseNotes({
+  notes,
+  maxChars = 12_000,
+}: {
+  notes: string;
+  maxChars?: number;
+}) {
+  if (!notes.trim()) {
+    return (
+      <p className="text-sm text-zinc-500">Für dieses Release sind keine Release Notes hinterlegt.</p>
+    );
+  }
+
+  const truncated = truncateAtParagraph(notes, maxChars);
+  const lines = truncated.replace(/\r/g, '').split('\n');
+  const { intro, details } = splitAtFirstTechnicalSection(lines);
+  const introNodes = parseNoteLines(intro, 'intro');
+  const detailNodes = parseNoteLines(details, 'details');
+
+  if (introNodes.length === 0 && detailNodes.length === 0) {
     return (
       <p className="text-sm text-zinc-500">
         Die Release Notes enthalten keinen darstellbaren Text. Die vollständigen Hinweise stehen auf
@@ -184,7 +241,22 @@ export default function ReleaseNotes({
 
   return (
     <div className="space-y-2" aria-label="Release Notes">
-      {nodes}
+      {introNodes.length > 0 ? (
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-300">
+          Was ist neu?
+        </p>
+      ) : null}
+      {introNodes}
+
+      {detailNodes.length > 0 ? (
+        <details className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.015] px-3 py-2">
+          <summary className="cursor-pointer text-xs font-semibold text-zinc-300 hover:text-white">
+            Technische Details
+          </summary>
+          <div className="mt-2 space-y-2">{detailNodes}</div>
+        </details>
+      ) : null}
+
       {notes.length > maxChars ? (
         <p className="text-xs text-zinc-500">
           Die Anzeige ist gekürzt. Der vollständige Text steht auf der GitHub-Release-Seite.
