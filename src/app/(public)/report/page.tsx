@@ -6,6 +6,7 @@ import { reportTargetTypeSchema } from '@/lib/validations';
 import { resolveReportTarget } from '@/lib/report-service';
 import ReportForm from '@/components/public/ReportForm';
 import { Container, PageHeader } from '@/components/ui/layout';
+import { TERMS_LABEL } from '@/lib/legal-labels';
 
 export const metadata: Metadata = {
   title: 'Inhalt melden',
@@ -43,7 +44,7 @@ export default async function ReportPage({
       <PageHeader
         eyebrow="Katalog"
         title="Inhalt melden"
-        description="Melde einen Katalogeintrag, der gegen die Nutzungsregeln verstößt. Die Meldung wird geprüft; sie ändert selbst nichts."
+        description={`Melde einen Katalogeintrag, der gegen die ${TERMS_LABEL} verstößt. Die Meldung wird geprüft; sie ändert selbst nichts.`}
       />
       <Container className="mt-10">
         <div className="max-w-2xl rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">

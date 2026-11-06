@@ -13,6 +13,7 @@ import { revalidatePath } from 'next/cache';
 import { requireDeveloperSession } from '@/lib/server-auth';
 import { AuthError, logServerError } from '@/lib/auth-service';
 import { consumeRateLimitSafely } from '@/lib/rate-limit';
+import { revalidateCatalogue } from '@/lib/revalidate';
 import {
   addCatalogVersion,
   createCatalogEntry,
@@ -107,6 +108,7 @@ async function createEntry(kind: CatalogKind, formData: FormData): Promise<never
     });
 
     revalidatePath(BASE_PATH[kind]);
+    revalidateCatalogue(kind);
     target =
       intent === 'draft'
         ? `${BASE_PATH[kind]}/${result.slug}?draft=1`
@@ -143,6 +145,7 @@ async function updateEntry(kind: CatalogKind, formData: FormData): Promise<never
     });
 
     revalidatePath(BASE_PATH[kind]);
+    revalidateCatalogue(kind);
     target = result.requiresReReview
       ? `${BASE_PATH[kind]}/${result.slug}/edit?resubmitted=1`
       : `${BASE_PATH[kind]}/${result.slug}/edit?updated=1`;
@@ -166,6 +169,7 @@ async function removeEntry(kind: CatalogKind, formData: FormData): Promise<never
       meta: await actionMeta(),
     });
     revalidatePath(BASE_PATH[kind]);
+    revalidateCatalogue(kind);
     target = `${BASE_PATH[kind]}?deleted=1`;
   } catch (error) {
     target = errorRedirect(BASE_PATH[kind], error, `action:${kind}:delete`);
@@ -188,6 +192,7 @@ async function submitEntry(kind: CatalogKind, formData: FormData): Promise<never
       meta: await actionMeta(),
     });
     revalidatePath(BASE_PATH[kind]);
+    revalidateCatalogue(kind);
     target = `${BASE_PATH[kind]}/${slug}?submitted=1`;
   } catch (error) {
     target = errorRedirect(`${BASE_PATH[kind]}/${slug}`, error, `action:${kind}:submit`);
@@ -209,6 +214,7 @@ async function withdrawEntry(kind: CatalogKind, formData: FormData): Promise<nev
       meta: await actionMeta(),
     });
     revalidatePath(BASE_PATH[kind]);
+    revalidateCatalogue(kind);
     target = `${BASE_PATH[kind]}/${slug}?withdrawn=1`;
   } catch (error) {
     target = errorRedirect(`${BASE_PATH[kind]}/${slug}`, error, `action:${kind}:withdraw`);
@@ -232,6 +238,7 @@ async function createVersion(kind: CatalogKind, formData: FormData): Promise<nev
       meta: await actionMeta(),
     });
     revalidatePath(BASE_PATH[kind]);
+    revalidateCatalogue(kind);
     target = `${BASE_PATH[kind]}/${slug}${
       result.requiresReReview ? '?version=1&resubmitted=1' : '?version=1'
     }`;

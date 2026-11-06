@@ -4,7 +4,7 @@ import CatalogDetail from '@/components/public/CatalogDetail';
 import { markdownToPlainText } from '@/components/public/MarkdownText';
 import { Container } from '@/components/ui/layout';
 import { ErrorState } from '@/components/ui/states';
-import { getPublishedPluginBySlug } from '@/lib/catalog';
+import { getCachedPluginBySlug } from '@/lib/cached-content';
 import { getReleases } from '@/lib/github';
 import { absoluteUrl } from '@/lib/site';
 
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
 
   try {
-    const plugin = await getPublishedPluginBySlug(slug);
+    const plugin = await getCachedPluginBySlug(slug);
     if (!plugin) {
       // Called before the page streams, so the response keeps a real 404 status.
       notFound();
@@ -66,7 +66,7 @@ export default async function PluginDetailPage({ params }: PageProps) {
 
   let plugin;
   try {
-    plugin = await getPublishedPluginBySlug(slug);
+    plugin = await getCachedPluginBySlug(slug);
   } catch {
     return (
       <Container className="py-16">

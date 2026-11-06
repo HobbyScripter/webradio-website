@@ -20,7 +20,7 @@ import {
   RadioIcon,
 } from '@/components/ui/icons';
 import { CatalogueSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
-import { listPublishedPlugins, listPublishedThemes } from '@/lib/catalog';
+import { listCachedPlugins, listCachedThemes } from '@/lib/cached-content';
 import {
   getGitHubSnapshot,
   type GitHubRelease,
@@ -234,8 +234,8 @@ async function CataloguePreview() {
 
   try {
     [plugins, themes] = await Promise.all([
-      listPublishedPlugins({ q: '', sort: 'newest', page: 1, pageSize: 3 }),
-      listPublishedThemes({ q: '', sort: 'newest', page: 1, pageSize: 3 }),
+      listCachedPlugins({ q: '', sort: 'newest', page: 1, pageSize: 3 }),
+      listCachedThemes({ q: '', sort: 'newest', page: 1, pageSize: 3 }),
     ]);
   } catch {
     return (

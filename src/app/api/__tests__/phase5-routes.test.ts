@@ -7,6 +7,13 @@
  */
 import { NextResponse } from 'next/server';
 
+// Cache invalidation needs the Next cache runtime; the assertions below cover the
+// decision and the HTTP response, not the cache layer.
+jest.mock('next/cache', () => ({
+  revalidateTag: jest.fn(),
+  revalidatePath: jest.fn(),
+}));
+
 jest.mock('@/lib/auth-service', () => {
   class AuthError extends Error {
     statusCode: number;

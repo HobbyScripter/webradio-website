@@ -13,6 +13,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdminSession } from '@/lib/server-auth';
 import { AuthError, changeUserRole, logServerError } from '@/lib/auth-service';
 import { consumeRateLimitSafely } from '@/lib/rate-limit';
+import { revalidateCatalogue, revalidateLegalDocument } from '@/lib/revalidate';
 import { decideCatalogEntry } from '@/lib/developer-catalog-service';
 import {
   createNews,
@@ -99,8 +100,7 @@ export async function moderateAction(formData: FormData): Promise<void> {
 
     revalidatePath('/admin/moderation');
     revalidatePath('/admin');
-    revalidatePath('/plugins');
-    revalidatePath('/themes');
+    revalidateCatalogue();
     target = `/admin/moderation?decided=${encodeURIComponent(decision.data)}`;
   } catch (error) {
     target = failure(detailPath, error, 'action:admin:moderate');
@@ -319,8 +319,7 @@ export async function reportDecisionAction(formData: FormData): Promise<void> {
     }
 
     revalidatePath('/admin/reports');
-    revalidatePath('/plugins');
-    revalidatePath('/themes');
+    revalidateCatalogue();
     target = `/admin/reports?decided=${encodeURIComponent(decision)}`;
   } catch (error) {
     target = failure('/admin/reports', error, 'action:admin:report-decision');
@@ -352,8 +351,7 @@ export async function removeCatalogEntryAction(formData: FormData): Promise<void
     });
 
     revalidatePath('/admin/moderation');
-    revalidatePath('/plugins');
-    revalidatePath('/themes');
+    revalidateCatalogue();
     target = '/admin/moderation?removed=1';
   } catch (error) {
     target = failure(detailPath, error, 'action:admin:catalog-remove');
@@ -535,9 +533,7 @@ export async function publishLegalAction(formData: FormData): Promise<void> {
       });
     }
     revalidatePath(`/admin/legal/${type}`);
-    revalidatePath('/impressum');
-    revalidatePath('/datenschutz');
-    revalidatePath('/nutzungsbedingungen');
+    revalidateLegalDocument(type);
     target = `/admin/legal/${type}?published=1`;
   } catch (error) {
     target = failure(`/admin/legal/${type}`, error, 'action:admin:legal:publish');

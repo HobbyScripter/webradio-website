@@ -8,7 +8,7 @@ import { ButtonLink } from '@/components/ui/button';
 import { Container, PageHeader } from '@/components/ui/layout';
 import { PaletteIcon } from '@/components/ui/icons';
 import { CatalogueSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
-import { listPublishedThemes } from '@/lib/catalog';
+import { listCachedThemes } from '@/lib/cached-content';
 import {
   PAGE_SIZE,
   buildCatalogHref,
@@ -44,7 +44,7 @@ async function ThemeResults({ searchParams }: { searchParams: Promise<RawCatalog
 
   let result;
   try {
-    result = await listPublishedThemes({
+    result = await listCachedThemes({
       q: query.q,
       sort: query.sort,
       page: query.page,

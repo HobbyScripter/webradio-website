@@ -4,7 +4,7 @@ import LegalDocument from '@/components/public/LegalDocument';
 import ContactForm from '@/components/public/ContactForm';
 import { getLegalDetails, impressumSections } from '@/lib/legal';
 import { isContactFormEnabled } from '@/lib/contact';
-import { getPublishedLegalDocument } from '@/lib/legal-document-service';
+import { getCachedLegalDocument } from '@/lib/cached-content';
 
 export const instant = false;
 
@@ -34,7 +34,7 @@ export default async function ImpressumPage() {
   const published =
     process.env['NEXT_PHASE'] === 'phase-production-build'
       ? null
-      : await getPublishedLegalDocument('IMPRESSUM');
+      : await getCachedLegalDocument('IMPRESSUM');
 
   return (
     <>

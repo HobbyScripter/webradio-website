@@ -4,6 +4,7 @@ import { authorizeAdminMutation } from '@/lib/admin-api';
 import { decideCatalogEntry } from '@/lib/developer-catalog-service';
 import { moderationDecisionSchema } from '@/lib/validations';
 import { getClientIp } from '@/lib/rate-limit';
+import { revalidateCatalogue } from '@/lib/revalidate';
 
 /**
  * POST /api/admin/moderation/decision
@@ -45,6 +46,9 @@ export async function POST(request: Request) {
       ipAddress: getClientIp(request.headers) ?? undefined,
       userAgent: request.headers.get('user-agent') ?? undefined,
     });
+    // Public list, detail and homepage reads are tagged, so the decision is
+    // visible on the next request instead of after the cache lifetime.
+    revalidateCatalogue(body.data.targetType);
     return noStoreJson({ decision: result });
   } catch (error) {
     return errorResponse('api:admin:moderation:decision', error);

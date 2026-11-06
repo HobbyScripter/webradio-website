@@ -4,7 +4,7 @@ import CatalogDetail from '@/components/public/CatalogDetail';
 import { markdownToPlainText } from '@/components/public/MarkdownText';
 import { Container } from '@/components/ui/layout';
 import { ErrorState } from '@/components/ui/states';
-import { getPublishedThemeBySlug } from '@/lib/catalog';
+import { getCachedThemeBySlug } from '@/lib/cached-content';
 import { getReleases } from '@/lib/github';
 import { absoluteUrl } from '@/lib/site';
 
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
 
   try {
-    const theme = await getPublishedThemeBySlug(slug);
+    const theme = await getCachedThemeBySlug(slug);
     if (!theme) {
       // Called before the page streams, so the response keeps a real 404 status.
       notFound();
@@ -64,7 +64,7 @@ export default async function ThemeDetailPage({ params }: PageProps) {
 
   let theme;
   try {
-    theme = await getPublishedThemeBySlug(slug);
+    theme = await getCachedThemeBySlug(slug);
   } catch {
     return (
       <Container className="py-16">

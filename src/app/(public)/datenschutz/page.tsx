@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { connection } from 'next/server';
 import LegalDocument from '@/components/public/LegalDocument';
 import { getLegalDetails, isMailDeliveryConfigured, privacySections } from '@/lib/legal';
-import { getPublishedLegalDocument } from '@/lib/legal-document-service';
+import { getCachedLegalDocument } from '@/lib/cached-content';
 
 export const instant = false;
 
@@ -35,7 +35,7 @@ export default async function DatenschutzPage() {
   const published =
     process.env['NEXT_PHASE'] === 'phase-production-build'
       ? null
-      : await getPublishedLegalDocument('DATENSCHUTZ');
+      : await getCachedLegalDocument('DATENSCHUTZ');
 
   return (
     <LegalDocument

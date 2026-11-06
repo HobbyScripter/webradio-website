@@ -3,6 +3,7 @@ import { Container, PageHeader } from '@/components/ui/layout';
 import type { LegalDetails, LegalSection } from '@/lib/legal';
 import LegalContent from '@/components/public/LegalContent';
 import MarkdownText from '@/components/public/MarkdownText';
+import { LEGAL_PAGE_NAVIGATION } from '@/lib/legal-labels';
 
 /**
  * Rendered while required operator details are still missing. It is not a
@@ -147,21 +148,13 @@ export default function LegalDocument({
 
           <nav aria-label="Weitere rechtliche Informationen" className="mt-12 border-t border-white/[0.07] pt-6">
             <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-              <li>
-                <Link href="/impressum" className="text-zinc-400 hover:text-white">
-                  Impressum
-                </Link>
-              </li>
-              <li>
-                <Link href="/datenschutz" className="text-zinc-400 hover:text-white">
-                  Datenschutz
-                </Link>
-              </li>
-              <li>
-                <Link href="/nutzungsbedingungen" className="text-zinc-400 hover:text-white">
-                  Nutzungsbedingungen
-                </Link>
-              </li>
+              {LEGAL_PAGE_NAVIGATION.map((entry) => (
+                <li key={entry.href}>
+                  <Link href={entry.href} className="text-zinc-400 hover:text-white">
+                    {entry.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
         </div>

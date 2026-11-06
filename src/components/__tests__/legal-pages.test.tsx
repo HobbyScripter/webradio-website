@@ -12,6 +12,12 @@ import NutzungsbedingungenPage, {
 } from '@/app/(public)/nutzungsbedingungen/page';
 import { OPERATOR_FIELDS } from '@/lib/legal';
 
+// The cache wrapper needs the Next cache runtime; without a database the public
+// pages render the built-in text, which is what these tests assert.
+jest.mock('@/lib/cached-content', () => ({
+  getCachedLegalDocument: jest.fn(async () => null),
+}));
+
 const LEGAL_VARIABLES = OPERATOR_FIELDS.map((field) => field.variable);
 const COMPLETE_ENV: Record<string, string> = Object.fromEntries(
   OPERATOR_FIELDS.map((field) => [field.variable, `Testwert ${field.key}`]),

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Brand from './Brand';
 import { Container } from '@/components/ui/layout';
+import { TERMS_LABEL, LEGAL_PAGE_PATHS } from '@/lib/legal-labels';
 import {
   PRODUCT_CONTRIBUTING_URL,
   PRODUCT_DISCUSSIONS_URL,
@@ -49,9 +50,9 @@ const LINK_GROUPS = [
   {
     title: 'Rechtliches',
     links: [
-      { label: 'Impressum', href: '/impressum' },
-      { label: 'Datenschutz', href: '/datenschutz' },
-      { label: 'Nutzungsbedingungen', href: '/nutzungsbedingungen' },
+      { label: 'Impressum', href: LEGAL_PAGE_PATHS.IMPRESSUM },
+      { label: 'Datenschutz', href: LEGAL_PAGE_PATHS.DATENSCHUTZ },
+      { label: TERMS_LABEL, href: LEGAL_PAGE_PATHS.NUTZUNGSBEDINGUNGEN },
     ],
   },
 ] as const;
@@ -137,7 +138,7 @@ export default function Footer() {
             Plugins und Themes in diesem Katalog sind ausschließlich für WebRadio bestimmt.
           </p>
           <p>
-            Impressum, Datenschutzerklärung und Nutzungsbedingungen sind jederzeit über die Links im
+            Impressum, Datenschutzerklärung und {TERMS_LABEL} sind jederzeit über die Links im
             Footer erreichbar. Es werden keine Analyse- oder Marketing-Cookies eingesetzt.{' '}
             Die Datenschutzhinweise des Desktop-Programms stehen in der{' '}
             <a

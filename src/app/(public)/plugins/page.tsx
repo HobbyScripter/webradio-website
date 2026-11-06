@@ -8,7 +8,7 @@ import { ButtonLink } from '@/components/ui/button';
 import { Container, PageHeader } from '@/components/ui/layout';
 import { PlugIcon } from '@/components/ui/icons';
 import { CatalogueSkeleton, EmptyState, ErrorState } from '@/components/ui/states';
-import { listPublishedPlugins } from '@/lib/catalog';
+import { listCachedPlugins } from '@/lib/cached-content';
 import {
   PAGE_SIZE,
   buildCatalogHref,
@@ -44,7 +44,7 @@ async function PluginResults({ searchParams }: { searchParams: Promise<RawCatalo
 
   let result;
   try {
-    result = await listPublishedPlugins({
+    result = await listCachedPlugins({
       q: query.q,
       sort: query.sort,
       page: query.page,
