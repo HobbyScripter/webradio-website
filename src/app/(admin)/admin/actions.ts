@@ -39,6 +39,9 @@ import {
   restoreLegalDocumentVersion,
   markPrivacyRelevantChange,
 } from '@/lib/legal-document-service';
+import { getLegalDetails } from '@/lib/legal';
+import { renderLegalTemplate } from '@/lib/legal-template';
+import { LEGAL_PAGE_LABELS } from '@/lib/legal-labels';
 
 function readString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -496,6 +499,37 @@ export async function saveLegalDraftAction(formData: FormData): Promise<void> {
     target = `/admin/legal/${type}?saved=1`;
   } catch (error) {
     target = failure(`/admin/legal/${type}`, error, 'action:admin:legal:save');
+  }
+  redirect(target);
+}
+
+export async function createLegalTemplateDraftAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminSession();
+  const type = parseLegalType(readString(formData, 'type'));
+  let target: string;
+  try {
+    await enforceLimit('contentWrite', admin.id);
+    const details = getLegalDetails();
+    if (!details.complete) {
+      throw new AuthError(
+        `Vorlage nicht erzeugt: Es fehlen ${details.missing.length} Pflichtangaben (${details.missing.join(', ')}).`,
+        400,
+        'LEGAL_DETAILS_MISSING',
+      );
+    }
+
+    const created = await createLegalDocumentDraft({
+      actorId: admin.id,
+      type,
+      content: renderLegalTemplate(type, details),
+      title: LEGAL_PAGE_LABELS[type],
+      changeDescription: 'Aus der eingebauten Vorlage erzeugt',
+      meta: await meta(),
+    });
+    revalidatePath(`/admin/legal/${type}`);
+    target = `/admin/legal/${type}?draft=${created.id}&template=1`;
+  } catch (error) {
+    target = failure(`/admin/legal/${type}`, error, 'action:admin:legal:template');
   }
   redirect(target);
 }

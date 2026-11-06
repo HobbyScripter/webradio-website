@@ -8,11 +8,15 @@ import {
   getLegalDocumentById,
 } from '@/lib/legal-document-service';
 import {
+  createLegalTemplateDraftAction,
   saveLegalDraftAction,
   publishLegalAction,
   restoreLegalVersionAction,
 } from '@/app/(admin)/admin/actions';
 import { ArrowLeftIcon, CheckIcon } from '@/components/ui/icons';
+import LegalContent from '@/components/public/LegalContent';
+import { getLegalDetails } from '@/lib/legal';
+import { diffLegalContent, findLegalContentProblems } from '@/lib/legal-template';
 
 export const instant = false;
 
@@ -23,6 +27,12 @@ const LABELS: Record<string, string> = {
 };
 
 const VALID = new Set(['IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN']);
+
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Entwurf',
+  PUBLISHED: 'Veröffentlicht',
+  ARCHIVED: 'Archiviert',
+};
 
 export default async function AdminLegalTypePage({
   params,
@@ -62,6 +72,11 @@ export default async function AdminLegalTypePage({
   const success = successKey ? notices[successKey] : null;
 
   const typeLabel = LABELS[type] ?? type;
+  const details = getLegalDetails();
+  const problems =
+    startingContent.trim().length > 0 ? findLegalContentProblems(startingContent) : [];
+  const diff = draft && published ? diffLegalContent(published.content, draft.content) : [];
+  const changedLines = diff.filter((line) => line.kind !== 'unchanged').length;
 
   return (
     <div className="space-y-6">
@@ -80,6 +95,44 @@ export default async function AdminLegalTypePage({
           {draft ? ` · Entwurf: Version ${draft.versionNumber}` : ''}
         </p>
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        {!draft ? (
+          <form action={createLegalTemplateDraftAction}>
+            <input type="hidden" name="type" value={type} />
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+            >
+              Entwurf aus Vorlage erzeugen
+            </button>
+          </form>
+        ) : null}
+      </div>
+
+      {!details.complete ? (
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-sm leading-relaxed text-amber-100">
+          <p className="font-semibold">Betreiberangaben unvollständig</p>
+          <p className="mt-1 text-amber-100/80">
+            Eine Vorlage kann erst erzeugt werden, wenn alle Pflichtangaben gesetzt sind. Fehlend:{' '}
+            {details.missing.join(', ')}.
+          </p>
+        </div>
+      ) : null}
+
+      {problems.length > 0 ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-500/25 bg-rose-500/[0.06] px-4 py-3 text-sm leading-relaxed text-rose-100"
+        >
+          <p className="font-semibold">Veröffentlichung blockiert</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-100/80">
+            {problems.map((problem) => (
+              <li key={`${problem.code}-${problem.message}`}>{problem.message}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {success ? (
         <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
@@ -129,7 +182,7 @@ export default async function AdminLegalTypePage({
           />
         </div>
 
-        {type === 'NUTZUNGSBEDINGUNGEN' ? (
+        {type !== 'IMPRESSUM' ? (
           <label className="flex items-center gap-2 text-sm text-zinc-300">
             <input
               type="checkbox"
@@ -151,13 +204,62 @@ export default async function AdminLegalTypePage({
           <button
             type="submit"
             formAction={publishLegalAction}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            disabled={problems.length > 0}
+            title={
+              problems.length > 0
+                ? 'Bitte zuerst die markierten Probleme im Text beheben.'
+                : undefined
+            }
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
           >
             <CheckIcon className="h-4 w-4" />
             Veröffentlichen
           </button>
         </div>
       </form>
+
+      {startingContent.trim().length > 0 ? (
+        <details className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+          <summary className="cursor-pointer text-sm font-semibold text-zinc-200">
+            Vorschau des Entwurfs
+          </summary>
+          <div className="mt-4">
+            <LegalContent content={startingContent} />
+          </div>
+        </details>
+      ) : null}
+
+      {draft && published ? (
+        <details className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+          <summary className="cursor-pointer text-sm font-semibold text-zinc-200">
+            Unterschiede zur veröffentlichten Fassung ({changedLines}{' '}
+            {changedLines === 1 ? 'Zeile' : 'Zeilen'})
+          </summary>
+          {diff.length === 0 ? (
+            <p className="mt-3 text-sm text-zinc-400">
+              Der Entwurf entspricht der veröffentlichten Fassung.
+            </p>
+          ) : (
+            <ol className="mt-3 max-h-80 overflow-auto rounded-lg border border-zinc-800 bg-black/30 p-3 font-mono text-[11px] leading-5">
+              {diff.map((line, index) => (
+                <li
+                  key={`${line.kind}-${index}`}
+                  className={
+                    line.kind === 'added'
+                      ? 'text-emerald-300'
+                      : line.kind === 'removed'
+                        ? 'text-rose-300'
+                        : 'text-zinc-500'
+                  }
+                >
+                  {line.kind === 'added' ? '+ ' : line.kind === 'removed' ? '− ' : '  '}
+                  {line.text.length > 0 ? line.text : ' '}
+                </li>
+              ))}
+            </ol>
+          )}
+        </details>
+      ) : null}
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
         <h2 className="text-lg font-semibold text-white">Versionsverlauf</h2>
@@ -169,7 +271,9 @@ export default async function AdminLegalTypePage({
               <li key={v.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 p-3">
                 <div>
                   <span className="font-medium text-white">Version {v.versionNumber}</span>
-                  <span className="ml-2 text-xs text-zinc-500">{v.status}</span>
+                  <span className="ml-2 text-xs text-zinc-500">
+                    {STATUS_LABELS[v.status] ?? v.status}
+                  </span>
                   {v.publishedAt ? <span className="ml-2 text-xs text-zinc-500">· {v.publishedAt}</span> : null}
                   {v.changeDescription ? <div className="text-xs text-zinc-400">{v.changeDescription}</div> : null}
                 </div>

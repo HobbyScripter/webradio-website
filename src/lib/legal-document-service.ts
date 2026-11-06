@@ -6,6 +6,7 @@
  */
 import type * as DbModule from './db';
 import type { Role } from './validations';
+import { findLegalContentProblems } from './legal-template';
 
 async function getDb(): Promise<typeof DbModule.db> {
   const mod = await import('./db');
@@ -95,6 +96,34 @@ async function writeAudit(
 
 function maxVersion(rows: { versionNumber: number }[]): number {
   return rows.reduce((max, row) => Math.max(max, row.versionNumber), 0);
+}
+
+/**
+ * Every publication replaces the previous published version, which stays stored
+ * as ARCHIVED and can be restored as a new draft. Nothing is deleted.
+ */
+async function archivePublishedVersions(
+  tx: Transaction,
+  type: LegalDocumentType,
+  keepId?: string,
+): Promise<void> {
+  const published = await tx.orm.public.LegalDocument.where({ type, status: 'PUBLISHED' }).all();
+  for (const row of published as { id: string }[]) {
+    if (row.id === keepId) continue;
+    await tx.orm.public.LegalDocument.where({ id: row.id }).update({ status: 'ARCHIVED' });
+  }
+}
+
+/** Placeholders and a foreign responsible party must never go live. */
+async function assertPublishable(content: string): Promise<void> {
+  const problems = findLegalContentProblems(content);
+  if (problems.length === 0) return;
+  const auth = await import('./auth-service');
+  throw new auth.AuthError(
+    `Veröffentlichung blockiert: ${problems.map((problem) => problem.message).join(' ')}`,
+    400,
+    'LEGAL_CONTENT_INVALID',
+  );
 }
 
 export async function getPublishedLegalDocument(
@@ -211,6 +240,8 @@ export async function publishLegalDocument(input: {
       const e = existing as unknown as { id: string; type: LegalDocumentType; content: string; title: string | null; changeDescription: string | null; requiresConsent: boolean; status: LegalDocumentStatus };
       source = { id: e.id, type: e.type, content: e.content, title: e.title, changeDescription: e.changeDescription, requiresConsent: e.requiresConsent };
       if (e.status === 'DRAFT') {
+        await assertPublishable(input.content ?? e.content);
+        await archivePublishedVersions(tx, e.type, e.id);
         // Mark draft as published in place (counts as a publication/version).
         await tx.orm.public.LegalDocument.where({ id: e.id }).update({
           status: 'PUBLISHED',
@@ -237,13 +268,16 @@ export async function publishLegalDocument(input: {
     // Otherwise create a new published version from provided content.
     const type = input.type ?? source?.type;
     if (!type) throw new (await import('./auth-service')).AuthError('Dokumenttyp fehlt.', 400, 'VALIDATION_ERROR');
+    const content = input.content ?? source?.content ?? '';
+    await assertPublishable(content);
+    await archivePublishedVersions(tx, type);
     const all = await tx.orm.public.LegalDocument.where({ type }).all();
     const versionNumber = maxVersion(all as { versionNumber: number }[]) + 1;
     const created = await tx.orm.public.LegalDocument.create({
       type,
       versionNumber,
       title: input.title ?? source?.title ?? null,
-      content: input.content ?? source?.content ?? '',
+      content,
       changeDescription: input.changeDescription ?? source?.changeDescription ?? null,
       status: 'PUBLISHED',
       requiresConsent: input.requiresConsent ?? source?.requiresConsent ?? (type === 'NUTZUNGSBEDINGUNGEN' ? false : false),
@@ -329,6 +363,29 @@ export async function getLatestLegalConsent(userId: string, type: LegalDocumentT
     .orderBy((c) => c.acceptedAt.desc())
     .all();
   return rows[0] ?? null;
+}
+
+/**
+ * Published versions that explicitly require consent and have not been accepted
+ * by this user yet. Used for the notice shown to existing users after login.
+ */
+export async function listOutstandingLegalConsents(
+  userId: string,
+): Promise<LegalDocumentVersion[]> {
+  const types: LegalDocumentType[] = ['NUTZUNGSBEDINGUNGEN', 'DATENSCHUTZ'];
+  const outstanding: LegalDocumentVersion[] = [];
+
+  for (const type of types) {
+    const published = await getPublishedLegalDocument(type);
+    if (!published || !published.requiresConsent) continue;
+    const consent = await getLatestLegalConsent(userId, type);
+    const acceptedId = (consent as { documentVersionId: string } | null)?.documentVersionId;
+    if (acceptedId !== published.id) {
+      outstanding.push(published);
+    }
+  }
+
+  return outstanding;
 }
 
 export async function hasAcceptedLatestTerms(userId: string): Promise<boolean> {
