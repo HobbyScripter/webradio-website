@@ -28,6 +28,7 @@ import {
   type GitHubSnapshot,
 } from '@/lib/github';
 import { formatDate } from '@/lib/format';
+import { markdownToPlainText } from '@/components/public/MarkdownText';
 import {
   PACKAGE_UNDER_REVIEW_LABEL,
   isPlausibleDownloadPackage,
@@ -371,7 +372,9 @@ function PreviewList({
                       {item.title}
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-500">von {item.subtitle}</p>
-                    <p className="mt-1.5 line-clamp-2 text-sm text-zinc-400">{item.description}</p>
+                    <p className="mt-1.5 line-clamp-2 text-sm text-zinc-400">
+                      {markdownToPlainText(item.description)}
+                    </p>
                   </div>
                   <ArrowRightIcon className="mt-1 h-4 w-4 shrink-0 text-zinc-600 transition-transform group-hover:translate-x-0.5 group-hover:text-violet-400" />
                 </div>

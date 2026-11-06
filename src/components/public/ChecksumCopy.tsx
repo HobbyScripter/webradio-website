@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CheckIcon } from '@/components/ui/icons';
+import { normalizeChecksum } from '@/lib/catalog-display';
 
 /**
  * Checksum display with a copy button.
@@ -18,10 +19,11 @@ export default function ChecksumCopy({
   label?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const value = normalizeChecksum(checksum) ?? checksum.trim();
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(checksum);
+      await navigator.clipboard.writeText(value);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -47,7 +49,7 @@ export default function ChecksumCopy({
         </button>
       </div>
       <code className="mt-1 block break-all font-mono text-[10px] leading-4 text-zinc-400">
-        {checksum}
+        {value}
       </code>
       <p className="mt-1.5 text-[10px] leading-4 text-zinc-500">
         Prüfen: <code className="font-mono">sha256sum datei</code> (Linux) oder{' '}

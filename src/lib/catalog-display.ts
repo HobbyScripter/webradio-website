@@ -101,6 +101,15 @@ export function githubLinkLabel(rawUrl: string | null | undefined): string {
   }
 }
 
+/**
+ * Checksums may be stored with an algorithm prefix (`sha256:…`). Visitors need
+ * the hash itself, so the prefix is dropped for display and copying.
+ */
+export function normalizeChecksum(checksum: string | null | undefined): string | null {
+  const value = checksum?.trim().replace(/^sha256:/i, '').trim();
+  return value ? value : null;
+}
+
 /** Sort control is only useful once there is something to sort. */
 export function shouldShowSortControls(visibleEntries: number, hasNextPage: boolean): boolean {
   return visibleEntries > 5 || hasNextPage;

@@ -232,29 +232,15 @@ export default function CatalogDetail({
             Ordner mit einer <code className="font-mono text-zinc-300">manifest.json</code>; genau
             diesen Ordner lädt das Programm.
           </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
-              <h3 className="text-sm font-semibold text-zinc-200">Windows</h3>
-              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-zinc-400">
-                <li>WebRadio starten und im Programm den Bereich für {kindLabel}s öffnen.</li>
-                <li>Dort den Ordner für Erweiterungen öffnen.</li>
-                <li>Das entpackte Paket als eigenen Ordner hineinlegen.</li>
-                <li>Das Programm neu starten und das {kindLabel} aktivieren.</li>
-              </ol>
-            </div>
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
-              <h3 className="text-sm font-semibold text-zinc-200">Linux</h3>
-              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-zinc-400">
-                <li>WebRadio starten und im Programm den Bereich für {kindLabel}s öffnen.</li>
-                <li>Dort den Ordner für Erweiterungen öffnen.</li>
-                <li>Das entpackte Paket als eigenen Ordner hineinlegen.</li>
-                <li>Das Programm neu starten und das {kindLabel} aktivieren.</li>
-              </ol>
-            </div>
-          </div>
+          <ol className="mt-4 max-w-3xl list-decimal space-y-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 pl-9 text-sm leading-relaxed text-zinc-400">
+            <li>WebRadio starten und im Programm den Bereich für {kindLabel}s öffnen.</li>
+            <li>Dort den Ordner für Erweiterungen öffnen.</li>
+            <li>Das entpackte Paket als eigenen Ordner hineinlegen.</li>
+            <li>Das Programm neu starten und das {kindLabel} aktivieren.</li>
+          </ol>
           <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-            Der Erweiterungsordner liegt im Benutzerverzeichnis der Anwendung; sein vollständiger
-            Pfad unterscheidet sich je nach Betriebssystem. Details stehen im{' '}
+            Die Schritte sind unter Windows und Linux gleich; den Ordner für Erweiterungen zeigt
+            das Programm an. Weitere Hinweise stehen im{' '}
             <a
               href={sdkUrl}
               target="_blank"
