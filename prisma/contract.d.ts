@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'d027b4ae96704bf55a1842f645c0c9b84dd93ea181c7097e8b48acf4125e62e2'>;
+  StorageHashBase<'45a62aa2acbe712123ce618d3fe0dfa56200e0167fc566854b84f3c3e88efc65'>;
 export type ExecutionHash =
-  ExecutionHashBase<'33af8751d3da3abb8ae2c9c5d467bf61d083aa9f77aea68f6906d1f3c40c432e'>;
+  ExecutionHashBase<'2161f34c1b3ec6f15ff94bf4d6fd4b37b5e1cf11c05a52acf96de8a9b8995f86'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -672,6 +672,36 @@ export namespace Models {
     userId: FieldOutputTypes['public']['GitHubToken']['userId'];
     readonly [RelationKeys]?: never;
   };
+  export type public_GitHubTrafficDaily = {
+    capturedAt: FieldOutputTypes['public']['GitHubTrafficDaily']['capturedAt'];
+    clones: FieldOutputTypes['public']['GitHubTrafficDaily']['clones'];
+    day: FieldOutputTypes['public']['GitHubTrafficDaily']['day'];
+    id: FieldOutputTypes['public']['GitHubTrafficDaily']['id'];
+    uniqueClones: FieldOutputTypes['public']['GitHubTrafficDaily']['uniqueClones'];
+    uniqueVisitors: FieldOutputTypes['public']['GitHubTrafficDaily']['uniqueVisitors'];
+    updatedAt: FieldOutputTypes['public']['GitHubTrafficDaily']['updatedAt'];
+    views: FieldOutputTypes['public']['GitHubTrafficDaily']['views'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubTrafficPathSnapshot = {
+    capturedFor: FieldOutputTypes['public']['GitHubTrafficPathSnapshot']['capturedFor'];
+    count: FieldOutputTypes['public']['GitHubTrafficPathSnapshot']['count'];
+    createdAt: FieldOutputTypes['public']['GitHubTrafficPathSnapshot']['createdAt'];
+    id: FieldOutputTypes['public']['GitHubTrafficPathSnapshot']['id'];
+    path: FieldOutputTypes['public']['GitHubTrafficPathSnapshot']['path'];
+    title: FieldOutputTypes['public']['GitHubTrafficPathSnapshot']['title'];
+    uniques: FieldOutputTypes['public']['GitHubTrafficPathSnapshot']['uniques'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubTrafficReferrerSnapshot = {
+    capturedFor: FieldOutputTypes['public']['GitHubTrafficReferrerSnapshot']['capturedFor'];
+    count: FieldOutputTypes['public']['GitHubTrafficReferrerSnapshot']['count'];
+    createdAt: FieldOutputTypes['public']['GitHubTrafficReferrerSnapshot']['createdAt'];
+    id: FieldOutputTypes['public']['GitHubTrafficReferrerSnapshot']['id'];
+    referrer: FieldOutputTypes['public']['GitHubTrafficReferrerSnapshot']['referrer'];
+    uniques: FieldOutputTypes['public']['GitHubTrafficReferrerSnapshot']['uniques'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_GitHubWebhookDelivery = {
     action: FieldOutputTypes['public']['GitHubWebhookDelivery']['action'];
     deliveryId: FieldOutputTypes['public']['GitHubWebhookDelivery']['deliveryId'];
@@ -949,6 +979,9 @@ export declare const models: {
     GitHubDownloadSnapshot: Models.public_GitHubDownloadSnapshot;
     GitHubReleaseAsset: Models.public_GitHubReleaseAsset;
     GitHubToken: Models.public_GitHubToken;
+    GitHubTrafficDaily: Models.public_GitHubTrafficDaily;
+    GitHubTrafficPathSnapshot: Models.public_GitHubTrafficPathSnapshot;
+    GitHubTrafficReferrerSnapshot: Models.public_GitHubTrafficReferrerSnapshot;
     GitHubWebhookDelivery: Models.public_GitHubWebhookDelivery;
     LegalConsent: Models.public_LegalConsent;
     LegalDocument: Models.public_LegalDocument;
@@ -1933,6 +1966,188 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['userId'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubTrafficDaily: {
+              columns: {
+                readonly capturedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly clones: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly day: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly uniqueClones: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly uniqueVisitors: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly views: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['day'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubTrafficPathSnapshot: {
+              columns: {
+                readonly capturedFor: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly path: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly title: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly uniques: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['capturedFor', 'path'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubTrafficReferrerSnapshot: {
+              columns: {
+                readonly capturedFor: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly referrer: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly uniques: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['capturedFor', 'referrer'] }];
               indexes: readonly [];
               foreignKeys: readonly [];
             };
@@ -3740,6 +3955,18 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GitHubToken';
     };
+    readonly GitHubTrafficDaily: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubTrafficDaily';
+    };
+    readonly GitHubTrafficPathSnapshot: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubTrafficPathSnapshot';
+    };
+    readonly GitHubTrafficReferrerSnapshot: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubTrafficReferrerSnapshot';
+    };
     readonly GitHubWebhookDelivery: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GitHubWebhookDelivery';
@@ -4610,6 +4837,165 @@ type ContractBase = Omit<
                 readonly token: { readonly column: 'token' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
+          readonly GitHubTrafficDaily: {
+            readonly fields: {
+              readonly capturedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly clones: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly day: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly uniqueClones: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly uniqueVisitors: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly views: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubTrafficDaily';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly capturedAt: { readonly column: 'capturedAt' };
+                readonly clones: { readonly column: 'clones' };
+                readonly day: { readonly column: 'day' };
+                readonly id: { readonly column: 'id' };
+                readonly uniqueClones: { readonly column: 'uniqueClones' };
+                readonly uniqueVisitors: { readonly column: 'uniqueVisitors' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly views: { readonly column: 'views' };
+              };
+            };
+          };
+          readonly GitHubTrafficPathSnapshot: {
+            readonly fields: {
+              readonly capturedFor: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly path: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly title: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly uniques: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubTrafficPathSnapshot';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly capturedFor: { readonly column: 'capturedFor' };
+                readonly count: { readonly column: 'count' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly path: { readonly column: 'path' };
+                readonly title: { readonly column: 'title' };
+                readonly uniques: { readonly column: 'uniques' };
+              };
+            };
+          };
+          readonly GitHubTrafficReferrerSnapshot: {
+            readonly fields: {
+              readonly capturedFor: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly referrer: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly uniques: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubTrafficReferrerSnapshot';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly capturedFor: { readonly column: 'capturedFor' };
+                readonly count: { readonly column: 'count' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly referrer: { readonly column: 'referrer' };
+                readonly uniques: { readonly column: 'uniques' };
               };
             };
           };
@@ -6602,6 +6988,63 @@ type ContractBase = Omit<
           readonly ref: {
             readonly entry: 'GitHubToken';
             readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubTrafficDaily';
+            readonly field: 'capturedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubTrafficDaily';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubTrafficDaily';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubTrafficPathSnapshot';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubTrafficPathSnapshot';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubTrafficReferrerSnapshot';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubTrafficReferrerSnapshot';
+            readonly field: 'id';
             readonly namespace: 'public';
           };
         },

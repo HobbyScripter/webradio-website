@@ -13,7 +13,7 @@ const GITHUB_API_VERSION = '2022-11-28';
 const GITHUB_CHECK_TIMEOUT_MS = 8_000;
 
 /** Headers shared by all GitHub API calls. Never contains a token itself. */
-function githubApiHeaders(): Record<string, string> {
+export function githubApiHeaders(): Record<string, string> {
   return {
     Accept: 'application/vnd.github+json',
     'User-Agent': 'webradio-website/0.1 (+https://github.com/YourEliteSystems/WebRadio)',

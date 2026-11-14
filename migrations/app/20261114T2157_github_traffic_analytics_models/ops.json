@@ -1,0 +1,293 @@
+[
+  {
+    "id": "table.GitHubTrafficDaily",
+    "label": "Create table \"GitHubTrafficDaily\"",
+    "summary": "Creates table \"GitHubTrafficDaily\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubTrafficDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubTrafficDaily\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubTrafficDaily\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubTrafficDaily\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubTrafficDaily\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubTrafficDaily\" (\n  \"capturedAt\" timestamptz NOT NULL,\n  \"clones\" int4 DEFAULT 0 NOT NULL,\n  \"day\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"uniqueClones\" int4 DEFAULT 0 NOT NULL,\n  \"uniqueVisitors\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"views\" int4 DEFAULT 0 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubTrafficDaily\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubTrafficDaily\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubTrafficDaily\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubTrafficPathSnapshot",
+    "label": "Create table \"GitHubTrafficPathSnapshot\"",
+    "summary": "Creates table \"GitHubTrafficPathSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubTrafficPathSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubTrafficPathSnapshot\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubTrafficPathSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubTrafficPathSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubTrafficPathSnapshot\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubTrafficPathSnapshot\" (\n  \"capturedFor\" timestamptz NOT NULL,\n  \"count\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"path\" text NOT NULL,\n  \"title\" text,\n  \"uniques\" int4 DEFAULT 0 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubTrafficPathSnapshot\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubTrafficPathSnapshot\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubTrafficPathSnapshot\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubTrafficReferrerSnapshot",
+    "label": "Create table \"GitHubTrafficReferrerSnapshot\"",
+    "summary": "Creates table \"GitHubTrafficReferrerSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubTrafficReferrerSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubTrafficReferrerSnapshot\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubTrafficReferrerSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubTrafficReferrerSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubTrafficReferrerSnapshot\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubTrafficReferrerSnapshot\" (\n  \"capturedFor\" timestamptz NOT NULL,\n  \"count\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"referrer\" text NOT NULL,\n  \"uniques\" int4 DEFAULT 0 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubTrafficReferrerSnapshot\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubTrafficReferrerSnapshot\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubTrafficReferrerSnapshot\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubTrafficDaily.GitHubTrafficDaily_day_key",
+    "label": "Add unique constraint on \"GitHubTrafficDaily\" (day)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubTrafficDaily_day_key",
+        "table": "GitHubTrafficDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubTrafficDaily_day_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubTrafficDaily_day_key",
+          "public",
+          "\"public\".\"GitHubTrafficDaily\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubTrafficDaily_day_key\" on \"GitHubTrafficDaily\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubTrafficDaily_day_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubTrafficDaily\" ADD CONSTRAINT \"GitHubTrafficDaily_day_key\" UNIQUE (\"day\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubTrafficDaily_day_key\" exists on (day)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubTrafficDaily_day_key",
+          "public",
+          "\"public\".\"GitHubTrafficDaily\"",
+          "u",
+          "[\"day\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubTrafficPathSnapshot.GitHubTrafficPathSnapshot_capturedFor_path_key",
+    "label": "Add unique constraint on \"GitHubTrafficPathSnapshot\" (capturedFor, path)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubTrafficPathSnapshot_capturedFor_path_key",
+        "table": "GitHubTrafficPathSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubTrafficPathSnapshot_capturedFor_path_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubTrafficPathSnapshot_capturedFor_path_key",
+          "public",
+          "\"public\".\"GitHubTrafficPathSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubTrafficPathSnapshot_capturedFor_path_key\" on \"GitHubTrafficPathSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubTrafficPathSnapshot_capturedFor_path_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubTrafficPathSnapshot\" ADD CONSTRAINT \"GitHubTrafficPathSnapshot_capturedFor_path_key\" UNIQUE (\"capturedFor\", \"path\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubTrafficPathSnapshot_capturedFor_path_key\" exists on (capturedFor, path)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubTrafficPathSnapshot_capturedFor_path_key",
+          "public",
+          "\"public\".\"GitHubTrafficPathSnapshot\"",
+          "u",
+          "[\"capturedFor\",\"path\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubTrafficReferrerSnapshot.GitHubTrafficReferrerSnapshot_capturedFor_referrer_key",
+    "label": "Add unique constraint on \"GitHubTrafficReferrerSnapshot\" (capturedFor, referrer)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubTrafficReferrerSnapshot_capturedFor_referrer_key",
+        "table": "GitHubTrafficReferrerSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubTrafficReferrerSnapshot_capturedFor_referrer_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubTrafficReferrerSnapshot_capturedFor_referrer_key",
+          "public",
+          "\"public\".\"GitHubTrafficReferrerSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubTrafficReferrerSnapshot_capturedFor_referrer_key\" on \"GitHubTrafficReferrerSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubTrafficReferrerSnapshot_capturedFor_referrer_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubTrafficReferrerSnapshot\" ADD CONSTRAINT \"GitHubTrafficReferrerSnapshot_capturedFor_referrer_key\" UNIQUE (\"capturedFor\", \"referrer\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubTrafficReferrerSnapshot_capturedFor_referrer_key\" exists on (capturedFor, referrer)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubTrafficReferrerSnapshot_capturedFor_referrer_key",
+          "public",
+          "\"public\".\"GitHubTrafficReferrerSnapshot\"",
+          "u",
+          "[\"capturedFor\",\"referrer\"]"
+        ]
+      }
+    ]
+  }
+]

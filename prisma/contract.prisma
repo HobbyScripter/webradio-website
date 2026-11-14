@@ -696,6 +696,47 @@ model WebsiteDownloadStat {
   @@index([countryCode])
 }
 
+// ---------------------------------------------------------------------------
+// Repository Traffic Analytics
+// GitHub only exposes 14 days of traffic; daily values are archived here.
+// ---------------------------------------------------------------------------
+
+model GitHubTrafficDaily {
+  id             String   @id @onCreate(uuid(7))
+  day            DateTime
+  views          Int      @default(0)
+  uniqueVisitors Int      @default(0)
+  clones         Int      @default(0)
+  uniqueClones   Int      @default(0)
+  capturedAt     DateTime @onCreate(now())
+  updatedAt      DateTime @onCreate(now()) @onUpdate(now())
+
+  @@unique([day])
+}
+
+model GitHubTrafficReferrerSnapshot {
+  id          String   @id @onCreate(uuid(7))
+  capturedFor DateTime
+  referrer    String
+  count       Int      @default(0)
+  uniques     Int      @default(0)
+  createdAt   DateTime @onCreate(now())
+
+  @@unique([capturedFor, referrer])
+}
+
+model GitHubTrafficPathSnapshot {
+  id          String   @id @onCreate(uuid(7))
+  capturedFor DateTime
+  path        String
+  title       String?
+  count       Int      @default(0)
+  uniques     Int      @default(0)
+  createdAt   DateTime @onCreate(now())
+
+  @@unique([capturedFor, path])
+}
+
 model DownloadSyncLog {
   id                   String             @id @onCreate(uuid(7))
   status               DownloadSyncStatus
