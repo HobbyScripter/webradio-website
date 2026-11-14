@@ -60,18 +60,57 @@ function base64UrlEncode(input: string | Buffer): string {
 }
 
 /**
- * Creates an RS256 signed JWT for GitHub App authentication (valid for 10 minutes max).
+ * Algorithm GitHub requires for App JWTs.
+ * @see https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
  */
-export function generateGitHubAppJwt(appId: string, privateKeyPem: string): string {
-  const now = Math.floor(Date.now() / 1000);
+export const GITHUB_APP_JWT_ALGORITHM = 'RS256' as const;
+
+/**
+ * GitHub rejects an `exp` more than 10 minutes in the future; the whole window
+ * (`exp - iat`) therefore stays at exactly 10 minutes.
+ */
+export const GITHUB_APP_JWT_MAX_LIFETIME_SECONDS = 10 * 60;
+
+/** GitHub recommends backdating `iat` by 60 seconds to tolerate clock drift. */
+export const GITHUB_APP_JWT_CLOCK_DRIFT_SECONDS = 60;
+
+export type GitHubAppJwtOptions = {
+  /** Unix timestamp in seconds; injectable so tests can assert the claims exactly. */
+  nowSeconds?: number;
+};
+
+/**
+ * Creates the RS256 JWT that authenticates as the GitHub App.
+ *
+ * `iss` MUST be the GitHub App **client ID** (recommended by GitHub and the value
+ * this project configures as `GITHUB_CLIENT_ID`), never the numeric App ID. The
+ * App ID is only an identifier for the settings page and the admin dashboard.
+ *
+ * Claims: `iat` is 60s in the past, `exp` is 9 minutes in the future (10 minute
+ * maximum window), signed with the App's private PEM key.
+ */
+export function generateGitHubAppJwt(
+  clientId: string,
+  privateKeyPem: string,
+  options: GitHubAppJwtOptions = {},
+): string {
+  const issuer = clientId?.trim();
+  if (!issuer) {
+    throw new Error('GitHub App JWT requires the App client ID as issuer (GITHUB_CLIENT_ID).');
+  }
+  if (!privateKeyPem?.includes('-----BEGIN')) {
+    throw new Error('GitHub App JWT requires a PEM encoded private key (GITHUB_APP_PRIVATE_KEY).');
+  }
+
+  const now = options.nowSeconds ?? Math.floor(Date.now() / 1000);
   const header = {
-    alg: 'RS256',
+    alg: GITHUB_APP_JWT_ALGORITHM,
     typ: 'JWT',
   };
   const payload = {
-    iat: now - 60, // 60s clock skew
-    exp: now + 9 * 60, // 9 minutes
-    iss: appId,
+    iat: now - GITHUB_APP_JWT_CLOCK_DRIFT_SECONDS,
+    exp: now - GITHUB_APP_JWT_CLOCK_DRIFT_SECONDS + GITHUB_APP_JWT_MAX_LIFETIME_SECONDS,
+    iss: issuer,
   };
 
   const encodedHeader = base64UrlEncode(JSON.stringify(header));
@@ -92,11 +131,18 @@ type CachedInstallationToken = {
   token: string;
   expiresAtMs: number;
   installationId: string;
+  /** Client ID that issued the JWT, so a configuration change invalidates the cache. */
+  issuer: string;
   permissions?: Record<string, string>;
   repository?: string;
 };
 
 let cachedToken: CachedInstallationToken | null = null;
+
+/** Test hook: the installation token cache is process wide. */
+export function __resetGitHubAppTokenCacheForTests(): void {
+  cachedToken = null;
+}
 
 /**
  * Fetches a GitHub App Installation Access Token or falls back to GITHUB_TOKEN if App not configured.
@@ -108,12 +154,15 @@ export async function getInstallationAccessToken(): Promise<{
 }> {
   const config = getGitHubAppConfig();
 
-  if (config.appId && config.installationId && config.privateKey) {
+  // The JWT is issued with the client ID. The App ID is a separate value and is
+  // deliberately NOT used as a fallback issuer (see GITHUB_APP_SETUP.md).
+  if (config.clientId && config.installationId && config.privateKey) {
     const now = Date.now();
     // Re-use cached token if it has at least 2 minutes lifetime left
     if (
       cachedToken &&
       cachedToken.installationId === config.installationId &&
+      cachedToken.issuer === config.clientId &&
       cachedToken.expiresAtMs - now > 2 * 60 * 1000
     ) {
       return {
@@ -124,7 +173,9 @@ export async function getInstallationAccessToken(): Promise<{
     }
 
     try {
-      const jwt = generateGitHubAppJwt(config.appId, config.privateKey);
+      const jwt = generateGitHubAppJwt(config.clientId, config.privateKey);
+      // The installation ID is what identifies the installation whose token is
+      // exchanged; the JWT alone only proves the App identity.
       const url = `https://api.github.com/app/installations/${config.installationId}/access_tokens`;
 
       const response = await fetch(url, {
@@ -150,6 +201,7 @@ export async function getInstallationAccessToken(): Promise<{
           token: body.token,
           expiresAtMs,
           installationId: config.installationId,
+          issuer: config.clientId,
           permissions: body.permissions,
         };
 
@@ -167,6 +219,11 @@ export async function getInstallationAccessToken(): Promise<{
     } catch (err) {
       console.warn('Failed to obtain GitHub App installation access token:', err);
     }
+  } else if (config.installationId && config.privateKey && !config.clientId) {
+    console.warn(
+      'GitHub App is missing GITHUB_CLIENT_ID. The JWT issuer is the App client ID; ' +
+        'the App ID (GITHUB_APP_ID) is not used as a fallback, so no installation token is requested.',
+    );
   }
 
   if (config.fallbackToken) {
@@ -285,13 +342,17 @@ export async function getGitHubIntegrationStatus(): Promise<IntegrationStatusInf
 
   const repository = GITHUB_REPOSITORY;
 
-  if (!config.appId && !config.fallbackToken) {
+  const appAuthConfigured = Boolean(
+    config.clientId && config.installationId && config.privateKey,
+  );
+
+  if (!appAuthConfigured && !config.fallbackToken) {
     return {
       configured: false,
       mode: 'none',
-      appId: null,
-      clientId: null,
-      installationId: null,
+      appId: config.appId,
+      clientId: config.clientId,
+      installationId: config.installationId,
       appName: null,
       accountLogin: null,
       repository,
@@ -299,11 +360,14 @@ export async function getGitHubIntegrationStatus(): Promise<IntegrationStatusInf
       permissions: null,
       lastApiCallAt: null,
       lastWebhookAt: null,
-      lastError: 'Keine GitHub App-Konfiguration oder Fallback-Token vorhanden.',
+      lastError:
+        config.appId || config.installationId
+          ? 'GitHub App unvollständig: Für die JWT-Authentifizierung werden GITHUB_CLIENT_ID (Issuer) und GITHUB_APP_PRIVATE_KEY benötigt. Die App ID ersetzt die Client ID nicht.'
+          : 'Keine GitHub App-Konfiguration oder Fallback-Token vorhanden.',
     };
   }
 
-  if (config.appId && config.installationId) {
+  if (appAuthConfigured && config.clientId && config.installationId) {
     const instId = BigInt(config.installationId);
     let record = null;
     try {

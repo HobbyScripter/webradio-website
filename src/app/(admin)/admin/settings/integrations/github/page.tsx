@@ -84,8 +84,12 @@ export default async function GitHubIntegrationPage() {
             <span className="font-mono text-zinc-200">{status.installationId ?? '–'}</span>
           </div>
           <div>
-            <span className="text-zinc-500 block">App ID:</span>
+            <span className="text-zinc-500 block">App ID (nur Anzeige):</span>
             <span className="font-mono text-zinc-200">{status.appId ?? '–'}</span>
+          </div>
+          <div>
+            <span className="text-zinc-500 block">Client ID (JWT-Issuer):</span>
+            <span className="font-mono text-zinc-200">{status.clientId ?? '–'}</span>
           </div>
           <div>
             <span className="text-zinc-500 block">Letzter API-Aufruf:</span>

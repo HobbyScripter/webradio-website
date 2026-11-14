@@ -85,7 +85,9 @@ export const env = {
   EMAIL_SERVER_USER: process.env['EMAIL_SERVER_USER'],
   EMAIL_SERVER_PASSWORD: process.env['EMAIL_SERVER_PASSWORD'],
 
-  // Optional: GitHub OAuth
+  // Optional: GitHub App
+  // GITHUB_CLIENT_ID is the JWT issuer (`iss`) for App authentication; the
+  // numeric GITHUB_APP_ID is a separate value and is never used as issuer.
   GITHUB_CLIENT_ID: process.env['GITHUB_CLIENT_ID'],
   GITHUB_CLIENT_SECRET: process.env['GITHUB_CLIENT_SECRET'],
   GITHUB_WEBHOOK_SECRET: process.env['GITHUB_WEBHOOK_SECRET'],
