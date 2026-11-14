@@ -1542,6 +1542,13 @@
           },
           "GitHubReleaseAsset": {
             "fields": {
+              "contentType": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -1553,6 +1560,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "digest": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -1591,6 +1605,13 @@
                   "kind": "scalar"
                 }
               },
+              "isPrerelease": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "lastSyncedAt": {
                 "nullable": false,
                 "type": {
@@ -1619,6 +1640,20 @@
                   "kind": "scalar"
                 }
               },
+              "releaseName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "releasePublishedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
               "releaseTag": {
                 "nullable": false,
                 "type": {
@@ -1630,6 +1665,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int8@1",
+                  "kind": "scalar"
+                }
+              },
+              "state": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -1675,11 +1717,17 @@
             },
             "storage": {
               "fields": {
+                "contentType": {
+                  "column": "contentType"
+                },
                 "createdAt": {
                   "column": "createdAt"
                 },
                 "currentDownloadCount": {
                   "column": "currentDownloadCount"
+                },
+                "digest": {
+                  "column": "digest"
                 },
                 "downloadUrl": {
                   "column": "downloadUrl"
@@ -1696,6 +1744,9 @@
                 "id": {
                   "column": "id"
                 },
+                "isPrerelease": {
+                  "column": "isPrerelease"
+                },
                 "lastSyncedAt": {
                   "column": "lastSyncedAt"
                 },
@@ -1708,11 +1759,20 @@
                 "releaseId": {
                   "column": "releaseId"
                 },
+                "releaseName": {
+                  "column": "releaseName"
+                },
+                "releasePublishedAt": {
+                  "column": "releasePublishedAt"
+                },
                 "releaseTag": {
                   "column": "releaseTag"
                 },
                 "size": {
                   "column": "size"
+                },
+                "state": {
+                  "column": "state"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -5428,6 +5488,11 @@
             },
             "GitHubReleaseAsset": {
               "columns": {
+                "contentType": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "dataType": "pg/timestamptz",
@@ -5441,6 +5506,11 @@
                     "value": 0
                   },
                   "nullable": false
+                },
+                "digest": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 },
                 "downloadUrl": {
                   "codecId": "pg/text@1",
@@ -5467,6 +5537,15 @@
                   "dataType": "pg/text",
                   "nullable": false
                 },
+                "isPrerelease": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nullable": false
+                },
                 "lastSyncedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "dataType": "pg/timestamptz",
@@ -5487,6 +5566,16 @@
                   "dataType": "pg/int8",
                   "nullable": false
                 },
+                "releaseName": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "releasePublishedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
                 "releaseTag": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -5496,6 +5585,11 @@
                   "codecId": "pg/int8@1",
                   "dataType": "pg/int8",
                   "nullable": false
+                },
+                "state": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -7963,7 +8057,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "45a62aa2acbe712123ce618d3fe0dfa56200e0167fc566854b84f3c3e88efc65"
+    "storageHash": "a61918f0b1c8b54dbf33affc080620281580b3acf90ea9097df5e2db7a28c21a"
   },
   "execution": {
     "executionHash": "2161f34c1b3ec6f15ff94bf4d6fd4b37b5e1cf11c05a52acf96de8a9b8995f86",

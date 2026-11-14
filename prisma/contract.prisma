@@ -652,6 +652,12 @@ model GitHubReleaseAsset {
   fileName             String
   platform             String?
   format               String?
+  contentType          String?
+  state                String?
+  digest               String?
+  releaseName          String?
+  releasePublishedAt   DateTime?
+  isPrerelease         Boolean                  @default(false)
   size                 BigInt
   downloadUrl          String
   currentDownloadCount Int                      @default(0)

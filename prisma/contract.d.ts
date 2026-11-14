@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'45a62aa2acbe712123ce618d3fe0dfa56200e0167fc566854b84f3c3e88efc65'>;
+  StorageHashBase<'a61918f0b1c8b54dbf33affc080620281580b3acf90ea9097df5e2db7a28c21a'>;
 export type ExecutionHash =
   ExecutionHashBase<'2161f34c1b3ec6f15ff94bf4d6fd4b37b5e1cf11c05a52acf96de8a9b8995f86'>;
 export type ProfileHash =
@@ -644,19 +644,25 @@ export namespace Models {
     readonly [RelationKeys]?: 'asset';
   };
   export type public_GitHubReleaseAsset = {
+    contentType: FieldOutputTypes['public']['GitHubReleaseAsset']['contentType'];
     createdAt: FieldOutputTypes['public']['GitHubReleaseAsset']['createdAt'];
     currentDownloadCount: FieldOutputTypes['public']['GitHubReleaseAsset']['currentDownloadCount'];
+    digest: FieldOutputTypes['public']['GitHubReleaseAsset']['digest'];
     downloadUrl: FieldOutputTypes['public']['GitHubReleaseAsset']['downloadUrl'];
     fileName: FieldOutputTypes['public']['GitHubReleaseAsset']['fileName'];
     format: FieldOutputTypes['public']['GitHubReleaseAsset']['format'];
     githubAssetId: FieldOutputTypes['public']['GitHubReleaseAsset']['githubAssetId'];
     id: FieldOutputTypes['public']['GitHubReleaseAsset']['id'];
+    isPrerelease: FieldOutputTypes['public']['GitHubReleaseAsset']['isPrerelease'];
     lastSyncedAt: FieldOutputTypes['public']['GitHubReleaseAsset']['lastSyncedAt'];
     platform: FieldOutputTypes['public']['GitHubReleaseAsset']['platform'];
     releaseChannel: FieldOutputTypes['public']['GitHubReleaseAsset']['releaseChannel'];
     releaseId: FieldOutputTypes['public']['GitHubReleaseAsset']['releaseId'];
+    releaseName: FieldOutputTypes['public']['GitHubReleaseAsset']['releaseName'];
+    releasePublishedAt: FieldOutputTypes['public']['GitHubReleaseAsset']['releasePublishedAt'];
     releaseTag: FieldOutputTypes['public']['GitHubReleaseAsset']['releaseTag'];
     size: FieldOutputTypes['public']['GitHubReleaseAsset']['size'];
+    state: FieldOutputTypes['public']['GitHubReleaseAsset']['state'];
     updatedAt: FieldOutputTypes['public']['GitHubReleaseAsset']['updatedAt'];
     snapshots: public_GitHubDownloadSnapshot[];
     websiteStats: public_WebsiteDownloadStat[];
@@ -1812,6 +1818,12 @@ type ContractBase = Omit<
             };
             readonly GitHubReleaseAsset: {
               columns: {
+                readonly contentType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
@@ -1826,6 +1838,12 @@ type ContractBase = Omit<
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
                   };
+                  readonly many: false;
+                };
+                readonly digest: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly downloadUrl: {
@@ -1858,6 +1876,16 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly isPrerelease: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
                 readonly lastSyncedAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
@@ -1882,6 +1910,18 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly releaseName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly releasePublishedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly releaseTag: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -1892,6 +1932,12 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/int8';
                   readonly codecId: 'pg/int8@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly state: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly updatedAt: {
@@ -4673,6 +4719,10 @@ type ContractBase = Omit<
           };
           readonly GitHubReleaseAsset: {
             readonly fields: {
+              readonly contentType: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -4683,6 +4733,10 @@ type ContractBase = Omit<
               readonly currentDownloadCount: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly digest: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly downloadUrl: {
                 readonly nullable: false;
@@ -4704,6 +4758,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly isPrerelease: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
               readonly lastSyncedAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -4723,6 +4781,17 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
               };
+              readonly releaseName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly releasePublishedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
               readonly releaseTag: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -4730,6 +4799,10 @@ type ContractBase = Omit<
               readonly size: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
+              };
+              readonly state: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly updatedAt: {
                 readonly nullable: false;
@@ -4767,19 +4840,25 @@ type ContractBase = Omit<
               readonly table: 'GitHubReleaseAsset';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly contentType: { readonly column: 'contentType' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly currentDownloadCount: { readonly column: 'currentDownloadCount' };
+                readonly digest: { readonly column: 'digest' };
                 readonly downloadUrl: { readonly column: 'downloadUrl' };
                 readonly fileName: { readonly column: 'fileName' };
                 readonly format: { readonly column: 'format' };
                 readonly githubAssetId: { readonly column: 'githubAssetId' };
                 readonly id: { readonly column: 'id' };
+                readonly isPrerelease: { readonly column: 'isPrerelease' };
                 readonly lastSyncedAt: { readonly column: 'lastSyncedAt' };
                 readonly platform: { readonly column: 'platform' };
                 readonly releaseChannel: { readonly column: 'releaseChannel' };
                 readonly releaseId: { readonly column: 'releaseId' };
+                readonly releaseName: { readonly column: 'releaseName' };
+                readonly releasePublishedAt: { readonly column: 'releasePublishedAt' };
                 readonly releaseTag: { readonly column: 'releaseTag' };
                 readonly size: { readonly column: 'size' };
+                readonly state: { readonly column: 'state' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };

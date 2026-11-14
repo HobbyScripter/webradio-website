@@ -16,6 +16,8 @@ const apiAssetSchema = z.object({
   name: z.string(),
   size: z.number(),
   state: z.string().optional(),
+  content_type: z.string().nullable().optional(),
+  digest: z.string().nullable().optional(),
   download_count: z.number(),
   browser_download_url: z.string(),
 });
@@ -52,6 +54,22 @@ function detectPlatform(name: string): { platform: string; format: string } {
   if (/\.exe$/i.test(name)) return { platform: 'windows', format: 'Installer (EXE)' };
   if (/\.dmg$/i.test(name)) return { platform: 'macos', format: 'Disk Image (.dmg)' };
   return { platform: 'unknown', format: 'Unknown' };
+}
+
+const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/i;
+
+/** Only a complete SHA-256 digest is stored; anything else is treated as absent. */
+export function validAssetDigest(value: string | null | undefined): string | null {
+  return typeof value === 'string' && DIGEST_PATTERN.test(value) ? value : null;
+}
+
+function publishedInstant(value: string | null | undefined): Temporal.Instant | null {
+  if (!value) return null;
+  try {
+    return Temporal.Instant.from(value);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -129,6 +147,9 @@ export async function syncGitHubDownloadStats(options: { force?: boolean } = {})
     for (const rel of parsed.data) {
       if (rel.draft || !rel.published_at) continue;
       const channel = channelFor(rel.tag_name, rel.prerelease);
+      const releaseName = rel.name ?? null;
+      const releasePublishedAt = publishedInstant(rel.published_at);
+      const isPrerelease = rel.prerelease;
 
       for (const asset of rel.assets) {
         if (asset.state && asset.state !== 'uploaded') continue;
@@ -148,6 +169,12 @@ export async function syncGitHubDownloadStats(options: { force?: boolean } = {})
             lastSyncedAt: nowInstant,
             size: BigInt(asset.size),
             downloadUrl: asset.browser_download_url,
+            contentType: asset.content_type ?? null,
+            state: asset.state ?? null,
+            digest: validAssetDigest(asset.digest),
+            releaseName,
+            releasePublishedAt,
+            isPrerelease,
           });
         } else {
           const created = await db.orm.public.GitHubReleaseAsset.create({
@@ -158,6 +185,12 @@ export async function syncGitHubDownloadStats(options: { force?: boolean } = {})
             fileName: asset.name,
             platform,
             format,
+            contentType: asset.content_type ?? null,
+            state: asset.state ?? null,
+            digest: validAssetDigest(asset.digest),
+            releaseName,
+            releasePublishedAt,
+            isPrerelease,
             size: BigInt(asset.size),
             downloadUrl: asset.browser_download_url,
             currentDownloadCount: asset.download_count,

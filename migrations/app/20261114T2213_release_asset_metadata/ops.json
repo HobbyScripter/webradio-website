@@ -1,0 +1,372 @@
+[
+  {
+    "id": "column.public.GitHubReleaseAsset.contentType",
+    "label": "Add column \"contentType\" to \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "contentType",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"contentType\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "contentType"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"contentType\" on \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"contentType\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubReleaseAsset\" ADD COLUMN \"contentType\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"contentType\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "contentType"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"contentType\" on \"GitHubReleaseAsset\""
+        }
+      },
+      {
+        "description": "verify column \"contentType\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "contentType",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.GitHubReleaseAsset.digest",
+    "label": "Add column \"digest\" to \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "digest",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"digest\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "digest"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"digest\" on \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"digest\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubReleaseAsset\" ADD COLUMN \"digest\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"digest\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "digest"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"digest\" on \"GitHubReleaseAsset\""
+        }
+      },
+      {
+        "description": "verify column \"digest\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "digest",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.GitHubReleaseAsset.isPrerelease",
+    "label": "Add column \"isPrerelease\" to \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "isPrerelease",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"isPrerelease\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "isPrerelease"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"isPrerelease\" on \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"isPrerelease\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubReleaseAsset\" ADD COLUMN \"isPrerelease\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"isPrerelease\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "isPrerelease"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"isPrerelease\" on \"GitHubReleaseAsset\""
+        }
+      },
+      {
+        "description": "verify column \"isPrerelease\" has type \"boolean\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "isPrerelease",
+          "boolean"
+        ]
+      },
+      {
+        "description": "verify column \"isPrerelease\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "isPrerelease",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.GitHubReleaseAsset.releaseName",
+    "label": "Add column \"releaseName\" to \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "releaseName",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"releaseName\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "releaseName"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"releaseName\" on \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"releaseName\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubReleaseAsset\" ADD COLUMN \"releaseName\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"releaseName\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "releaseName"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"releaseName\" on \"GitHubReleaseAsset\""
+        }
+      },
+      {
+        "description": "verify column \"releaseName\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "releaseName",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.GitHubReleaseAsset.releasePublishedAt",
+    "label": "Add column \"releasePublishedAt\" to \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "releasePublishedAt",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"releasePublishedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "releasePublishedAt"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"releasePublishedAt\" on \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"releasePublishedAt\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubReleaseAsset\" ADD COLUMN \"releasePublishedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"releasePublishedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "releasePublishedAt"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"releasePublishedAt\" on \"GitHubReleaseAsset\""
+        }
+      },
+      {
+        "description": "verify column \"releasePublishedAt\" has type \"timestamp with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "releasePublishedAt",
+          "timestamp with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.GitHubReleaseAsset.state",
+    "label": "Add column \"state\" to \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "state",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"state\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "state"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"state\" on \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"state\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubReleaseAsset\" ADD COLUMN \"state\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"state\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "state"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"state\" on \"GitHubReleaseAsset\""
+        }
+      },
+      {
+        "description": "verify column \"state\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "GitHubReleaseAsset",
+          "state",
+          "text"
+        ]
+      }
+    ]
+  }
+]
