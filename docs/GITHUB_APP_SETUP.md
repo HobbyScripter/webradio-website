@@ -124,12 +124,39 @@ werden von der Anwendung nicht importiert. Wird später ein SDK eingesetzt, muss
 es die Client ID als `iss` akzeptieren (z. B. `@octokit/auth-app` ab v8, das
 `clientId` explizit unterstützt) und die Claims `iat`/`exp` selbst setzen.
 
-### Fehlerverhalten
+### Verbindungsprüfung im Adminbereich
+
+Der Status unter `/admin/settings/integrations/github` ist keine reine
+Konfigurationsanzeige mehr. `checkGitHubAppConnection()` führt bei jedem
+Seitenaufruf einen **rein lesenden** Dreistufen-Test aus:
+
+1. JWT mit der Client ID signieren (ohne Netzwerkzugriff).
+2. `POST /app/installations/{installation_id}/access_tokens` – Installation Token holen.
+3. `GET /repos/YourEliteSystems/WebRadio` mit diesem Token – Lesezugriff prüfen.
+
+Erst wenn alle drei Schritte gelingen, zeigt das Dashboard „Verbunden“. Zurückgegeben
+und angezeigt werden nur ein stabiler Code, der fehlgeschlagene Schritt, der
+HTTP-Status und eine deutsche Meldung – niemals JWT, Token, Private Key oder
+Response-Body.
+
+| Code | Schritt | Bedeutung |
+|---|---|---|
+| `OK` | `repository` | Token erhalten, Repository lesbar |
+| `NOT_CONFIGURED` | `config` | Variablen fehlen; die Meldung nennt ihre Namen |
+| `INVALID_PRIVATE_KEY` | `config` | Key ist kein PEM oder das JWT lässt sich nicht signieren |
+| `INVALID_JWT` | `token` | GitHub lehnt das JWT ab (HTTP 401): Client ID/Key passen nicht |
+| `INSTALLATION_NOT_FOUND` | `config`/`token` | Installation ID nicht numerisch, unbekannt oder App dort nicht installiert (HTTP 404) |
+| `FORBIDDEN` | `token`/`repository` | Installation gesperrt oder Lesezugriff fehlt (HTTP 403) |
+| `REPOSITORY_NOT_ACCESSIBLE` | `repository` | Repository für die Installation nicht sichtbar oder falsches Repo |
+| `API_ERROR` | `token`/`repository` | Netzwerk, Timeout, Rate Limit oder sonstiger HTTP-Fehler |
+
+### Fehlerverhalten der Datenabrufe
 
 - Fehlt `GITHUB_CLIENT_ID`, wird kein JWT erzeugt und kein Token angefordert;
   es greift der optionale `GITHUB_TOKEN`-Fallback.
 - Ein abgelehnter Token-Request (HTTP ≠ 2xx) wird als Warnung mit Statuscode
-  protokolliert; danach greift ebenfalls der Fallback.
+  protokolliert; danach greift ebenfalls der Fallback. Die Verbindungsprüfung
+  im Adminbereich macht diese Fälle sichtbar, ohne Logs zu benötigen.
 
 ---
 

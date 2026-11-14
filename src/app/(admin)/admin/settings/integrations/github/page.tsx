@@ -65,6 +65,8 @@ export default async function GitHubIntegrationPage() {
                 ? 'Ausgesetzt'
                 : status.status === 'DELETED'
                 ? 'Deinstalliert'
+                : status.status === 'ERROR'
+                ? 'Verbindung fehlgeschlagen'
                 : 'Nicht verbunden'}
             </Badge>
           </div>
@@ -127,6 +129,49 @@ export default async function GitHubIntegrationPage() {
             </p>
           )}
         </div>
+
+        {/* Read-only connection check */}
+        {status.check ? (
+          <div className="border-t border-white/[0.06] pt-5 space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Verbindungsprüfung (nur lesend)
+              </h3>
+              <ButtonLink
+                href="/admin/settings/integrations/github"
+                variant="secondary"
+                size="sm"
+              >
+                Erneut prüfen
+              </ButtonLink>
+            </div>
+            <p
+              className={
+                status.check.ok ? 'text-xs text-emerald-300' : 'text-xs text-rose-300'
+              }
+            >
+              {status.check.message}
+            </p>
+            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+              <div>
+                <dt className="text-zinc-500">Code</dt>
+                <dd className="font-mono text-zinc-200">{status.check.code}</dd>
+              </div>
+              <div>
+                <dt className="text-zinc-500">Schritt</dt>
+                <dd className="font-mono text-zinc-200">{status.check.stage}</dd>
+              </div>
+              <div>
+                <dt className="text-zinc-500">HTTP-Status</dt>
+                <dd className="font-mono text-zinc-200">{status.check.httpStatus ?? '–'}</dd>
+              </div>
+              <div>
+                <dt className="text-zinc-500">Geprüft</dt>
+                <dd className="text-zinc-200">{formatDateTime(status.check.checkedAt)}</dd>
+              </div>
+            </dl>
+          </div>
+        ) : null}
       </section>
 
       {/* Setup & Installation Guidance */}
