@@ -36,12 +36,36 @@
       "model": "GitHubAppInstallation",
       "namespace": "public"
     },
+    "GitHubCodeFrequencyWeek": {
+      "model": "GitHubCodeFrequencyWeek",
+      "namespace": "public"
+    },
+    "GitHubCommitActivityWeek": {
+      "model": "GitHubCommitActivityWeek",
+      "namespace": "public"
+    },
+    "GitHubContributorSnapshot": {
+      "model": "GitHubContributorSnapshot",
+      "namespace": "public"
+    },
     "GitHubDownloadSnapshot": {
       "model": "GitHubDownloadSnapshot",
       "namespace": "public"
     },
+    "GitHubParticipationWeek": {
+      "model": "GitHubParticipationWeek",
+      "namespace": "public"
+    },
+    "GitHubPunchCardSlot": {
+      "model": "GitHubPunchCardSlot",
+      "namespace": "public"
+    },
     "GitHubReleaseAsset": {
       "model": "GitHubReleaseAsset",
+      "namespace": "public"
+    },
+    "GitHubRepoStatsSnapshot": {
+      "model": "GitHubRepoStatsSnapshot",
       "namespace": "public"
     },
     "GitHubToken": {
@@ -1462,6 +1486,189 @@
               "table": "GitHubAppInstallation"
             }
           },
+          "GitHubCodeFrequencyWeek": {
+            "fields": {
+              "additions": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "deletions": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "weekStart": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "additions": {
+                  "column": "additions"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "deletions": {
+                  "column": "deletions"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "weekStart": {
+                  "column": "weekStart"
+                }
+              },
+              "namespaceId": "public",
+              "table": "GitHubCodeFrequencyWeek"
+            }
+          },
+          "GitHubCommitActivityWeek": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "daysJson": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "total": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "weekStart": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "daysJson": {
+                  "column": "daysJson"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "total": {
+                  "column": "total"
+                },
+                "weekStart": {
+                  "column": "weekStart"
+                }
+              },
+              "namespaceId": "public",
+              "table": "GitHubCommitActivityWeek"
+            }
+          },
+          "GitHubContributorSnapshot": {
+            "fields": {
+              "capturedFor": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "contributions": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "login": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "capturedFor": {
+                  "column": "capturedFor"
+                },
+                "contributions": {
+                  "column": "contributions"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "login": {
+                  "column": "login"
+                }
+              },
+              "namespaceId": "public",
+              "table": "GitHubContributorSnapshot"
+            }
+          },
           "GitHubDownloadSnapshot": {
             "fields": {
               "assetId": {
@@ -1538,6 +1745,128 @@
               },
               "namespaceId": "public",
               "table": "GitHubDownloadSnapshot"
+            }
+          },
+          "GitHubParticipationWeek": {
+            "fields": {
+              "allCount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "ownerCount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "weekStart": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "allCount": {
+                  "column": "allCount"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "ownerCount": {
+                  "column": "ownerCount"
+                },
+                "weekStart": {
+                  "column": "weekStart"
+                }
+              },
+              "namespaceId": "public",
+              "table": "GitHubParticipationWeek"
+            }
+          },
+          "GitHubPunchCardSlot": {
+            "fields": {
+              "count": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "hour": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "weekday": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "count": {
+                  "column": "count"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "hour": {
+                  "column": "hour"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "weekday": {
+                  "column": "weekday"
+                }
+              },
+              "namespaceId": "public",
+              "table": "GitHubPunchCardSlot"
             }
           },
           "GitHubReleaseAsset": {
@@ -1780,6 +2109,117 @@
               },
               "namespaceId": "public",
               "table": "GitHubReleaseAsset"
+            }
+          },
+          "GitHubRepoStatsSnapshot": {
+            "fields": {
+              "capturedFor": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "forks": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "language": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "license": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "openIssues": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "stars": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "topics": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "watchers": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "capturedFor": {
+                  "column": "capturedFor"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "forks": {
+                  "column": "forks"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "language": {
+                  "column": "language"
+                },
+                "license": {
+                  "column": "license"
+                },
+                "openIssues": {
+                  "column": "openIssues"
+                },
+                "stars": {
+                  "column": "stars"
+                },
+                "topics": {
+                  "column": "topics"
+                },
+                "watchers": {
+                  "column": "watchers"
+                }
+              },
+              "namespaceId": "public",
+              "table": "GitHubRepoStatsSnapshot"
             }
           },
           "GitHubToken": {
@@ -5404,6 +5844,152 @@
                 }
               ]
             },
+            "GitHubCodeFrequencyWeek": {
+              "columns": {
+                "additions": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "deletions": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "weekStart": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "weekStart"
+                  ]
+                }
+              ]
+            },
+            "GitHubCommitActivityWeek": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "daysJson": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "total": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "weekStart": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "weekStart"
+                  ]
+                }
+              ]
+            },
+            "GitHubContributorSnapshot": {
+              "columns": {
+                "capturedFor": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "contributions": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "login": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "capturedFor",
+                    "login"
+                  ]
+                }
+              ]
+            },
             "GitHubDownloadSnapshot": {
               "columns": {
                 "assetId": {
@@ -5482,6 +6068,105 @@
                   "columns": [
                     "assetId",
                     "snapshotDate"
+                  ]
+                }
+              ]
+            },
+            "GitHubParticipationWeek": {
+              "columns": {
+                "allCount": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "ownerCount": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "weekStart": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "weekStart"
+                  ]
+                }
+              ]
+            },
+            "GitHubPunchCardSlot": {
+              "columns": {
+                "count": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "hour": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "weekday": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "weekday",
+                    "hour"
                   ]
                 }
               ]
@@ -5625,6 +6310,90 @@
                 {
                   "columns": [
                     "githubAssetId"
+                  ]
+                }
+              ]
+            },
+            "GitHubRepoStatsSnapshot": {
+              "columns": {
+                "capturedFor": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "forks": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "language": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "license": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "openIssues": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "stars": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "topics": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "watchers": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "capturedFor"
                   ]
                 }
               ]
@@ -8057,10 +8826,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a61918f0b1c8b54dbf33affc080620281580b3acf90ea9097df5e2db7a28c21a"
+    "storageHash": "05013c21e484e53976d1e87bab62e7714d631e06d5048d7ac4d4d97117d070c2"
   },
   "execution": {
-    "executionHash": "2161f34c1b3ec6f15ff94bf4d6fd4b37b5e1cf11c05a52acf96de8a9b8995f86",
+    "executionHash": "0bb11d1e24aba19518392a56074c1d8f8d3725d5f87c87422dbf4152e2474e70",
     "mutations": {
       "defaults": [
         {
@@ -8305,6 +9074,72 @@
             "kind": "generator"
           },
           "ref": {
+            "entry": "GitHubCodeFrequencyWeek",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubCodeFrequencyWeek",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubCommitActivityWeek",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubCommitActivityWeek",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubContributorSnapshot",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubContributorSnapshot",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
             "entry": "GitHubDownloadSnapshot",
             "field": "createdAt",
             "namespace": "public"
@@ -8317,6 +9152,50 @@
           },
           "ref": {
             "entry": "GitHubDownloadSnapshot",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubParticipationWeek",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubParticipationWeek",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubPunchCardSlot",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubPunchCardSlot",
             "field": "id",
             "namespace": "public"
           }
@@ -8366,6 +9245,28 @@
           "ref": {
             "entry": "GitHubReleaseAsset",
             "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubRepoStatsSnapshot",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "GitHubRepoStatsSnapshot",
+            "field": "id",
             "namespace": "public"
           }
         },

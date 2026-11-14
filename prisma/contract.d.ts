@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a61918f0b1c8b54dbf33affc080620281580b3acf90ea9097df5e2db7a28c21a'>;
+  StorageHashBase<'05013c21e484e53976d1e87bab62e7714d631e06d5048d7ac4d4d97117d070c2'>;
 export type ExecutionHash =
-  ExecutionHashBase<'2161f34c1b3ec6f15ff94bf4d6fd4b37b5e1cf11c05a52acf96de8a9b8995f86'>;
+  ExecutionHashBase<'0bb11d1e24aba19518392a56074c1d8f8d3725d5f87c87422dbf4152e2474e70'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -634,6 +634,30 @@ export namespace Models {
     updatedAt: FieldOutputTypes['public']['GitHubAppInstallation']['updatedAt'];
     readonly [RelationKeys]?: never;
   };
+  export type public_GitHubCodeFrequencyWeek = {
+    additions: FieldOutputTypes['public']['GitHubCodeFrequencyWeek']['additions'];
+    createdAt: FieldOutputTypes['public']['GitHubCodeFrequencyWeek']['createdAt'];
+    deletions: FieldOutputTypes['public']['GitHubCodeFrequencyWeek']['deletions'];
+    id: FieldOutputTypes['public']['GitHubCodeFrequencyWeek']['id'];
+    weekStart: FieldOutputTypes['public']['GitHubCodeFrequencyWeek']['weekStart'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubCommitActivityWeek = {
+    createdAt: FieldOutputTypes['public']['GitHubCommitActivityWeek']['createdAt'];
+    daysJson: FieldOutputTypes['public']['GitHubCommitActivityWeek']['daysJson'];
+    id: FieldOutputTypes['public']['GitHubCommitActivityWeek']['id'];
+    total: FieldOutputTypes['public']['GitHubCommitActivityWeek']['total'];
+    weekStart: FieldOutputTypes['public']['GitHubCommitActivityWeek']['weekStart'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubContributorSnapshot = {
+    capturedFor: FieldOutputTypes['public']['GitHubContributorSnapshot']['capturedFor'];
+    contributions: FieldOutputTypes['public']['GitHubContributorSnapshot']['contributions'];
+    createdAt: FieldOutputTypes['public']['GitHubContributorSnapshot']['createdAt'];
+    id: FieldOutputTypes['public']['GitHubContributorSnapshot']['id'];
+    login: FieldOutputTypes['public']['GitHubContributorSnapshot']['login'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_GitHubDownloadSnapshot = {
     assetId: FieldOutputTypes['public']['GitHubDownloadSnapshot']['assetId'];
     createdAt: FieldOutputTypes['public']['GitHubDownloadSnapshot']['createdAt'];
@@ -642,6 +666,22 @@ export namespace Models {
     snapshotDate: FieldOutputTypes['public']['GitHubDownloadSnapshot']['snapshotDate'];
     asset: public_GitHubReleaseAsset;
     readonly [RelationKeys]?: 'asset';
+  };
+  export type public_GitHubParticipationWeek = {
+    allCount: FieldOutputTypes['public']['GitHubParticipationWeek']['allCount'];
+    createdAt: FieldOutputTypes['public']['GitHubParticipationWeek']['createdAt'];
+    id: FieldOutputTypes['public']['GitHubParticipationWeek']['id'];
+    ownerCount: FieldOutputTypes['public']['GitHubParticipationWeek']['ownerCount'];
+    weekStart: FieldOutputTypes['public']['GitHubParticipationWeek']['weekStart'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubPunchCardSlot = {
+    count: FieldOutputTypes['public']['GitHubPunchCardSlot']['count'];
+    createdAt: FieldOutputTypes['public']['GitHubPunchCardSlot']['createdAt'];
+    hour: FieldOutputTypes['public']['GitHubPunchCardSlot']['hour'];
+    id: FieldOutputTypes['public']['GitHubPunchCardSlot']['id'];
+    weekday: FieldOutputTypes['public']['GitHubPunchCardSlot']['weekday'];
+    readonly [RelationKeys]?: never;
   };
   export type public_GitHubReleaseAsset = {
     contentType: FieldOutputTypes['public']['GitHubReleaseAsset']['contentType'];
@@ -667,6 +707,19 @@ export namespace Models {
     snapshots: public_GitHubDownloadSnapshot[];
     websiteStats: public_WebsiteDownloadStat[];
     readonly [RelationKeys]?: 'snapshots' | 'websiteStats';
+  };
+  export type public_GitHubRepoStatsSnapshot = {
+    capturedFor: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['capturedFor'];
+    createdAt: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['createdAt'];
+    forks: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['forks'];
+    id: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['id'];
+    language: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['language'];
+    license: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['license'];
+    openIssues: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['openIssues'];
+    stars: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['stars'];
+    topics: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['topics'];
+    watchers: FieldOutputTypes['public']['GitHubRepoStatsSnapshot']['watchers'];
+    readonly [RelationKeys]?: never;
   };
   export type public_GitHubToken = {
     createdAt: FieldOutputTypes['public']['GitHubToken']['createdAt'];
@@ -982,8 +1035,14 @@ export declare const models: {
     DeveloperProfile: Models.public_DeveloperProfile;
     DownloadSyncLog: Models.public_DownloadSyncLog;
     GitHubAppInstallation: Models.public_GitHubAppInstallation;
+    GitHubCodeFrequencyWeek: Models.public_GitHubCodeFrequencyWeek;
+    GitHubCommitActivityWeek: Models.public_GitHubCommitActivityWeek;
+    GitHubContributorSnapshot: Models.public_GitHubContributorSnapshot;
     GitHubDownloadSnapshot: Models.public_GitHubDownloadSnapshot;
+    GitHubParticipationWeek: Models.public_GitHubParticipationWeek;
+    GitHubPunchCardSlot: Models.public_GitHubPunchCardSlot;
     GitHubReleaseAsset: Models.public_GitHubReleaseAsset;
+    GitHubRepoStatsSnapshot: Models.public_GitHubRepoStatsSnapshot;
     GitHubToken: Models.public_GitHubToken;
     GitHubTrafficDaily: Models.public_GitHubTrafficDaily;
     GitHubTrafficPathSnapshot: Models.public_GitHubTrafficPathSnapshot;
@@ -1752,6 +1811,136 @@ type ContractBase = Omit<
               ];
               foreignKeys: readonly [];
             };
+            readonly GitHubCodeFrequencyWeek: {
+              columns: {
+                readonly additions: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly deletions: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly weekStart: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['weekStart'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubCommitActivityWeek: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly daysJson: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly total: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly weekStart: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['weekStart'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubContributorSnapshot: {
+              columns: {
+                readonly capturedFor: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly contributions: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly login: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['capturedFor', 'login'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
             readonly GitHubDownloadSnapshot: {
               columns: {
                 readonly assetId: {
@@ -1815,6 +2004,94 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly GitHubParticipationWeek: {
+              columns: {
+                readonly allCount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ownerCount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly weekStart: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['weekStart'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubPunchCardSlot: {
+              columns: {
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly hour: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly weekday: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['weekday', 'hour'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
             };
             readonly GitHubReleaseAsset: {
               columns: {
@@ -1963,6 +2240,90 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
               ];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubRepoStatsSnapshot: {
+              columns: {
+                readonly capturedFor: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly forks: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly language: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly license: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly openIssues: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly stars: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly topics: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly watchers: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['capturedFor'] }];
+              indexes: readonly [];
               foreignKeys: readonly [];
             };
             readonly GitHubToken: {
@@ -3989,13 +4350,37 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GitHubAppInstallation';
     };
+    readonly GitHubCodeFrequencyWeek: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubCodeFrequencyWeek';
+    };
+    readonly GitHubCommitActivityWeek: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubCommitActivityWeek';
+    };
+    readonly GitHubContributorSnapshot: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubContributorSnapshot';
+    };
     readonly GitHubDownloadSnapshot: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GitHubDownloadSnapshot';
     };
+    readonly GitHubParticipationWeek: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubParticipationWeek';
+    };
+    readonly GitHubPunchCardSlot: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubPunchCardSlot';
+    };
     readonly GitHubReleaseAsset: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GitHubReleaseAsset';
+    };
+    readonly GitHubRepoStatsSnapshot: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubRepoStatsSnapshot';
     };
     readonly GitHubToken: {
       readonly namespace: 'public' & NamespaceId;
@@ -4662,6 +5047,132 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly GitHubCodeFrequencyWeek: {
+            readonly fields: {
+              readonly additions: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly deletions: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly weekStart: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubCodeFrequencyWeek';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly additions: { readonly column: 'additions' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly deletions: { readonly column: 'deletions' };
+                readonly id: { readonly column: 'id' };
+                readonly weekStart: { readonly column: 'weekStart' };
+              };
+            };
+          };
+          readonly GitHubCommitActivityWeek: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly daysJson: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly total: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly weekStart: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubCommitActivityWeek';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly daysJson: { readonly column: 'daysJson' };
+                readonly id: { readonly column: 'id' };
+                readonly total: { readonly column: 'total' };
+                readonly weekStart: { readonly column: 'weekStart' };
+              };
+            };
+          };
+          readonly GitHubContributorSnapshot: {
+            readonly fields: {
+              readonly capturedFor: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly contributions: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly login: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubContributorSnapshot';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly capturedFor: { readonly column: 'capturedFor' };
+                readonly contributions: { readonly column: 'contributions' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly login: { readonly column: 'login' };
+              };
+            };
+          };
           readonly GitHubDownloadSnapshot: {
             readonly fields: {
               readonly assetId: {
@@ -4714,6 +5225,87 @@ type ContractBase = Omit<
                 readonly downloadCount: { readonly column: 'downloadCount' };
                 readonly id: { readonly column: 'id' };
                 readonly snapshotDate: { readonly column: 'snapshotDate' };
+              };
+            };
+          };
+          readonly GitHubParticipationWeek: {
+            readonly fields: {
+              readonly allCount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ownerCount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly weekStart: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubParticipationWeek';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly allCount: { readonly column: 'allCount' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly ownerCount: { readonly column: 'ownerCount' };
+                readonly weekStart: { readonly column: 'weekStart' };
+              };
+            };
+          };
+          readonly GitHubPunchCardSlot: {
+            readonly fields: {
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly hour: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly weekday: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubPunchCardSlot';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly count: { readonly column: 'count' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly hour: { readonly column: 'hour' };
+                readonly id: { readonly column: 'id' };
+                readonly weekday: { readonly column: 'weekday' };
               };
             };
           };
@@ -4860,6 +5452,73 @@ type ContractBase = Omit<
                 readonly size: { readonly column: 'size' };
                 readonly state: { readonly column: 'state' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly GitHubRepoStatsSnapshot: {
+            readonly fields: {
+              readonly capturedFor: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly forks: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly language: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly license: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly openIssues: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly stars: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly topics: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly watchers: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubRepoStatsSnapshot';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly capturedFor: { readonly column: 'capturedFor' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly forks: { readonly column: 'forks' };
+                readonly id: { readonly column: 'id' };
+                readonly language: { readonly column: 'language' };
+                readonly license: { readonly column: 'license' };
+                readonly openIssues: { readonly column: 'openIssues' };
+                readonly stars: { readonly column: 'stars' };
+                readonly topics: { readonly column: 'topics' };
+                readonly watchers: { readonly column: 'watchers' };
               };
             };
           };
@@ -6999,6 +7658,54 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
+            readonly entry: 'GitHubCodeFrequencyWeek';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubCodeFrequencyWeek';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubCommitActivityWeek';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubCommitActivityWeek';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubContributorSnapshot';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubContributorSnapshot';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
             readonly entry: 'GitHubDownloadSnapshot';
             readonly field: 'createdAt';
             readonly namespace: 'public';
@@ -7008,6 +7715,38 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'GitHubDownloadSnapshot';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubParticipationWeek';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubParticipationWeek';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubPunchCardSlot';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubPunchCardSlot';
             readonly field: 'id';
             readonly namespace: 'public';
           };
@@ -7042,6 +7781,22 @@ type ContractBase = Omit<
           readonly ref: {
             readonly entry: 'GitHubReleaseAsset';
             readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubRepoStatsSnapshot';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubRepoStatsSnapshot';
+            readonly field: 'id';
             readonly namespace: 'public';
           };
         },

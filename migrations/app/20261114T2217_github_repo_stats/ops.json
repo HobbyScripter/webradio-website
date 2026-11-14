@@ -1,0 +1,584 @@
+[
+  {
+    "id": "table.GitHubCodeFrequencyWeek",
+    "label": "Create table \"GitHubCodeFrequencyWeek\"",
+    "summary": "Creates table \"GitHubCodeFrequencyWeek\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubCodeFrequencyWeek"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubCodeFrequencyWeek\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubCodeFrequencyWeek\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubCodeFrequencyWeek\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubCodeFrequencyWeek\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubCodeFrequencyWeek\" (\n  \"additions\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"deletions\" int4 DEFAULT 0 NOT NULL,\n  \"id\" text NOT NULL,\n  \"weekStart\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubCodeFrequencyWeek\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubCodeFrequencyWeek\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubCodeFrequencyWeek\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubCommitActivityWeek",
+    "label": "Create table \"GitHubCommitActivityWeek\"",
+    "summary": "Creates table \"GitHubCommitActivityWeek\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubCommitActivityWeek"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubCommitActivityWeek\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubCommitActivityWeek\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubCommitActivityWeek\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubCommitActivityWeek\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubCommitActivityWeek\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"daysJson\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"total\" int4 DEFAULT 0 NOT NULL,\n  \"weekStart\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubCommitActivityWeek\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubCommitActivityWeek\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubCommitActivityWeek\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubContributorSnapshot",
+    "label": "Create table \"GitHubContributorSnapshot\"",
+    "summary": "Creates table \"GitHubContributorSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubContributorSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubContributorSnapshot\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubContributorSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubContributorSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubContributorSnapshot\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubContributorSnapshot\" (\n  \"capturedFor\" timestamptz NOT NULL,\n  \"contributions\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"login\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubContributorSnapshot\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubContributorSnapshot\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubContributorSnapshot\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubParticipationWeek",
+    "label": "Create table \"GitHubParticipationWeek\"",
+    "summary": "Creates table \"GitHubParticipationWeek\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubParticipationWeek"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubParticipationWeek\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubParticipationWeek\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubParticipationWeek\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubParticipationWeek\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubParticipationWeek\" (\n  \"allCount\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"ownerCount\" int4 DEFAULT 0 NOT NULL,\n  \"weekStart\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubParticipationWeek\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubParticipationWeek\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubParticipationWeek\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubPunchCardSlot",
+    "label": "Create table \"GitHubPunchCardSlot\"",
+    "summary": "Creates table \"GitHubPunchCardSlot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubPunchCardSlot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubPunchCardSlot\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubPunchCardSlot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubPunchCardSlot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubPunchCardSlot\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubPunchCardSlot\" (\n  \"count\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"hour\" int4 NOT NULL,\n  \"id\" text NOT NULL,\n  \"weekday\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubPunchCardSlot\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubPunchCardSlot\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubPunchCardSlot\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubRepoStatsSnapshot",
+    "label": "Create table \"GitHubRepoStatsSnapshot\"",
+    "summary": "Creates table \"GitHubRepoStatsSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubRepoStatsSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubRepoStatsSnapshot\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubRepoStatsSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubRepoStatsSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubRepoStatsSnapshot\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubRepoStatsSnapshot\" (\n  \"capturedFor\" timestamptz NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"forks\" int4 DEFAULT 0 NOT NULL,\n  \"id\" text NOT NULL,\n  \"language\" text,\n  \"license\" text,\n  \"openIssues\" int4 DEFAULT 0 NOT NULL,\n  \"stars\" int4 DEFAULT 0 NOT NULL,\n  \"topics\" text,\n  \"watchers\" int4 DEFAULT 0 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubRepoStatsSnapshot\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubRepoStatsSnapshot\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubRepoStatsSnapshot\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubCodeFrequencyWeek.GitHubCodeFrequencyWeek_weekStart_key",
+    "label": "Add unique constraint on \"GitHubCodeFrequencyWeek\" (weekStart)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubCodeFrequencyWeek_weekStart_key",
+        "table": "GitHubCodeFrequencyWeek"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubCodeFrequencyWeek_weekStart_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubCodeFrequencyWeek_weekStart_key",
+          "public",
+          "\"public\".\"GitHubCodeFrequencyWeek\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubCodeFrequencyWeek_weekStart_key\" on \"GitHubCodeFrequencyWeek\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubCodeFrequencyWeek_weekStart_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubCodeFrequencyWeek\" ADD CONSTRAINT \"GitHubCodeFrequencyWeek_weekStart_key\" UNIQUE (\"weekStart\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubCodeFrequencyWeek_weekStart_key\" exists on (weekStart)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubCodeFrequencyWeek_weekStart_key",
+          "public",
+          "\"public\".\"GitHubCodeFrequencyWeek\"",
+          "u",
+          "[\"weekStart\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubCommitActivityWeek.GitHubCommitActivityWeek_weekStart_key",
+    "label": "Add unique constraint on \"GitHubCommitActivityWeek\" (weekStart)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubCommitActivityWeek_weekStart_key",
+        "table": "GitHubCommitActivityWeek"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubCommitActivityWeek_weekStart_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubCommitActivityWeek_weekStart_key",
+          "public",
+          "\"public\".\"GitHubCommitActivityWeek\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubCommitActivityWeek_weekStart_key\" on \"GitHubCommitActivityWeek\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubCommitActivityWeek_weekStart_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubCommitActivityWeek\" ADD CONSTRAINT \"GitHubCommitActivityWeek_weekStart_key\" UNIQUE (\"weekStart\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubCommitActivityWeek_weekStart_key\" exists on (weekStart)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubCommitActivityWeek_weekStart_key",
+          "public",
+          "\"public\".\"GitHubCommitActivityWeek\"",
+          "u",
+          "[\"weekStart\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubContributorSnapshot.GitHubContributorSnapshot_capturedFor_login_key",
+    "label": "Add unique constraint on \"GitHubContributorSnapshot\" (capturedFor, login)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubContributorSnapshot_capturedFor_login_key",
+        "table": "GitHubContributorSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubContributorSnapshot_capturedFor_login_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubContributorSnapshot_capturedFor_login_key",
+          "public",
+          "\"public\".\"GitHubContributorSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubContributorSnapshot_capturedFor_login_key\" on \"GitHubContributorSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubContributorSnapshot_capturedFor_login_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubContributorSnapshot\" ADD CONSTRAINT \"GitHubContributorSnapshot_capturedFor_login_key\" UNIQUE (\"capturedFor\", \"login\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubContributorSnapshot_capturedFor_login_key\" exists on (capturedFor, login)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubContributorSnapshot_capturedFor_login_key",
+          "public",
+          "\"public\".\"GitHubContributorSnapshot\"",
+          "u",
+          "[\"capturedFor\",\"login\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubParticipationWeek.GitHubParticipationWeek_weekStart_key",
+    "label": "Add unique constraint on \"GitHubParticipationWeek\" (weekStart)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubParticipationWeek_weekStart_key",
+        "table": "GitHubParticipationWeek"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubParticipationWeek_weekStart_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubParticipationWeek_weekStart_key",
+          "public",
+          "\"public\".\"GitHubParticipationWeek\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubParticipationWeek_weekStart_key\" on \"GitHubParticipationWeek\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubParticipationWeek_weekStart_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubParticipationWeek\" ADD CONSTRAINT \"GitHubParticipationWeek_weekStart_key\" UNIQUE (\"weekStart\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubParticipationWeek_weekStart_key\" exists on (weekStart)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubParticipationWeek_weekStart_key",
+          "public",
+          "\"public\".\"GitHubParticipationWeek\"",
+          "u",
+          "[\"weekStart\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubPunchCardSlot.GitHubPunchCardSlot_weekday_hour_key",
+    "label": "Add unique constraint on \"GitHubPunchCardSlot\" (weekday, hour)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubPunchCardSlot_weekday_hour_key",
+        "table": "GitHubPunchCardSlot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubPunchCardSlot_weekday_hour_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubPunchCardSlot_weekday_hour_key",
+          "public",
+          "\"public\".\"GitHubPunchCardSlot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubPunchCardSlot_weekday_hour_key\" on \"GitHubPunchCardSlot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubPunchCardSlot_weekday_hour_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubPunchCardSlot\" ADD CONSTRAINT \"GitHubPunchCardSlot_weekday_hour_key\" UNIQUE (\"weekday\", \"hour\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubPunchCardSlot_weekday_hour_key\" exists on (weekday, hour)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubPunchCardSlot_weekday_hour_key",
+          "public",
+          "\"public\".\"GitHubPunchCardSlot\"",
+          "u",
+          "[\"weekday\",\"hour\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubRepoStatsSnapshot.GitHubRepoStatsSnapshot_capturedFor_key",
+    "label": "Add unique constraint on \"GitHubRepoStatsSnapshot\" (capturedFor)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubRepoStatsSnapshot_capturedFor_key",
+        "table": "GitHubRepoStatsSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubRepoStatsSnapshot_capturedFor_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubRepoStatsSnapshot_capturedFor_key",
+          "public",
+          "\"public\".\"GitHubRepoStatsSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubRepoStatsSnapshot_capturedFor_key\" on \"GitHubRepoStatsSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubRepoStatsSnapshot_capturedFor_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubRepoStatsSnapshot\" ADD CONSTRAINT \"GitHubRepoStatsSnapshot_capturedFor_key\" UNIQUE (\"capturedFor\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubRepoStatsSnapshot_capturedFor_key\" exists on (capturedFor)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubRepoStatsSnapshot_capturedFor_key",
+          "public",
+          "\"public\".\"GitHubRepoStatsSnapshot\"",
+          "u",
+          "[\"capturedFor\"]"
+        ]
+      }
+    ]
+  }
+]

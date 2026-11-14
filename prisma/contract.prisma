@@ -743,6 +743,76 @@ model GitHubTrafficPathSnapshot {
   @@unique([capturedFor, path])
 }
 
+// ---------------------------------------------------------------------------
+// Repository Statistics
+// Weekly/daily buckets are upserted; contributors and metadata are snapshots.
+// ---------------------------------------------------------------------------
+
+model GitHubRepoStatsSnapshot {
+  id          String   @id @onCreate(uuid(7))
+  capturedFor DateTime
+  stars       Int      @default(0)
+  forks       Int      @default(0)
+  watchers    Int      @default(0)
+  openIssues  Int      @default(0)
+  language    String?
+  license     String?
+  topics      String?
+  createdAt   DateTime @onCreate(now())
+
+  @@unique([capturedFor])
+}
+
+model GitHubCommitActivityWeek {
+  id        String   @id @onCreate(uuid(7))
+  weekStart DateTime
+  total     Int      @default(0)
+  daysJson  String
+  createdAt DateTime @onCreate(now())
+
+  @@unique([weekStart])
+}
+
+model GitHubContributorSnapshot {
+  id            String   @id @onCreate(uuid(7))
+  capturedFor   DateTime
+  login         String
+  contributions Int      @default(0)
+  createdAt     DateTime @onCreate(now())
+
+  @@unique([capturedFor, login])
+}
+
+model GitHubCodeFrequencyWeek {
+  id        String   @id @onCreate(uuid(7))
+  weekStart DateTime
+  additions Int      @default(0)
+  deletions Int      @default(0)
+  createdAt DateTime @onCreate(now())
+
+  @@unique([weekStart])
+}
+
+model GitHubParticipationWeek {
+  id         String   @id @onCreate(uuid(7))
+  weekStart  DateTime
+  allCount   Int      @default(0)
+  ownerCount Int      @default(0)
+  createdAt  DateTime @onCreate(now())
+
+  @@unique([weekStart])
+}
+
+model GitHubPunchCardSlot {
+  id        String   @id @onCreate(uuid(7))
+  weekday   Int
+  hour      Int
+  count     Int      @default(0)
+  createdAt DateTime @onCreate(now())
+
+  @@unique([weekday, hour])
+}
+
 model DownloadSyncLog {
   id                   String             @id @onCreate(uuid(7))
   status               DownloadSyncStatus
