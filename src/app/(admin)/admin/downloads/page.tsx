@@ -6,7 +6,10 @@ import { Container, PageHeader } from '@/components/ui/layout';
 import { Badge } from '@/components/ui/badge';
 import { formatFileSize, formatDateTime } from '@/lib/format';
 import { ShieldIcon } from '@/components/ui/icons';
-import { getDownloadAnalyticsData } from '@/lib/download-analytics-service';
+import {
+  getDownloadAnalyticsData,
+  type DownloadAnalyticsDashboardData,
+} from '@/lib/download-analytics-service';
 import SyncButton from './sync-button';
 
 export const metadata: Metadata = {
@@ -27,7 +30,46 @@ export default async function DownloadAnalyticsPage({
   const { days: daysParam } = await searchParams;
   const daysBack = daysParam === '7' ? 7 : daysParam === '90' ? 90 : 30;
 
-  const data = await getDownloadAnalyticsData(daysBack);
+  let data: DownloadAnalyticsDashboardData | null = null;
+  let loadError = false;
+  try {
+    data = await getDownloadAnalyticsData(daysBack);
+  } catch {
+    // A missing/unreachable analytics table must not take down the admin area.
+    // Log only a stable marker, never connection details.
+    console.error('[admin.downloads] analytics unavailable');
+    loadError = true;
+  }
+
+  if (!data) {
+    return (
+      <Container className="space-y-8 py-8">
+        <PageHeader
+          eyebrow="Statistik & Auswertung"
+          title="Download Analytics"
+          description="Getrennte Erfassung von GitHub Release Downloads (kumulativ) und kontrollierten Website-Download-Aufrufen."
+        />
+        <section className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.04] p-6 space-y-3">
+          <h2 className="text-base font-bold text-white">Statistiken nicht verfügbar</h2>
+          <p className="text-sm text-zinc-300">
+            {loadError
+              ? 'Die Download-Statistiken konnten nicht geladen werden. Die Datenbank ist möglicherweise noch nicht auf dem aktuellen Schema (GitHub- und Download-Tabellen fehlen).'
+              : 'Die Download-Statistiken konnten nicht geladen werden.'}
+          </p>
+          <p className="text-xs text-zinc-500">
+            Es werden bewusst keine Ersatzzahlen angezeigt. Nach dem Anwenden der
+            Datenbankmigration ist die Seite ohne weiteren Code-Eingriff wieder verfügbar.
+          </p>
+          <a
+            href="/admin/downloads"
+            className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-white/[0.08]"
+          >
+            Erneut versuchen
+          </a>
+        </section>
+      </Container>
+    );
+  }
 
   return (
     <Container className="space-y-10 py-8">
@@ -177,17 +219,25 @@ export default async function DownloadAnalyticsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {data.dailyHistory.map((row) => (
-                <tr key={row.date} className="hover:bg-white/[0.02]">
-                  <td className="p-3.5 font-mono text-zinc-300">{row.date}</td>
-                  <td className="p-3.5 font-mono font-semibold text-white">
-                    +{row.gitHubDifference.toLocaleString('de-DE')}
-                  </td>
-                  <td className="p-3.5 font-mono font-semibold text-violet-300">
-                    {row.websiteDownloads.toLocaleString('de-DE')}
+              {data.dailyHistory.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="p-6 text-center text-zinc-500">
+                    Noch keine Verlaufsdaten vorhanden.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                data.dailyHistory.map((row) => (
+                  <tr key={row.date} className="hover:bg-white/[0.02]">
+                    <td className="p-3.5 font-mono text-zinc-300">{row.date}</td>
+                    <td className="p-3.5 font-mono font-semibold text-white">
+                      +{row.gitHubDifference.toLocaleString('de-DE')}
+                    </td>
+                    <td className="p-3.5 font-mono font-semibold text-violet-300">
+                      {row.websiteDownloads.toLocaleString('de-DE')}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -11,7 +11,10 @@ import {
   ShieldIcon,
   ExternalLinkIcon,
 } from '@/components/ui/icons';
-import { getGitHubIntegrationStatus } from '@/lib/github-app';
+import {
+  getGitHubIntegrationStatus,
+  type IntegrationStatusInfo,
+} from '@/lib/github-app';
 
 export const metadata: Metadata = {
   title: 'GitHub Integration',
@@ -24,7 +27,38 @@ export default async function GitHubIntegrationPage() {
     redirect('/auth/login?callbackUrl=/admin/settings/integrations/github');
   }
 
-  const status = await getGitHubIntegrationStatus();
+  let status: IntegrationStatusInfo | null = null;
+  try {
+    status = await getGitHubIntegrationStatus();
+  } catch {
+    // A database or configuration failure must not blank the admin area.
+    console.error('[admin.github] integration status unavailable');
+  }
+
+  if (!status) {
+    return (
+      <Container className="space-y-8 py-8">
+        <PageHeader
+          eyebrow="Einstellungen → Integrationen"
+          title="GitHub App Integration"
+          description="Zentrale, native GitHub-Anbindung für Release-Daten, Webhook-Ereignisse und Download-Statistiken."
+        />
+        <section className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.04] p-6 space-y-3">
+          <h2 className="text-base font-bold text-white">GitHub-Status nicht verfügbar</h2>
+          <p className="text-sm text-zinc-300">
+            Der Integrationsstatus konnte nicht geladen werden. Die Datenbank ist
+            möglicherweise noch nicht auf dem aktuellen Schema.
+          </p>
+          <a
+            href="/admin/settings/integrations/github"
+            className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-white/[0.08]"
+          >
+            Erneut versuchen
+          </a>
+        </section>
+      </Container>
+    );
+  }
 
   return (
     <Container className="space-y-8 py-8">
@@ -65,6 +99,8 @@ export default async function GitHubIntegrationPage() {
                 ? 'Ausgesetzt'
                 : status.status === 'DELETED'
                 ? 'Deinstalliert'
+                : status.status === 'ERROR'
+                ? 'Verbindung fehlgeschlagen'
                 : 'Nicht verbunden'}
             </Badge>
           </div>
@@ -92,17 +128,42 @@ export default async function GitHubIntegrationPage() {
             <span className="font-mono text-zinc-200">{status.clientId ?? '–'}</span>
           </div>
           <div>
-            <span className="text-zinc-500 block">Letzter API-Aufruf:</span>
+            <span className="text-zinc-500 block">Letzter erfolgreicher API-Aufruf:</span>
             <span className="text-zinc-200">
-              {status.lastApiCallAt ? formatDateTime(status.lastApiCallAt) : 'Noch kein API-Aufruf protokolliert'}
+              {status.lastApiCallAt
+                ? `${formatDateTime(status.lastApiCallAt)} · ${status.lastApiCallAt}`
+                : 'Noch kein erfolgreicher API-Aufruf protokolliert'}
             </span>
           </div>
           <div>
-            <span className="text-zinc-500 block">Letzter Webhook empfangen:</span>
+            <span className="text-zinc-500 block">Letzter empfangener Webhook:</span>
             <span className="text-zinc-200">
-              {status.lastWebhookAt ? formatDateTime(status.lastWebhookAt) : 'Noch kein Webhook empfangen'}
+              {status.lastWebhookProcessedAt
+                ? `${formatDateTime(status.lastWebhookProcessedAt)} · ${status.lastWebhookProcessedAt}`
+                : 'Noch kein Webhook empfangen'}
             </span>
           </div>
+          <div>
+            <span className="text-zinc-500 block">Letztes verarbeitetes Webhook-Ereignis:</span>
+            <span className="font-mono text-zinc-200">
+              {status.lastWebhookEvent
+                ? `${status.lastWebhookEvent}${status.lastWebhookAction ? ` / ${status.lastWebhookAction}` : ''}`
+                : '–'}
+            </span>
+          </div>
+          <div>
+            <span className="text-zinc-500 block">Webhook-Secret:</span>
+            <span className="text-zinc-200">
+              {status.webhookConfigured ? 'konfiguriert' : 'nicht konfiguriert'}
+            </span>
+          </div>
+        </div>
+
+        <div className="border-t border-white/[0.06] pt-4">
+          <span className="text-zinc-500 block text-xs">Fehler:</span>
+          <p className={`text-xs ${status.lastError ? 'text-rose-300' : 'text-zinc-400'}`}>
+            {status.lastError ?? 'Keine Fehler gemeldet.'}
+          </p>
         </div>
 
         {/* Permissions */}
@@ -127,6 +188,49 @@ export default async function GitHubIntegrationPage() {
             </p>
           )}
         </div>
+
+        {/* Read-only connection check */}
+        {status.check ? (
+          <div className="border-t border-white/[0.06] pt-5 space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Verbindungsprüfung (nur lesend)
+              </h3>
+              <ButtonLink
+                href="/admin/settings/integrations/github"
+                variant="secondary"
+                size="sm"
+              >
+                Erneut prüfen
+              </ButtonLink>
+            </div>
+            <p
+              className={
+                status.check.ok ? 'text-xs text-emerald-300' : 'text-xs text-rose-300'
+              }
+            >
+              {status.check.message}
+            </p>
+            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+              <div>
+                <dt className="text-zinc-500">Code</dt>
+                <dd className="font-mono text-zinc-200">{status.check.code}</dd>
+              </div>
+              <div>
+                <dt className="text-zinc-500">Schritt</dt>
+                <dd className="font-mono text-zinc-200">{status.check.stage}</dd>
+              </div>
+              <div>
+                <dt className="text-zinc-500">HTTP-Status</dt>
+                <dd className="font-mono text-zinc-200">{status.check.httpStatus ?? '–'}</dd>
+              </div>
+              <div>
+                <dt className="text-zinc-500">Geprüft</dt>
+                <dd className="text-zinc-200">{formatDateTime(status.check.checkedAt)}</dd>
+              </div>
+            </dl>
+          </div>
+        ) : null}
       </section>
 
       {/* Setup & Installation Guidance */}

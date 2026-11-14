@@ -11,6 +11,7 @@ import {
   GITHUB_APP_JWT_CLOCK_DRIFT_SECONDS,
   GITHUB_APP_JWT_MAX_LIFETIME_SECONDS,
   __resetGitHubAppTokenCacheForTests,
+  checkGitHubAppConnection,
   generateGitHubAppJwt,
   getGitHubAppConfig,
   getInstallationAccessToken,
@@ -215,6 +216,193 @@ describe('GitHub App Authentication & Webhook Verification', () => {
 
       expect(result.source).toBe('unauthenticated');
       expect(result.token).toBeNull();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('checkGitHubAppConnection', () => {
+    const ENV_KEYS = [
+      'GITHUB_APP_ID',
+      'GITHUB_CLIENT_ID',
+      'GITHUB_INSTALLATION_ID',
+      'GITHUB_APP_PRIVATE_KEY',
+      'GITHUB_TOKEN',
+    ] as const;
+    const originalEnv = Object.fromEntries(
+      ENV_KEYS.map((key) => [key, process.env[key]]),
+    ) as Record<(typeof ENV_KEYS)[number], string | undefined>;
+    const originalFetch = global.fetch;
+    const fetchMock = jest.fn();
+    const installationToken = 'ghs_installation_token_should_not_leak';
+
+    function configureApp(overrides: Record<string, string> = {}) {
+      setGitHubEnv({
+        GITHUB_APP_ID: APP_ID,
+        GITHUB_CLIENT_ID: CLIENT_ID,
+        GITHUB_INSTALLATION_ID: '9876543',
+        GITHUB_APP_PRIVATE_KEY: privateKey,
+        ...overrides,
+      });
+    }
+
+    beforeEach(() => {
+      setGitHubEnv(Object.fromEntries(ENV_KEYS.map((key) => [key, undefined])));
+      fetchMock.mockReset();
+      global.fetch = fetchMock as unknown as typeof fetch;
+    });
+
+    afterAll(() => {
+      setGitHubEnv(originalEnv);
+      global.fetch = originalFetch;
+    });
+
+    it('returns OK after JWT, installation token and repository read succeed', async () => {
+      configureApp();
+      fetchMock
+        .mockResolvedValueOnce(
+          jsonResponse({
+            token: installationToken,
+            expires_at: '2030-01-01T00:00:00Z',
+          }),
+        )
+        .mockResolvedValueOnce(jsonResponse({ full_name: 'YourEliteSystems/WebRadio' }))
+        .mockResolvedValueOnce(jsonResponse([{ id: 443494960, tag_name: 'v1.0.8' }]));
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result.ok).toBe(true);
+      expect(result.code).toBe('OK');
+      expect(result.stage).toBe('releases');
+      expect(result.httpStatus).toBe(200);
+      expect(result.tokenExpiresAt).toBe('2030-01-01T00:00:00Z');
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      const [tokenUrl, tokenInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(tokenUrl).toBe(
+        'https://api.github.com/app/installations/9876543/access_tokens',
+      );
+      expect(tokenInit.method).toBe('POST');
+      const authorization = (tokenInit.headers as Record<string, string>)['Authorization'];
+      const jwt = authorization.slice('Bearer '.length);
+      expect(decodeJwt(jwt).payload.iss).toBe(CLIENT_ID);
+
+      const [repositoryUrl, repositoryInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+      expect(repositoryUrl).toBe('https://api.github.com/repos/YourEliteSystems/WebRadio');
+      expect((repositoryInit.headers as Record<string, string>)['Authorization']).toBe(
+        `Bearer ${installationToken}`,
+      );
+
+      const [releasesUrl, releasesInit] = fetchMock.mock.calls[2] as [string, RequestInit];
+      expect(releasesUrl).toBe(
+        'https://api.github.com/repos/YourEliteSystems/WebRadio/releases?per_page=1',
+      );
+      expect((releasesInit.headers as Record<string, string>)['Authorization']).toBe(
+        `Bearer ${installationToken}`,
+      );
+
+      // The result is safe to render: no token, no key material, no JWT.
+      const serialized = JSON.stringify(result);
+      expect(serialized).not.toContain(installationToken);
+      expect(serialized).not.toContain('eyJ');
+      expect(serialized).not.toContain('PRIVATE KEY');
+    });
+
+    it('classifies a rejected JWT as INVALID_JWT (HTTP 401)', async () => {
+      configureApp();
+      fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Bad credentials' }, 401));
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: 'INVALID_JWT',
+        stage: 'token',
+        httpStatus: 401,
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('classifies an unknown installation as INSTALLATION_NOT_FOUND (HTTP 404)', async () => {
+      configureApp();
+      fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Not Found' }, 404));
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: 'INSTALLATION_NOT_FOUND',
+        stage: 'token',
+        httpStatus: 404,
+      });
+    });
+
+    it('classifies a missing repository permission as FORBIDDEN', async () => {
+      configureApp();
+      fetchMock
+        .mockResolvedValueOnce(
+          jsonResponse({ token: installationToken, expires_at: '2030-01-01T00:00:00Z' }),
+        )
+        .mockResolvedValueOnce(jsonResponse({ message: 'Resource not accessible' }, 403));
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: 'FORBIDDEN',
+        stage: 'repository',
+        httpStatus: 403,
+      });
+    });
+
+    it('classifies an unreachable API as API_ERROR without leaking a token', async () => {
+      configureApp();
+      fetchMock.mockRejectedValueOnce(new TypeError('fetch failed'));
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: 'API_ERROR',
+        stage: 'token',
+        httpStatus: null,
+      });
+      expect(JSON.stringify(result)).not.toContain(installationToken);
+    });
+
+    it('reports missing variables by name without calling GitHub', async () => {
+      setGitHubEnv({ GITHUB_INSTALLATION_ID: '9876543' });
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result).toMatchObject({ ok: false, code: 'NOT_CONFIGURED', stage: 'config' });
+      expect(result.message).toContain('GITHUB_CLIENT_ID');
+      expect(result.message).toContain('GITHUB_APP_PRIVATE_KEY');
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-numeric installation ID before any request', async () => {
+      configureApp({ GITHUB_INSTALLATION_ID: 'not-a-number' });
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: 'INSTALLATION_NOT_FOUND',
+        stage: 'config',
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('rejects a key that is not PEM before any request', async () => {
+      configureApp({ GITHUB_APP_PRIVATE_KEY: 'not-a-pem-key' });
+
+      const result = await checkGitHubAppConnection();
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: 'INVALID_PRIVATE_KEY',
+        stage: 'config',
+      });
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });

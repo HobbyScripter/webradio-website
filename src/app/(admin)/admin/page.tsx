@@ -20,41 +20,62 @@ async function AdminContent() {
   const user = await requireAdminSession();
   const emailConfigured = Boolean(process.env['EMAIL_SERVER_HOST']);
 
-  // Get statistics
-  const [
-    userCount,
-    pendingPlugins,
-    pendingThemes,
-    approvedPlugins,
-    approvedThemes,
-    recentAuditLogs,
-    unpublishedNews,
-  ] = await Promise.all([
-    db.orm.public.User.all().then((users) => users.length),
-    db.orm.public.Plugin.where({ status: 'PENDING_REVIEW' }).all().then((plugins) => plugins.length),
-    db.orm.public.Theme.where({ status: 'PENDING_REVIEW' }).all().then((themes) => themes.length),
-    db.orm.public.Plugin.where({ status: 'APPROVED', isPublished: true }).all().then((plugins) => plugins.length),
-    db.orm.public.Theme.where({ status: 'APPROVED', isPublished: true }).all().then((themes) => themes.length),
+  // A single failing query (for example a table that the deployed schema does
+  // not contain yet) must not blank the whole admin area. Every query is settled
+  // separately; unavailable values render as "–" instead of an invented number.
+  const results = await Promise.allSettled([
+    db.orm.public.User.all(),
+    db.orm.public.Plugin.where({ status: 'PENDING_REVIEW' }).all(),
+    db.orm.public.Theme.where({ status: 'PENDING_REVIEW' }).all(),
+    db.orm.public.Plugin.where({ status: 'APPROVED', isPublished: true }).all(),
+    db.orm.public.Theme.where({ status: 'APPROVED', isPublished: true }).all(),
     db.orm.public.AuditLog.orderBy((log) => log.createdAt.desc()).limit(5).all(),
-    db.orm.public.News.where({ isPublished: false }).all().then((news) => news.length),
+    db.orm.public.News.where({ isPublished: false }).all(),
+    db.orm.public.User.orderBy((user) => user.createdAt.desc()).limit(5).all(),
+    db.orm.public.Plugin.orderBy((plugin) => plugin.createdAt.desc()).limit(5).all(),
+    db.orm.public.Theme.orderBy((theme) => theme.createdAt.desc()).limit(5).all(),
   ]);
 
-  // Get recent users
-  const recentUsers = await db.orm.public.User
-    .orderBy((user) => user.createdAt.desc())
-    .limit(5)
-    .all();
+  type AuditEntry = {
+    id: string;
+    action: string;
+    details: string | null;
+    createdAt: { toString(): string };
+  };
+  type UserEntry = {
+    id: string;
+    name: string | null;
+    email: string;
+    role: string;
+    emailVerified: unknown;
+  };
+  type ContentEntry = { id: string; name: string; status: string };
 
-  // Get recent plugins and themes
-  const recentPlugins = await db.orm.public.Plugin
-    .orderBy((plugin) => plugin.createdAt.desc())
-    .limit(5)
-    .all();
+  function count(index: number): number | null {
+    const result = results[index];
+    return result?.status === 'fulfilled' ? (result.value as unknown[]).length : null;
+  }
+  function list<T>(index: number): T[] | null {
+    const result = results[index];
+    return result?.status === 'fulfilled' ? (result.value as T[]) : null;
+  }
 
-  const recentThemes = await db.orm.public.Theme
-    .orderBy((theme) => theme.createdAt.desc())
-    .limit(5)
-    .all();
+  const userCount = count(0);
+  const pendingPlugins = count(1);
+  const pendingThemes = count(2);
+  const approvedPlugins = count(3);
+  const approvedThemes = count(4);
+  const recentAuditLogs = list<AuditEntry>(5);
+  const unpublishedNews = count(6);
+  const recentUsers = list<UserEntry>(7);
+  const recentPlugins = list<ContentEntry>(8);
+  const recentThemes = list<ContentEntry>(9);
+  const someStatsUnavailable = results.some((result) => result.status === 'rejected');
+
+  const sum = (a: number | null, b: number | null): number | null =>
+    a === null || b === null ? null : a + b;
+  const pendingTotal = sum(pendingPlugins, pendingThemes);
+  const approvedTotal = sum(approvedPlugins, approvedThemes);
 
   return (
     <div className="space-y-8">
@@ -67,6 +88,19 @@ async function AdminContent() {
         </p>
       </div>
 
+      {someStatsUnavailable ? (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-4 text-sm text-amber-200">
+          <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-semibold">Einige Statistiken nicht verfügbar</p>
+            <p className="mt-0.5 text-amber-300/80">
+              Mindestens eine Datenbankabfrage ist fehlgeschlagen. Betroffene Werte
+              werden als „–“ angezeigt und nicht geschätzt.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 group hover:border-rose-500/20 transition-colors">
@@ -78,7 +112,7 @@ async function AdminContent() {
             </div>
             <div className="mt-4">
               <div className="text-sm text-zinc-400 font-medium">Benutzer gesamt</div>
-              <div className="text-2xl font-bold text-white mt-1">{userCount}</div>
+              <div className="text-2xl font-bold text-white mt-1">{userCount ?? '–'}</div>
             </div>
           </Link>
         </div>
@@ -93,10 +127,10 @@ async function AdminContent() {
             <div className="mt-4">
               <div className="text-sm text-zinc-400 font-medium">In Prüfung</div>
               <div className="text-2xl font-bold text-amber-400 mt-1">
-                {pendingPlugins + pendingThemes}
+                {pendingTotal ?? '–'}
               </div>
               <div className="text-xs text-zinc-500 mt-1">
-                {pendingPlugins} Plugins • {pendingThemes} Themes
+                {pendingPlugins ?? '–'} Plugins • {pendingThemes ?? '–'} Themes
               </div>
             </div>
           </Link>
@@ -112,10 +146,10 @@ async function AdminContent() {
             <div className="mt-4">
               <div className="text-sm text-zinc-400 font-medium">Veröffentlichte Inhalte</div>
               <div className="text-2xl font-bold text-violet-400 mt-1">
-                {approvedPlugins + approvedThemes}
+                {approvedTotal ?? '–'}
               </div>
               <div className="text-xs text-zinc-500 mt-1">
-                {approvedPlugins} Plugins • {approvedThemes} Themes
+                {approvedPlugins ?? '–'} Plugins • {approvedThemes ?? '–'} Themes
               </div>
             </div>
           </Link>
@@ -130,7 +164,7 @@ async function AdminContent() {
             </div>
             <div className="mt-4">
               <div className="text-sm text-zinc-400 font-medium">Nicht veröffentlichte News</div>
-              <div className="text-2xl font-bold text-rose-400 mt-1">{unpublishedNews}</div>
+              <div className="text-2xl font-bold text-rose-400 mt-1">{unpublishedNews ?? '–'}</div>
             </div>
           </Link>
         </div>
@@ -154,7 +188,7 @@ async function AdminContent() {
           className="inline-flex items-center gap-2"
         >
           <ClockIcon className="h-4 w-4" />
-          Moderation ({pendingPlugins + pendingThemes})
+          Moderation ({pendingTotal ?? '–'})
         </ButtonLink>
         <ButtonLink
           href="/admin/news"
@@ -196,7 +230,11 @@ async function AdminContent() {
           <h2 className="text-lg font-semibold text-white mb-4">
             Letzte Audit-Einträge
           </h2>
-          {recentAuditLogs.length === 0 ? (
+          {recentAuditLogs === null ? (
+            <div className="p-6 rounded-xl bg-zinc-900/40 border border-dashed border-zinc-800 text-center">
+              <p className="text-zinc-400 text-sm">Audit-Einträge nicht verfügbar</p>
+            </div>
+          ) : recentAuditLogs.length === 0 ? (
             <div className="p-6 rounded-xl bg-zinc-900/40 border border-dashed border-zinc-800 text-center">
               <p className="text-zinc-400 text-sm">Keine Audit-Einträge gefunden</p>
             </div>
@@ -247,7 +285,7 @@ async function AdminContent() {
           </h2>
           <div className="space-y-4">
             {/* Recent Users */}
-            {recentUsers.length > 0 && (
+            {recentUsers !== null && recentUsers.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-zinc-400 mb-2">Neue Benutzer</h3>
                 <div className="space-y-2">
@@ -277,7 +315,7 @@ async function AdminContent() {
             )}
 
             {/* Recent Plugins */}
-            {recentPlugins.length > 0 && (
+            {recentPlugins !== null && recentPlugins.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-zinc-400 mb-2">Neue Plugins</h3>
                 <div className="space-y-2">
@@ -305,7 +343,7 @@ async function AdminContent() {
             )}
 
             {/* Recent Themes */}
-            {recentThemes.length > 0 && (
+            {recentThemes !== null && recentThemes.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-zinc-400 mb-2">Neue Themes</h3>
                 <div className="space-y-2">
