@@ -64,6 +64,8 @@ export const RATE_LIMITS = {
   // Destructive account actions (deletion, data export). Per account.
   accountDeletion: { limit: 3, windowSeconds: 24 * 60 * 60 },
   dataExport: { limit: 3, windowSeconds: 24 * 60 * 60 },
+  // Controlled website download requests: 30 downloads per 5 minutes per IP.
+  downloadRequestIp: { limit: 30, windowSeconds: 5 * 60 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 export type RateLimitScope = keyof typeof RATE_LIMITS;

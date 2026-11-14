@@ -5,6 +5,7 @@ import { DownloadIcon } from '@/components/ui/icons';
 import { formatFileSize } from '@/lib/format';
 
 export type DownloadOption = {
+  id?: number;
   name: string;
   platform: string;
   platformLabel: string;
@@ -106,7 +107,7 @@ export default function DownloadButton({
   return (
     <div className="flex flex-col gap-2">
       <a
-        href={selected.downloadUrl}
+        href={selected.id ? `/api/downloads/${selected.id}` : selected.downloadUrl}
         className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-950/40 transition-colors hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07070a]"
       >
         <DownloadIcon className="h-4 w-4" />

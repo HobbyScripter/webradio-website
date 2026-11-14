@@ -17,6 +17,7 @@
  * `fetchedAt` and `stale` state.
  */
 import { z } from 'zod';
+import { getInstallationAccessToken } from './github-app';
 
 export const GITHUB_REPOSITORY = 'YourEliteSystems/WebRadio' as const;
 export const GITHUB_REPOSITORY_URL =
@@ -61,6 +62,7 @@ export class GitHubError extends Error {
 export type ReleaseChannel = 'stable' | 'beta' | 'alpha';
 
 export type GitHubAsset = {
+  id?: number;
   name: string;
   size: number;
   digest: string | null;
@@ -137,6 +139,7 @@ const repositorySchema = z.object({
 });
 
 const assetSchema = z.object({
+  id: z.number().optional(),
   name: z.string(),
   size: z.number(),
   state: z.string().optional(),
@@ -163,12 +166,22 @@ function getToken(): string | null {
   return token ? token : null;
 }
 
-function githubHeaders(accept = 'application/vnd.github+json'): HeadersInit {
+async function githubHeaders(accept = 'application/vnd.github+json'): Promise<HeadersInit> {
   const headers: Record<string, string> = {
     Accept: accept,
     'User-Agent': USER_AGENT,
     'X-GitHub-Api-Version': '2022-11-28',
   };
+
+  try {
+    const auth = await getInstallationAccessToken();
+    if (auth.token) {
+      headers.Authorization = `Bearer ${auth.token}`;
+      return headers;
+    }
+  } catch {
+    // fallback to getToken
+  }
 
   const token = getToken();
   if (token) {
@@ -210,8 +223,9 @@ async function fetchFromGitHub<T>(
 
   let response: Response;
   try {
+    const headers = await githubHeaders(accept);
     response = await fetch(url, {
-      headers: githubHeaders(accept),
+      headers,
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       // The Next data cache is shared across server instances, so a deployment
       // does not hammer GitHub once per instance. The in-memory entry below is
@@ -459,6 +473,7 @@ function parseAsset(
     raw.digest && /^sha256:[0-9a-f]{64}$/i.test(raw.digest) ? raw.digest : null;
 
   return {
+    id: raw.id,
     name: raw.name,
     size: raw.size,
     digest,

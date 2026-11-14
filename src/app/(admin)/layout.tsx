@@ -15,6 +15,8 @@ import {
   HomeIcon,
   ShieldIcon,
   AlertIcon,
+  DownloadIcon,
+  GitHubIcon,
 } from '@/components/ui/icons';
 
 export const metadata: Metadata = {
@@ -62,6 +64,16 @@ const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
     label: 'Rechtliche Inhalte',
     href: '/admin/legal',
     icon: <BookIcon className="h-5 w-5" />,
+  },
+  {
+    label: 'Download Analytics',
+    href: '/admin/downloads',
+    icon: <DownloadIcon className="h-5 w-5" />,
+  },
+  {
+    label: 'GitHub-Integration',
+    href: '/admin/settings/integrations/github',
+    icon: <GitHubIcon className="h-5 w-5" />,
   },
   {
     label: 'Audit-Protokoll',
