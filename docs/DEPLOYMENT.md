@@ -119,7 +119,12 @@ Client-Bundle landet (öffentliche Basis-URL, kein Geheimnis).
 | `GITHUB_TOKEN` | Höheres Rate-Limit der öffentlichen GitHub-REST-API | – | gelesen (nur serverseitig) | Production, optional Preview | ja | Fine-grained Token **ohne** Schreibrechte; niemals `NEXT_PUBLIC_*` und nie im Client-Bundle |
 | `TEST_DATABASE_URL` | Datenbank der Integrationstests | – | – | **nicht auf Vercel** | ja | DB-Name muss auf `_test` enden; `test:integration` verweigert alles andere |
 | `ADMIN_BOOTSTRAP_*`, `SYSTEM_ADMIN_*` | einmalige CLI-Bootstraps/Recovery | – | – | **nicht auf Vercel** | ja | nur lokal/CI mit Shell- und DB-Zugriff; siehe README |
-| `STORAGE_*`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_WEBHOOK_SECRET` | derzeit von **keinem** Codepfad gelesen (nur in `src/lib/env.ts` deklariert) | – | – | nicht setzen | – | erst konfigurieren, wenn eine Funktion sie tatsächlich nutzt |
+| `GITHUB_CLIENT_ID` | **JWT-Issuer** (`iss`) der GitHub App; die App ID ist kein Ersatz | – | gelesen (JWT) | Production, optional | nein | Client ID aus den App-Einstellungen (`Iv1.…` oder `Iv23li…`), nicht die numerische App ID |
+| `GITHUB_APP_PRIVATE_KEY` | Signiert das RS256-JWT | – | gelesen | Production, optional | ja | PEM-Inhalt oder base64 davon; nur als Secret, nie im Repo oder im Client-Bundle |
+| `GITHUB_INSTALLATION_ID` | Wählt die Installation beim Token-Tausch (`/app/installations/<id>/access_tokens`) | – | gelesen | Production, optional | nein | numerische Installations-ID |
+| `GITHUB_APP_ID` | Numerische App ID, nur Anzeige/Diagnose im Adminbereich | – | gelesen (Statusanzeige) | optional | nein | App ID aus den App-Einstellungen; ersetzt die Client ID nicht |
+| `GITHUB_WEBHOOK_SECRET` | HMAC-SHA256-Prüfung eingehender Webhooks | – | gelesen | Production, optional | ja | 32 zufällige Bytes, hex |
+| `STORAGE_*`, `GITHUB_CLIENT_SECRET` | derzeit von **keinem** Codepfad gelesen | – | – | nicht setzen | – | erst konfigurieren, wenn eine Funktion sie tatsächlich nutzt |
 
 `ADMIN_BOOTSTRAP_*` und `SYSTEM_ADMIN_*` gehören **nicht** in Vercel. Beide
 Bootstraps sind einmalige, lokale CLI-Vorgänge mit Datenbankzugriff auf die

@@ -31,7 +31,10 @@ Dieses Dokument beschreibt die Einrichtung und Konfiguration der nativen **GitHu
    - Hake `Release` an.
    - Optional: `Installation` und `Installation repositories` zur automatischen Statusaktualisierung.
 9. Speichere die App mit **Create GitHub App**.
-10. **Private Key erzeugen:**
+10. Notiere auf der App-Seite **App ID** und **Client ID** getrennt voneinander:
+    Die **Client ID** (`Iv1.…` / `Iv23li…`) ist der JWT-Issuer, die numerische
+    **App ID** dient nur der Anzeige. Beide Werte sind nicht austauschbar.
+11. **Private Key erzeugen:**
     - Scrolle in den App-Einstellungen nach unten zu **Private keys**.
     - Klicke auf **Generate a private key**. Lade die `.pem`-Datei herunter und bewahre sie sicher auf.
 
@@ -52,13 +55,13 @@ Dieses Dokument beschreibt die Einrichtung und Konfiguration der nativen **GitHu
 Trage die Werte in die Server-Umgebungsvariablen (`.env` lokal oder im Hosting-Dashboard) ein:
 
 ```env
-# GitHub App Identifikatoren
-GITHUB_APP_ID="123456"
-GITHUB_CLIENT_ID="Iv1.xxxxxx"
-GITHUB_CLIENT_SECRET="xxxxxx"
-GITHUB_INSTALLATION_ID="12345678"
+# GitHub App Identifikatoren — App ID und Client ID sind zwei verschiedene Werte
+GITHUB_APP_ID="123456"                    # nur Anzeige/Diagnose
+GITHUB_CLIENT_ID="Iv23li..."             # JWT-Issuer (`iss`)
+GITHUB_CLIENT_SECRET="xxxxxx"            # wird für die App-Authentifizierung nicht verwendet
+GITHUB_INSTALLATION_ID="12345678"        # wählt die Installation beim Token-Tausch
 
-# Privater RSA-Schlüssel (.pem Inhalt oder base64-kodiert)
+# Privater RSA-Schlüssel (.pem Inhalt oder base64-kodiert), signiert das JWT
 GITHUB_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----"
 
 # Webhook-Secret zur HMAC-Signaturprüfung
@@ -68,9 +71,69 @@ GITHUB_WEBHOOK_SECRET="dein_sicheres_webhook_secret"
 CRON_SECRET="dein_cron_bearer_token"
 ```
 
+`GITHUB_APP_ID` und `GITHUB_CLIENT_ID` sind **nicht** austauschbar: Die App ID
+ist die numerische Kennung der App, die Client ID der davon getrennte
+OAuth-/JWT-Identifikator (`Iv1.…` oder `Iv23li…`). Für die JWT-Erzeugung wird
+ausschließlich `GITHUB_CLIENT_ID` gelesen. Fehlt sie, fordert die Anwendung
+bewusst **kein** Installation Token an und verwendet auch die App ID nicht als
+Ersatz-Issuer; sie fällt dann auf `GITHUB_TOKEN` zurück (falls gesetzt) und
+protokolliert eine Warnung.
+
 ---
 
-## 5. Webhook- & Download-Endpunkte
+## 5. JWT- und Installation-Token-Erzeugung
+
+Maßgeblich ist die GitHub-Dokumentation
+[„Generating a JSON Web Token (JWT) for a GitHub App“](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app).
+Die Implementierung liegt in `src/lib/github-app.ts`.
+
+### Ablauf
+
+1. `getGitHubAppConfig()` liest `GITHUB_CLIENT_ID`, `GITHUB_APP_PRIVATE_KEY` und
+   `GITHUB_INSTALLATION_ID` (App ID separat, nur Anzeige).
+2. `generateGitHubAppJwt(clientId, privateKey)` baut Header und Payload und
+   signiert `header.payload` mit `RSA-SHA256` über den privaten PEM-Schlüssel.
+3. `POST https://api.github.com/app/installations/<installation_id>/access_tokens`
+   mit `Authorization: Bearer <JWT>` tauscht das JWT gegen ein Installation
+   Access Token. Die **Installation ID** bestimmt dabei die Installation; das
+   JWT beweist nur die App-Identität.
+4. Das Token wird im Prozess zwischengespeichert und erst neu angefordert, wenn
+   weniger als zwei Minuten Restlaufzeit bleiben.
+
+### JWT-Claims
+
+| Claim | Wert | Begründung |
+|---|---|---|
+| `alg` (Header) | `RS256` | von GitHub zwingend vorgeschrieben |
+| `typ` (Header) | `JWT` | Standard |
+| `iss` | **Client ID** der GitHub App | GitHub empfiehlt die Client ID; sie wird zum Auffinden des passenden Public Key verwendet |
+| `iat` | jetzt − 60 s | Schutz gegen Clock Drift (GitHub-Empfehlung) |
+| `exp` | jetzt + 9 min | `exp` darf maximal 10 Minuten in der Zukunft liegen; das Fenster `exp − iat` beträgt exakt 10 Minuten |
+
+Die Signatur erfolgt über `header.payload` mit dem privaten Schlüssel der App
+(`GITHUB_APP_PRIVATE_KEY`, PEM oder base64-kodiert). Schlüssel und Tokens werden
+weder geloggt noch an den Browser ausgeliefert.
+
+### SDK-Kompatibilität
+
+Das Projekt verwendet **kein** Octokit-/GitHub-SDK für die App-Authentifizierung:
+JWT und Token-Tausch laufen über `node:crypto` und `fetch`. Damit gibt es keine
+SDK-Version, die die App ID als Issuer erzwingen könnte. Die `@octokit/*`-Pakete
+im Lockfile sind ausschließlich transitive Abhängigkeiten der Prisma-CLI und
+werden von der Anwendung nicht importiert. Wird später ein SDK eingesetzt, muss
+es die Client ID als `iss` akzeptieren (z. B. `@octokit/auth-app` ab v8, das
+`clientId` explizit unterstützt) und die Claims `iat`/`exp` selbst setzen.
+
+### Fehlerverhalten
+
+- Fehlt `GITHUB_CLIENT_ID`, wird kein JWT erzeugt und kein Token angefordert;
+  es greift der optionale `GITHUB_TOKEN`-Fallback.
+- Ein abgelehnter Token-Request (HTTP ≠ 2xx) wird als Warnung mit Statuscode
+  protokolliert; danach greift ebenfalls der Fallback.
+
+---
+
+## 6. Webhook- & Download-Endpunkte
 
 - **Webhook-Empfänger:** `POST /api/webhooks/github`
   - Validiert `x-hub-signature-256` mit HMAC-SHA256.
@@ -88,7 +151,7 @@ CRON_SECRET="dein_cron_bearer_token"
 
 ---
 
-## 6. Adminbereich
+## 7. Adminbereich
 
 - **Download Analytics:** Unter `/admin/downloads`
   - Anzeige aller kumulativen GitHub-Downloads, getrennt von Website-Aufrufen.
