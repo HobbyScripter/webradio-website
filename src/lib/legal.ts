@@ -311,6 +311,13 @@ export function privacySections(operator: OperatorDetails, mailConfigured = fals
         operator.retentionAuditLogs,
         sharedRecipients,
       ],
+      [
+        'Reichweite anonym messen',
+        'Tag, normalisierter Pfad, Referrer-Hostname, Land, Geräteklasse, Betriebssystem, Zählerstände; keine IP-Adresse, keine Cookies, keine Kennungen',
+        'Art. 6 Abs. 1 lit. f DSGVO',
+        '90 Tage für granulare Tagesaggregate',
+        operator.databaseProvider ?? 'Datenbankanbieter',
+      ],
       ...(mailConfigured
         ? [
             [
@@ -329,7 +336,7 @@ export function privacySections(operator: OperatorDetails, mailConfigured = fals
     {
       heading: 'Kurzfassung',
       paragraphs: [
-        'Diese Website verarbeitet nur Daten, die für Konto, Anmeldung, Katalog und Missbrauchsschutz erforderlich sind. Es gibt keine Analyse- oder Werbedienste, keine Profile und keine Weitergabe zu Werbezwecken.',
+        'Diese Website verarbeitet nur Daten, die für Konto, Anmeldung, Katalog, Missbrauchsschutz und eine anonyme Reichweitenmessung erforderlich sind. Es gibt keine Werbedienste, keine Profile und keine Weitergabe zu Werbezwecken. Die Reichweitenmessung arbeitet ohne Cookies, ohne IP-Speicherung und ohne Kennungen.',
       ],
       table: categories,
     },
@@ -394,20 +401,28 @@ export function privacySections(operator: OperatorDetails, mailConfigured = fals
       ],
     },
     {
-      heading: '9. Empfänger',
+      heading: '9. Anonyme Reichweitenmessung',
+      paragraphs: [
+        'Die Website zählt Seitenaufrufe und Download-Anfragen anonym und aggregiert. Gespeichert werden ausschließlich Tag (UTC), ein normalisierter Pfad ohne Query oder Fragment, der Hostname eines externen Referrers, das Land aus einem Hoster-Header, eine grobe Geräte- und Betriebssystemklasse sowie ein Zählerstand. IP-Adressen, Cookies, vollständige User-Agents, Query-Strings und personenbezogene Kennungen werden nicht gespeichert.',
+        'Die Anfragen an `/api/analytics/pageview` und die Weiterleitung unter `/api/downloads` verwenden keine Cookies und keine geräteübergreifenden Kennungen. `DNT: 1` und `Sec-GPC: 1` werden respektiert; bekannte Bots und Prefetch-Anfragen werden nicht gezählt. Administrations-, Anmelde-, Konto- und API-Pfade sind ausgeschlossen. Eine Download-Anfrage belegt keinen erfolgreichen Download.',
+        'Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer datensparsamen Reichweitenmessung). Granulare Tagesaggregate werden nach 90 Tagen gelöscht; es werden keine personenbezogenen Profile gebildet.',
+      ],
+    },
+    {
+      heading: '10. Empfänger',
       paragraphs: [
         `Empfänger der Daten sind ausschließlich die genannten Dienstleister (${operator.hostingProvider}, ${operator.databaseProvider}${mailConfigured ? `, ${operator.mailProvider}` : ''}) sowie Stellen, an die eine gesetzliche Pflicht zur Weitergabe besteht. Andere Empfänger gibt es nicht.`,
       ],
     },
     {
-      heading: '10. Rechte der betroffenen Personen',
+      heading: '11. Rechte der betroffenen Personen',
       paragraphs: [
         `Betroffene Personen haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch. Anfragen richten sich an ${operator.email}.`,
         `Beschwerden können bei der zuständigen Aufsichtsbehörde erhoben werden: ${operator.supervisoryAuthority}.`,
       ],
     },
     {
-      heading: '11. Stand',
+      heading: '12. Stand',
       paragraphs: [
         'Diese Erklärung beschreibt die Datenverarbeitung der derzeit betriebenen Website. Änderungen an der Anwendung werden in dieser Erklärung nachgeführt.',
       ],

@@ -78,6 +78,10 @@ Preview- oder Produktionsdatenbank wird vorher abgebrochen.
   `HEAD` ohne Body, DB-Ausfall ≠ 404, Veröffentlichung nach 404 → 200
 - E-Mail: sichere `NEXTAUTH_URL`-Ableitung, lokale Outbox ohne Token-Log
 - öffentliche UI: Inhalte, Links, leere Zustände, mobile Navigation
+- Analytics: Traffic- und Repo-Statistik-Archiv, 202/204/422/429,
+  Pageview-Filter (DNT/GPC/Bots/Pfade), Retention, Sync-Orchestrator
+  (Sperren, Retries, Quellenstatus), Admin-Seiten mit getrennten GitHub- und
+  Website-Zahlen sowie Leer-/Fehlerzuständen, Sync-Endpunkt-Berechtigungen
 
 ### Echte PostgreSQL-Integration
 
