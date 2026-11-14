@@ -249,7 +249,7 @@ export async function getInstallationAccessToken(): Promise<{
   };
 }
 
-export type GitHubAppCheckStage = 'config' | 'token' | 'repository';
+export type GitHubAppCheckStage = 'config' | 'token' | 'repository' | 'releases';
 
 export type GitHubAppCheckCode =
   | 'OK'
@@ -490,12 +490,78 @@ export async function checkGitHubAppConnection(): Promise<GitHubAppConnectionChe
     };
   }
 
+  // Read one published release through the installation token: the releases feed
+  // is the second read the website depends on.
+  let releasesResponse: Response;
+  try {
+    releasesResponse = await fetch(
+      `https://api.github.com/repos/${repository}/releases?per_page=1`,
+      {
+        headers: { ...githubApiHeaders(), Authorization: `Bearer ${installationToken}` },
+        signal: AbortSignal.timeout(GITHUB_CHECK_TIMEOUT_MS),
+        cache: 'no-store',
+      },
+    );
+  } catch {
+    return {
+      ...base,
+      ok: false,
+      code: 'API_ERROR',
+      stage: 'releases',
+      message: 'GitHub war nicht erreichbar (Netzwerk oder Timeout).',
+    };
+  }
+
+  if (!releasesResponse.ok) {
+    const status = releasesResponse.status;
+    const code: GitHubAppCheckCode = status === 403 ? 'FORBIDDEN' : 'API_ERROR';
+    return {
+      ...base,
+      httpStatus: status,
+      ok: false,
+      code,
+      stage: 'releases',
+      message:
+        status === 403
+          ? 'Die Installation hat keinen Lesezugriff auf Releases (HTTP 403).'
+          : `GitHub API antwortete mit HTTP ${status}.`,
+    };
+  }
+
+  let releasesBody: unknown;
+  try {
+    releasesBody = await releasesResponse.json();
+  } catch {
+    return {
+      ...base,
+      httpStatus: 200,
+      ok: false,
+      code: 'API_ERROR',
+      stage: 'releases',
+      message: 'Antwort des Release-Endpunkts war kein lesbares JSON.',
+    };
+  }
+
+  if (!Array.isArray(releasesBody)) {
+    return {
+      ...base,
+      httpStatus: 200,
+      ok: false,
+      code: 'API_ERROR',
+      stage: 'releases',
+      message: 'Antwort des Release-Endpunkts war keine Liste.',
+    };
+  }
+
+  // Only a fully successful read is recorded as the last successful API call.
+  await recordApiCall(installationId);
+
   return {
     ...base,
     ok: true,
     code: 'OK',
-    stage: 'repository',
-    message: `Installation Token erhalten; ${repository} ist lesbar.`,
+    stage: 'releases',
+    message: `Installation Token erhalten; ${repository} und Releases sind lesbar.`,
     httpStatus: 200,
     tokenExpiresAt,
   };
@@ -505,11 +571,30 @@ async function recordApiCall(installationIdStr: string): Promise<void> {
   try {
     const db = await getDb();
     const instId = BigInt(installationIdStr);
-    await db.orm.public.GitHubAppInstallation.where({ installationId: instId }).update({
-      lastApiCallAt: Temporal.Now.instant(),
+    const now = Temporal.Now.instant();
+    const existing = await db.orm.public.GitHubAppInstallation.first({
+      installationId: instId,
     });
+
+    if (existing) {
+      await db.orm.public.GitHubAppInstallation.where({ installationId: instId }).update({
+        lastApiCallAt: now,
+      });
+    } else {
+      // The installation row is normally created by the `installation` webhook.
+      // Without it there would be nowhere to store the timestamp, so the first
+      // verified API call creates the minimal record.
+      await db.orm.public.GitHubAppInstallation.create({
+        installationId: instId,
+        appName: 'WebRadio GitHub App',
+        accountLogin: 'YourEliteSystems',
+        repositoryName: GITHUB_REPOSITORY,
+        status: 'CONNECTED',
+        lastApiCallAt: now,
+      });
+    }
   } catch {
-    // Ignore db logging errors in background
+    // Ignore db logging errors in background; the check result stays valid.
   }
 }
 
@@ -592,6 +677,11 @@ export type IntegrationStatusInfo = {
   permissions: Record<string, string> | null;
   lastApiCallAt: string | null;
   lastWebhookAt: string | null;
+  /** Latest stored webhook delivery (signature valid, recorded once). */
+  lastWebhookEvent: string | null;
+  lastWebhookAction: string | null;
+  lastWebhookProcessedAt: string | null;
+  webhookConfigured: boolean;
   lastError: string | null;
   /** Result of the read-only live check; null in fallback-token mode. */
   check: GitHubAppConnectionCheck | null;
@@ -605,6 +695,31 @@ export async function getGitHubIntegrationStatus(): Promise<IntegrationStatusInf
   const db = await getDb();
 
   const repository = GITHUB_REPOSITORY;
+
+  type StoredDelivery = {
+    event: string;
+    action: string | null;
+    processedAt: { toString(): string };
+  };
+  let lastDelivery: StoredDelivery | null = null;
+  try {
+    const rows = await db.orm.public.GitHubWebhookDelivery
+      .orderBy((delivery) => delivery.processedAt.desc())
+      .limit(1)
+      .all();
+    lastDelivery = (rows[0] as StoredDelivery | undefined) ?? null;
+  } catch {
+    // The table may not exist yet; the dashboard then shows no webhook.
+  }
+
+  const webhookInfo = {
+    lastWebhookEvent: lastDelivery?.event ?? null,
+    lastWebhookAction: lastDelivery?.action ?? null,
+    lastWebhookProcessedAt: lastDelivery?.processedAt
+      ? new Date(lastDelivery.processedAt.toString()).toISOString()
+      : null,
+    webhookConfigured: Boolean(config.webhookSecret),
+  };
 
   const appAuthConfigured = Boolean(
     config.clientId && config.installationId && config.privateKey,
@@ -624,6 +739,7 @@ export async function getGitHubIntegrationStatus(): Promise<IntegrationStatusInf
       appName: null,
       accountLogin: null,
       repository,
+      ...webhookInfo,
       status: 'NOT_CONFIGURED',
       permissions: null,
       lastApiCallAt: null,
@@ -660,6 +776,7 @@ export async function getGitHubIntegrationStatus(): Promise<IntegrationStatusInf
       appName: record?.appName ?? 'WebRadio GitHub App',
       accountLogin: record?.accountLogin ?? 'YourEliteSystems',
       repository,
+      ...webhookInfo,
       status: check.ok
         ? ((record?.status as IntegrationStatusInfo['status']) ?? 'CONNECTED')
         : 'ERROR',
@@ -680,6 +797,7 @@ export async function getGitHubIntegrationStatus(): Promise<IntegrationStatusInf
     appName: 'Personal Access Token / GITHUB_TOKEN',
     accountLogin: 'YourEliteSystems',
     repository,
+    ...webhookInfo,
     status: 'CONNECTED',
     permissions: { contents: 'read' },
     lastApiCallAt: null,

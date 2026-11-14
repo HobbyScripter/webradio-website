@@ -94,17 +94,42 @@ export default async function GitHubIntegrationPage() {
             <span className="font-mono text-zinc-200">{status.clientId ?? '–'}</span>
           </div>
           <div>
-            <span className="text-zinc-500 block">Letzter API-Aufruf:</span>
+            <span className="text-zinc-500 block">Letzter erfolgreicher API-Aufruf:</span>
             <span className="text-zinc-200">
-              {status.lastApiCallAt ? formatDateTime(status.lastApiCallAt) : 'Noch kein API-Aufruf protokolliert'}
+              {status.lastApiCallAt
+                ? `${formatDateTime(status.lastApiCallAt)} · ${status.lastApiCallAt}`
+                : 'Noch kein erfolgreicher API-Aufruf protokolliert'}
             </span>
           </div>
           <div>
-            <span className="text-zinc-500 block">Letzter Webhook empfangen:</span>
+            <span className="text-zinc-500 block">Letzter empfangener Webhook:</span>
             <span className="text-zinc-200">
-              {status.lastWebhookAt ? formatDateTime(status.lastWebhookAt) : 'Noch kein Webhook empfangen'}
+              {status.lastWebhookProcessedAt
+                ? `${formatDateTime(status.lastWebhookProcessedAt)} · ${status.lastWebhookProcessedAt}`
+                : 'Noch kein Webhook empfangen'}
             </span>
           </div>
+          <div>
+            <span className="text-zinc-500 block">Letztes verarbeitetes Webhook-Ereignis:</span>
+            <span className="font-mono text-zinc-200">
+              {status.lastWebhookEvent
+                ? `${status.lastWebhookEvent}${status.lastWebhookAction ? ` / ${status.lastWebhookAction}` : ''}`
+                : '–'}
+            </span>
+          </div>
+          <div>
+            <span className="text-zinc-500 block">Webhook-Secret:</span>
+            <span className="text-zinc-200">
+              {status.webhookConfigured ? 'konfiguriert' : 'nicht konfiguriert'}
+            </span>
+          </div>
+        </div>
+
+        <div className="border-t border-white/[0.06] pt-4">
+          <span className="text-zinc-500 block text-xs">Fehler:</span>
+          <p className={`text-xs ${status.lastError ? 'text-rose-300' : 'text-zinc-400'}`}>
+            {status.lastError ?? 'Keine Fehler gemeldet.'}
+          </p>
         </div>
 
         {/* Permissions */}

@@ -265,16 +265,17 @@ describe('GitHub App Authentication & Webhook Verification', () => {
             expires_at: '2030-01-01T00:00:00Z',
           }),
         )
-        .mockResolvedValueOnce(jsonResponse({ full_name: 'YourEliteSystems/WebRadio' }));
+        .mockResolvedValueOnce(jsonResponse({ full_name: 'YourEliteSystems/WebRadio' }))
+        .mockResolvedValueOnce(jsonResponse([{ id: 443494960, tag_name: 'v1.0.8' }]));
 
       const result = await checkGitHubAppConnection();
 
       expect(result.ok).toBe(true);
       expect(result.code).toBe('OK');
-      expect(result.stage).toBe('repository');
+      expect(result.stage).toBe('releases');
       expect(result.httpStatus).toBe(200);
       expect(result.tokenExpiresAt).toBe('2030-01-01T00:00:00Z');
-      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
 
       const [tokenUrl, tokenInit] = fetchMock.mock.calls[0] as [string, RequestInit];
       expect(tokenUrl).toBe(
@@ -288,6 +289,14 @@ describe('GitHub App Authentication & Webhook Verification', () => {
       const [repositoryUrl, repositoryInit] = fetchMock.mock.calls[1] as [string, RequestInit];
       expect(repositoryUrl).toBe('https://api.github.com/repos/YourEliteSystems/WebRadio');
       expect((repositoryInit.headers as Record<string, string>)['Authorization']).toBe(
+        `Bearer ${installationToken}`,
+      );
+
+      const [releasesUrl, releasesInit] = fetchMock.mock.calls[2] as [string, RequestInit];
+      expect(releasesUrl).toBe(
+        'https://api.github.com/repos/YourEliteSystems/WebRadio/releases?per_page=1',
+      );
+      expect((releasesInit.headers as Record<string, string>)['Authorization']).toBe(
         `Bearer ${installationToken}`,
       );
 

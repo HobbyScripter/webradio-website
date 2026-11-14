@@ -178,6 +178,29 @@ Response-Body.
 
 ---
 
+### Webhook-Einrichtung und Verifikation
+
+- **URL:** `POST https://<origin>/api/webhooks/github`
+- **Secret:** identisch mit `GITHUB_WEBHOOK_SECRET`. Jede Lieferung wird über
+  `X-Hub-Signature-256` (HMAC-SHA256, `timingSafeEqual`) geprüft. Ohne Secret
+  antwortet der Endpunkt `503`, bei ungültiger Signatur `401`.
+- **Ereignisse:** `release`, `installation`, `installation_repositories`.
+- **Idempotenz:** `X-GitHub-Delivery` wird vor der Verarbeitung gespeichert. Eine
+  Wiederholung liefert `{ "ok": true, "duplicate": true }` und verarbeitet nichts
+  erneut (Replay-Schutz).
+- **Repository-Bindung:** Ereignisse für andere Repositories werden mit `403`
+  abgelehnt.
+- **Gespeicherte Zeitstempel:** `lastWebhookAt` an der Installation sowie Event,
+  Action und `processedAt` (UTC) je Delivery. Ein erfolgreicher API-Aufruf setzt
+  `lastApiCallAt` (UTC), sobald JWT, Token-Tausch und Lesezugriff auf Repository
+  und Releases gelungen sind.
+
+> Hinweis: `processedAt` wird beim Annehmen der Lieferung geschrieben (Signatur
+> gültig, noch nicht doppelt). Die Handler laufen synchron im selben Request;
+> ein Fehler dort führt zu HTTP 500 und nicht zu einem Erfolgszeitstempel.
+
+---
+
 ## 7. Adminbereich
 
 - **Download Analytics:** Unter `/admin/downloads`
@@ -187,7 +210,10 @@ Response-Body.
   - Datenschutzkonforme Länderstatistik für Website-Downloads.
   - Manuelle Synchronisierung auf Knopfdruck.
 - **GitHub Integrationsstatus:** Unter `/admin/settings/integrations/github`
-  - Status der Verbindung (Verbunden, Ausgesetzt, Deinstalliert).
+  - Status der Verbindung (Verbunden, Ausgesetzt, Deinstalliert, Verbindung fehlgeschlagen).
   - Name der App, verbundener Account und autorisiertes Repository.
-  - Zeitstempel des letzten erfolgreichen API-Aufrufs und des letzten empfangenen Webhooks.
+  - Getrennt: letzter erfolgreicher API-Aufruf, letzter empfangener Webhook,
+    letztes verarbeitetes Webhook-Ereignis (Event/Action) und Webhook-Secret-Status.
+  - Fehlerzustand inklusive Fehlercode, Schritt und HTTP-Status der read-only
+    Verbindungsprüfung.
 
