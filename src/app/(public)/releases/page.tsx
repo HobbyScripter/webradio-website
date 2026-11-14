@@ -292,6 +292,7 @@ async function PrimaryDownload() {
   }
 
   const assets: DownloadOption[] = stable.assets.map((asset) => ({
+    id: asset.id,
     name: asset.name,
     platform: asset.platform,
     platformLabel: asset.platformLabel,

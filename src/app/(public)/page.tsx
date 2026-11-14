@@ -145,7 +145,7 @@ function DownloadShortcuts({ release }: { release: GitHubRelease }) {
       {assets.map((asset) => (
         <a
           key={asset.name}
-          href={asset.downloadUrl}
+          href={asset.id ? `/api/downloads/${asset.id}` : asset.downloadUrl}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`${asset.platformLabel}: ${release.tagName} herunterladen`}

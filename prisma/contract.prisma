@@ -592,3 +592,120 @@ model PrivacyImpactNote {
   @@index([createdAt])
   @@index([resolvedAt])
 }
+
+// ---------------------------------------------------------------------------
+// GitHub App Integration & Webhooks
+// ---------------------------------------------------------------------------
+
+enum GitHubInstallationStatus {
+  CONNECTED
+  SUSPENDED
+  DELETED
+}
+
+model GitHubAppInstallation {
+  id               String                   @id @onCreate(uuid(7))
+  installationId   BigInt                   @unique
+  appId            BigInt?
+  appName          String?
+  accountLogin     String
+  repositoryName   String
+  status           GitHubInstallationStatus @default(CONNECTED)
+  permissions      String?
+  lastApiCallAt    DateTime?
+  lastWebhookAt    DateTime?
+  createdAt        DateTime                 @onCreate(now())
+  updatedAt        DateTime                 @onCreate(now()) @onUpdate(now())
+
+  @@index([installationId])
+  @@index([repositoryName])
+}
+
+model GitHubWebhookDelivery {
+  id          String   @id @onCreate(uuid(7))
+  deliveryId  String   @unique
+  event       String
+  action      String?
+  repository  String?
+  processedAt DateTime @onCreate(now())
+
+  @@index([deliveryId])
+  @@index([event])
+}
+
+// ---------------------------------------------------------------------------
+// Download Analytics & Statistics
+// ---------------------------------------------------------------------------
+
+enum DownloadSyncStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+model GitHubReleaseAsset {
+  id                   String                   @id @onCreate(uuid(7))
+  githubAssetId        BigInt                   @unique
+  releaseId            BigInt
+  releaseTag           String
+  releaseChannel       String
+  fileName             String
+  platform             String?
+  format               String?
+  size                 BigInt
+  downloadUrl          String
+  currentDownloadCount Int                      @default(0)
+  lastSyncedAt         DateTime                 @onCreate(now())
+  createdAt            DateTime                 @onCreate(now())
+  updatedAt            DateTime                 @onCreate(now()) @onUpdate(now())
+
+  snapshots            GitHubDownloadSnapshot[]
+  websiteStats         WebsiteDownloadStat[]
+
+  @@index([githubAssetId])
+  @@index([releaseTag])
+  @@index([releaseChannel])
+}
+
+model GitHubDownloadSnapshot {
+  id            String             @id @onCreate(uuid(7))
+  assetId       String
+  downloadCount Int
+  snapshotDate  DateTime
+  createdAt     DateTime           @onCreate(now())
+
+  asset         GitHubReleaseAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, snapshotDate])
+  @@index([snapshotDate])
+}
+
+model WebsiteDownloadStat {
+  id          String             @id @onCreate(uuid(7))
+  assetId     String
+  countryCode String
+  date        DateTime
+  count       Int                @default(1)
+  createdAt   DateTime           @onCreate(now())
+  updatedAt   DateTime           @onCreate(now()) @onUpdate(now())
+
+  asset       GitHubReleaseAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, countryCode, date])
+  @@index([date])
+  @@index([countryCode])
+}
+
+model DownloadSyncLog {
+  id                   String             @id @onCreate(uuid(7))
+  status               DownloadSyncStatus
+  startedAt            DateTime           @onCreate(now())
+  completedAt          DateTime?
+  syncedAssetsCount    Int                @default(0)
+  totalGitHubDownloads Int                @default(0)
+  errorMessage         String?
+
+  @@index([startedAt])
+  @@index([status])
+}
+

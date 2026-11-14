@@ -1,0 +1,1168 @@
+[
+  {
+    "id": "table.DownloadSyncLog",
+    "label": "Create table \"DownloadSyncLog\"",
+    "summary": "Creates table \"DownloadSyncLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "DownloadSyncLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"DownloadSyncLog\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DownloadSyncLog\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"DownloadSyncLog\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"DownloadSyncLog\"",
+        "sql": "CREATE TABLE \"public\".\"DownloadSyncLog\" (\n  \"completedAt\" timestamptz,\n  \"errorMessage\" text,\n  \"id\" text NOT NULL,\n  \"startedAt\" timestamptz NOT NULL,\n  \"status\" text NOT NULL,\n  \"syncedAssetsCount\" int4 DEFAULT 0 NOT NULL,\n  \"totalGitHubDownloads\" int4 DEFAULT 0 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"DownloadSyncLog_status_check_5c3c95c5\" CHECK (\"status\" IN ('RUNNING', 'SUCCESS', 'FAILED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"DownloadSyncLog\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"DownloadSyncLog\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"DownloadSyncLog\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubAppInstallation",
+    "label": "Create table \"GitHubAppInstallation\"",
+    "summary": "Creates table \"GitHubAppInstallation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubAppInstallation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubAppInstallation\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubAppInstallation\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubAppInstallation\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubAppInstallation\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubAppInstallation\" (\n  \"accountLogin\" text NOT NULL,\n  \"appId\" int8,\n  \"appName\" text,\n  \"createdAt\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"installationId\" int8 NOT NULL,\n  \"lastApiCallAt\" timestamptz,\n  \"lastWebhookAt\" timestamptz,\n  \"permissions\" text,\n  \"repositoryName\" text NOT NULL,\n  \"status\" text DEFAULT 'CONNECTED' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"GitHubAppInstallation_status_check_e440b423\" CHECK (\"status\" IN ('CONNECTED', 'SUSPENDED', 'DELETED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubAppInstallation\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubAppInstallation\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubAppInstallation\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubDownloadSnapshot",
+    "label": "Create table \"GitHubDownloadSnapshot\"",
+    "summary": "Creates table \"GitHubDownloadSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubDownloadSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubDownloadSnapshot\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubDownloadSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubDownloadSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubDownloadSnapshot\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubDownloadSnapshot\" (\n  \"assetId\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"downloadCount\" int4 NOT NULL,\n  \"id\" text NOT NULL,\n  \"snapshotDate\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubDownloadSnapshot\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubDownloadSnapshot\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubDownloadSnapshot\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubReleaseAsset",
+    "label": "Create table \"GitHubReleaseAsset\"",
+    "summary": "Creates table \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubReleaseAsset\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubReleaseAsset\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubReleaseAsset\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubReleaseAsset\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"currentDownloadCount\" int4 DEFAULT 0 NOT NULL,\n  \"downloadUrl\" text NOT NULL,\n  \"fileName\" text NOT NULL,\n  \"format\" text,\n  \"githubAssetId\" int8 NOT NULL,\n  \"id\" text NOT NULL,\n  \"lastSyncedAt\" timestamptz NOT NULL,\n  \"platform\" text,\n  \"releaseChannel\" text NOT NULL,\n  \"releaseId\" int8 NOT NULL,\n  \"releaseTag\" text NOT NULL,\n  \"size\" int8 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubReleaseAsset\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubReleaseAsset\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubReleaseAsset\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GitHubWebhookDelivery",
+    "label": "Create table \"GitHubWebhookDelivery\"",
+    "summary": "Creates table \"GitHubWebhookDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GitHubWebhookDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GitHubWebhookDelivery\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubWebhookDelivery\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GitHubWebhookDelivery\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GitHubWebhookDelivery\"",
+        "sql": "CREATE TABLE \"public\".\"GitHubWebhookDelivery\" (\n  \"action\" text,\n  \"deliveryId\" text NOT NULL,\n  \"event\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"processedAt\" timestamptz NOT NULL,\n  \"repository\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GitHubWebhookDelivery\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubWebhookDelivery\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GitHubWebhookDelivery\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.WebsiteDownloadStat",
+    "label": "Create table \"WebsiteDownloadStat\"",
+    "summary": "Creates table \"WebsiteDownloadStat\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "WebsiteDownloadStat"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"WebsiteDownloadStat\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"WebsiteDownloadStat\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"WebsiteDownloadStat\"",
+        "sql": "CREATE TABLE \"public\".\"WebsiteDownloadStat\" (\n  \"assetId\" text NOT NULL,\n  \"count\" int4 DEFAULT 1 NOT NULL,\n  \"countryCode\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"date\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"WebsiteDownloadStat\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"WebsiteDownloadStat\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubAppInstallation.GitHubAppInstallation_installationId_key",
+    "label": "Add unique constraint on \"GitHubAppInstallation\" (installationId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubAppInstallation_installationId_key",
+        "table": "GitHubAppInstallation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubAppInstallation_installationId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubAppInstallation_installationId_key",
+          "public",
+          "\"public\".\"GitHubAppInstallation\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubAppInstallation_installationId_key\" on \"GitHubAppInstallation\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubAppInstallation_installationId_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubAppInstallation\" ADD CONSTRAINT \"GitHubAppInstallation_installationId_key\" UNIQUE (\"installationId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubAppInstallation_installationId_key\" exists on (installationId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubAppInstallation_installationId_key",
+          "public",
+          "\"public\".\"GitHubAppInstallation\"",
+          "u",
+          "[\"installationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubDownloadSnapshot.GitHubDownloadSnapshot_assetId_snapshotDate_key",
+    "label": "Add unique constraint on \"GitHubDownloadSnapshot\" (assetId, snapshotDate)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubDownloadSnapshot_assetId_snapshotDate_key",
+        "table": "GitHubDownloadSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubDownloadSnapshot_assetId_snapshotDate_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubDownloadSnapshot_assetId_snapshotDate_key",
+          "public",
+          "\"public\".\"GitHubDownloadSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubDownloadSnapshot_assetId_snapshotDate_key\" on \"GitHubDownloadSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubDownloadSnapshot_assetId_snapshotDate_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubDownloadSnapshot\" ADD CONSTRAINT \"GitHubDownloadSnapshot_assetId_snapshotDate_key\" UNIQUE (\"assetId\", \"snapshotDate\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubDownloadSnapshot_assetId_snapshotDate_key\" exists on (assetId, snapshotDate)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubDownloadSnapshot_assetId_snapshotDate_key",
+          "public",
+          "\"public\".\"GitHubDownloadSnapshot\"",
+          "u",
+          "[\"assetId\",\"snapshotDate\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubReleaseAsset.GitHubReleaseAsset_githubAssetId_key",
+    "label": "Add unique constraint on \"GitHubReleaseAsset\" (githubAssetId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubReleaseAsset_githubAssetId_key",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubReleaseAsset_githubAssetId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubReleaseAsset_githubAssetId_key",
+          "public",
+          "\"public\".\"GitHubReleaseAsset\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubReleaseAsset_githubAssetId_key\" on \"GitHubReleaseAsset\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubReleaseAsset_githubAssetId_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubReleaseAsset\" ADD CONSTRAINT \"GitHubReleaseAsset_githubAssetId_key\" UNIQUE (\"githubAssetId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubReleaseAsset_githubAssetId_key\" exists on (githubAssetId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubReleaseAsset_githubAssetId_key",
+          "public",
+          "\"public\".\"GitHubReleaseAsset\"",
+          "u",
+          "[\"githubAssetId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.GitHubWebhookDelivery.GitHubWebhookDelivery_deliveryId_key",
+    "label": "Add unique constraint on \"GitHubWebhookDelivery\" (deliveryId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "GitHubWebhookDelivery_deliveryId_key",
+        "table": "GitHubWebhookDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"GitHubWebhookDelivery_deliveryId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubWebhookDelivery_deliveryId_key",
+          "public",
+          "\"public\".\"GitHubWebhookDelivery\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"GitHubWebhookDelivery_deliveryId_key\" on \"GitHubWebhookDelivery\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"GitHubWebhookDelivery_deliveryId_key\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubWebhookDelivery\" ADD CONSTRAINT \"GitHubWebhookDelivery_deliveryId_key\" UNIQUE (\"deliveryId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"GitHubWebhookDelivery_deliveryId_key\" exists on (deliveryId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "GitHubWebhookDelivery_deliveryId_key",
+          "public",
+          "\"public\".\"GitHubWebhookDelivery\"",
+          "u",
+          "[\"deliveryId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.WebsiteDownloadStat.WebsiteDownloadStat_assetId_countryCode_date_key",
+    "label": "Add unique constraint on \"WebsiteDownloadStat\" (assetId, countryCode, date)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "WebsiteDownloadStat_assetId_countryCode_date_key",
+        "table": "WebsiteDownloadStat"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"WebsiteDownloadStat_assetId_countryCode_date_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "WebsiteDownloadStat_assetId_countryCode_date_key",
+          "public",
+          "\"public\".\"WebsiteDownloadStat\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"WebsiteDownloadStat_assetId_countryCode_date_key\" on \"WebsiteDownloadStat\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"WebsiteDownloadStat_assetId_countryCode_date_key\"",
+        "sql": "ALTER TABLE \"public\".\"WebsiteDownloadStat\" ADD CONSTRAINT \"WebsiteDownloadStat_assetId_countryCode_date_key\" UNIQUE (\"assetId\", \"countryCode\", \"date\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"WebsiteDownloadStat_assetId_countryCode_date_key\" exists on (assetId, countryCode, date)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "WebsiteDownloadStat_assetId_countryCode_date_key",
+          "public",
+          "\"public\".\"WebsiteDownloadStat\"",
+          "u",
+          "[\"assetId\",\"countryCode\",\"date\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DownloadSyncLog.DownloadSyncLog_startedAt_idx_cac56236",
+    "label": "Create index \"DownloadSyncLog_startedAt_idx_cac56236\" on \"DownloadSyncLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DownloadSyncLog_startedAt_idx_cac56236",
+        "table": "DownloadSyncLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DownloadSyncLog_startedAt_idx_cac56236\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DownloadSyncLog_startedAt_idx_cac56236\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DownloadSyncLog_startedAt_idx_cac56236\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DownloadSyncLog_startedAt_idx_cac56236\"",
+        "sql": "CREATE INDEX \"DownloadSyncLog_startedAt_idx_cac56236\" ON \"public\".\"DownloadSyncLog\" (\"startedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DownloadSyncLog_startedAt_idx_cac56236\" exists on \"DownloadSyncLog\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DownloadSyncLog_startedAt_idx_cac56236\"",
+          "i",
+          "I",
+          "\"public\".\"DownloadSyncLog\"",
+          "btree",
+          "[\"startedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DownloadSyncLog.DownloadSyncLog_status_idx_e98638ab",
+    "label": "Create index \"DownloadSyncLog_status_idx_e98638ab\" on \"DownloadSyncLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DownloadSyncLog_status_idx_e98638ab",
+        "table": "DownloadSyncLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DownloadSyncLog_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DownloadSyncLog_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DownloadSyncLog_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DownloadSyncLog_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"DownloadSyncLog_status_idx_e98638ab\" ON \"public\".\"DownloadSyncLog\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DownloadSyncLog_status_idx_e98638ab\" exists on \"DownloadSyncLog\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DownloadSyncLog_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"DownloadSyncLog\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GitHubAppInstallation.GitHubAppInstallation_repositoryName_idx_254e3e4d",
+    "label": "Create index \"GitHubAppInstallation_repositoryName_idx_254e3e4d\" on \"GitHubAppInstallation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GitHubAppInstallation_repositoryName_idx_254e3e4d",
+        "table": "GitHubAppInstallation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GitHubAppInstallation_repositoryName_idx_254e3e4d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubAppInstallation_repositoryName_idx_254e3e4d\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GitHubAppInstallation_repositoryName_idx_254e3e4d\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GitHubAppInstallation_repositoryName_idx_254e3e4d\"",
+        "sql": "CREATE INDEX \"GitHubAppInstallation_repositoryName_idx_254e3e4d\" ON \"public\".\"GitHubAppInstallation\" (\"repositoryName\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GitHubAppInstallation_repositoryName_idx_254e3e4d\" exists on \"GitHubAppInstallation\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubAppInstallation_repositoryName_idx_254e3e4d\"",
+          "i",
+          "I",
+          "\"public\".\"GitHubAppInstallation\"",
+          "btree",
+          "[\"repositoryName\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GitHubDownloadSnapshot.GitHubDownloadSnapshot_assetId_idx_4ebe630a",
+    "label": "Create index \"GitHubDownloadSnapshot_assetId_idx_4ebe630a\" on \"GitHubDownloadSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GitHubDownloadSnapshot_assetId_idx_4ebe630a",
+        "table": "GitHubDownloadSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GitHubDownloadSnapshot_assetId_idx_4ebe630a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubDownloadSnapshot_assetId_idx_4ebe630a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GitHubDownloadSnapshot_assetId_idx_4ebe630a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GitHubDownloadSnapshot_assetId_idx_4ebe630a\"",
+        "sql": "CREATE INDEX \"GitHubDownloadSnapshot_assetId_idx_4ebe630a\" ON \"public\".\"GitHubDownloadSnapshot\" (\"assetId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GitHubDownloadSnapshot_assetId_idx_4ebe630a\" exists on \"GitHubDownloadSnapshot\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubDownloadSnapshot_assetId_idx_4ebe630a\"",
+          "i",
+          "I",
+          "\"public\".\"GitHubDownloadSnapshot\"",
+          "btree",
+          "[\"assetId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GitHubDownloadSnapshot.GitHubDownloadSnapshot_snapshotDate_idx_073d86f4",
+    "label": "Create index \"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\" on \"GitHubDownloadSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GitHubDownloadSnapshot_snapshotDate_idx_073d86f4",
+        "table": "GitHubDownloadSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\"",
+        "sql": "CREATE INDEX \"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\" ON \"public\".\"GitHubDownloadSnapshot\" (\"snapshotDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\" exists on \"GitHubDownloadSnapshot\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubDownloadSnapshot_snapshotDate_idx_073d86f4\"",
+          "i",
+          "I",
+          "\"public\".\"GitHubDownloadSnapshot\"",
+          "btree",
+          "[\"snapshotDate\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GitHubReleaseAsset.GitHubReleaseAsset_releaseChannel_idx_baa3058e",
+    "label": "Create index \"GitHubReleaseAsset_releaseChannel_idx_baa3058e\" on \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GitHubReleaseAsset_releaseChannel_idx_baa3058e",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GitHubReleaseAsset_releaseChannel_idx_baa3058e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubReleaseAsset_releaseChannel_idx_baa3058e\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GitHubReleaseAsset_releaseChannel_idx_baa3058e\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GitHubReleaseAsset_releaseChannel_idx_baa3058e\"",
+        "sql": "CREATE INDEX \"GitHubReleaseAsset_releaseChannel_idx_baa3058e\" ON \"public\".\"GitHubReleaseAsset\" (\"releaseChannel\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GitHubReleaseAsset_releaseChannel_idx_baa3058e\" exists on \"GitHubReleaseAsset\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubReleaseAsset_releaseChannel_idx_baa3058e\"",
+          "i",
+          "I",
+          "\"public\".\"GitHubReleaseAsset\"",
+          "btree",
+          "[\"releaseChannel\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GitHubReleaseAsset.GitHubReleaseAsset_releaseTag_idx_eb9e1f83",
+    "label": "Create index \"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\" on \"GitHubReleaseAsset\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GitHubReleaseAsset_releaseTag_idx_eb9e1f83",
+        "table": "GitHubReleaseAsset"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\"",
+        "sql": "CREATE INDEX \"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\" ON \"public\".\"GitHubReleaseAsset\" (\"releaseTag\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\" exists on \"GitHubReleaseAsset\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubReleaseAsset_releaseTag_idx_eb9e1f83\"",
+          "i",
+          "I",
+          "\"public\".\"GitHubReleaseAsset\"",
+          "btree",
+          "[\"releaseTag\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GitHubWebhookDelivery.GitHubWebhookDelivery_event_idx_0e2c7e2f",
+    "label": "Create index \"GitHubWebhookDelivery_event_idx_0e2c7e2f\" on \"GitHubWebhookDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GitHubWebhookDelivery_event_idx_0e2c7e2f",
+        "table": "GitHubWebhookDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GitHubWebhookDelivery_event_idx_0e2c7e2f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubWebhookDelivery_event_idx_0e2c7e2f\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GitHubWebhookDelivery_event_idx_0e2c7e2f\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GitHubWebhookDelivery_event_idx_0e2c7e2f\"",
+        "sql": "CREATE INDEX \"GitHubWebhookDelivery_event_idx_0e2c7e2f\" ON \"public\".\"GitHubWebhookDelivery\" (\"event\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GitHubWebhookDelivery_event_idx_0e2c7e2f\" exists on \"GitHubWebhookDelivery\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GitHubWebhookDelivery_event_idx_0e2c7e2f\"",
+          "i",
+          "I",
+          "\"public\".\"GitHubWebhookDelivery\"",
+          "btree",
+          "[\"event\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.WebsiteDownloadStat.WebsiteDownloadStat_assetId_idx_4ebe630a",
+    "label": "Create index \"WebsiteDownloadStat_assetId_idx_4ebe630a\" on \"WebsiteDownloadStat\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "WebsiteDownloadStat_assetId_idx_4ebe630a",
+        "table": "WebsiteDownloadStat"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"WebsiteDownloadStat_assetId_idx_4ebe630a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat_assetId_idx_4ebe630a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"WebsiteDownloadStat_assetId_idx_4ebe630a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"WebsiteDownloadStat_assetId_idx_4ebe630a\"",
+        "sql": "CREATE INDEX \"WebsiteDownloadStat_assetId_idx_4ebe630a\" ON \"public\".\"WebsiteDownloadStat\" (\"assetId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"WebsiteDownloadStat_assetId_idx_4ebe630a\" exists on \"WebsiteDownloadStat\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat_assetId_idx_4ebe630a\"",
+          "i",
+          "I",
+          "\"public\".\"WebsiteDownloadStat\"",
+          "btree",
+          "[\"assetId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.WebsiteDownloadStat.WebsiteDownloadStat_countryCode_idx_479cc5a2",
+    "label": "Create index \"WebsiteDownloadStat_countryCode_idx_479cc5a2\" on \"WebsiteDownloadStat\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "WebsiteDownloadStat_countryCode_idx_479cc5a2",
+        "table": "WebsiteDownloadStat"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"WebsiteDownloadStat_countryCode_idx_479cc5a2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat_countryCode_idx_479cc5a2\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"WebsiteDownloadStat_countryCode_idx_479cc5a2\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"WebsiteDownloadStat_countryCode_idx_479cc5a2\"",
+        "sql": "CREATE INDEX \"WebsiteDownloadStat_countryCode_idx_479cc5a2\" ON \"public\".\"WebsiteDownloadStat\" (\"countryCode\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"WebsiteDownloadStat_countryCode_idx_479cc5a2\" exists on \"WebsiteDownloadStat\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat_countryCode_idx_479cc5a2\"",
+          "i",
+          "I",
+          "\"public\".\"WebsiteDownloadStat\"",
+          "btree",
+          "[\"countryCode\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.WebsiteDownloadStat.WebsiteDownloadStat_date_idx_b4ca319c",
+    "label": "Create index \"WebsiteDownloadStat_date_idx_b4ca319c\" on \"WebsiteDownloadStat\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "WebsiteDownloadStat_date_idx_b4ca319c",
+        "table": "WebsiteDownloadStat"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"WebsiteDownloadStat_date_idx_b4ca319c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat_date_idx_b4ca319c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"WebsiteDownloadStat_date_idx_b4ca319c\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"WebsiteDownloadStat_date_idx_b4ca319c\"",
+        "sql": "CREATE INDEX \"WebsiteDownloadStat_date_idx_b4ca319c\" ON \"public\".\"WebsiteDownloadStat\" (\"date\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"WebsiteDownloadStat_date_idx_b4ca319c\" exists on \"WebsiteDownloadStat\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadStat_date_idx_b4ca319c\"",
+          "i",
+          "I",
+          "\"public\".\"WebsiteDownloadStat\"",
+          "btree",
+          "[\"date\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.GitHubDownloadSnapshot.GitHubDownloadSnapshot_assetId_fkey",
+    "label": "Add foreign key \"GitHubDownloadSnapshot_assetId_fkey\" on \"GitHubDownloadSnapshot\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "GitHubDownloadSnapshot_assetId_fkey",
+        "table": "GitHubDownloadSnapshot"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"GitHubDownloadSnapshot_assetId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "GitHubDownloadSnapshot_assetId_fkey",
+          "public",
+          "\"public\".\"GitHubDownloadSnapshot\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"GitHubDownloadSnapshot_assetId_fkey\" on \"GitHubDownloadSnapshot\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"GitHubDownloadSnapshot_assetId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"GitHubDownloadSnapshot\"\nADD CONSTRAINT \"GitHubDownloadSnapshot_assetId_fkey\"\nFOREIGN KEY (\"assetId\")\nREFERENCES \"public\".\"GitHubReleaseAsset\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"GitHubDownloadSnapshot_assetId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "GitHubDownloadSnapshot_assetId_fkey",
+          "public",
+          "\"public\".\"GitHubDownloadSnapshot\"",
+          "f",
+          "[\"assetId\"]",
+          "\"public\".\"GitHubReleaseAsset\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.WebsiteDownloadStat.WebsiteDownloadStat_assetId_fkey",
+    "label": "Add foreign key \"WebsiteDownloadStat_assetId_fkey\" on \"WebsiteDownloadStat\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "WebsiteDownloadStat_assetId_fkey",
+        "table": "WebsiteDownloadStat"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"WebsiteDownloadStat_assetId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "WebsiteDownloadStat_assetId_fkey",
+          "public",
+          "\"public\".\"WebsiteDownloadStat\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"WebsiteDownloadStat_assetId_fkey\" on \"WebsiteDownloadStat\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"WebsiteDownloadStat_assetId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"WebsiteDownloadStat\"\nADD CONSTRAINT \"WebsiteDownloadStat_assetId_fkey\"\nFOREIGN KEY (\"assetId\")\nREFERENCES \"public\".\"GitHubReleaseAsset\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"WebsiteDownloadStat_assetId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "WebsiteDownloadStat_assetId_fkey",
+          "public",
+          "\"public\".\"WebsiteDownloadStat\"",
+          "f",
+          "[\"assetId\"]",
+          "\"public\".\"GitHubReleaseAsset\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

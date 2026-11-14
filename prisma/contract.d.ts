@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'e92699fa49946fb069739ec2d72e7b4c38c68c204707a8fb1b556adfc92e17ef'>;
+  StorageHashBase<'d027b4ae96704bf55a1842f645c0c9b84dd93ea181c7097e8b48acf4125e62e2'>;
 export type ExecutionHash =
-  ExecutionHashBase<'1f2193ebaa451e858023d31ead945a2a6b91f9c283b7db8907f162da5eeb0fe8'>;
+  ExecutionHashBase<'33af8751d3da3abb8ae2c9c5d467bf61d083aa9f77aea68f6906d1f3c40c432e'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -269,6 +269,18 @@ type FieldTypeOverrides = {
           readonly input: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
         };
       };
+      readonly DownloadSyncLog: {
+        readonly status: {
+          readonly output: 'RUNNING' | 'SUCCESS' | 'FAILED';
+          readonly input: 'RUNNING' | 'SUCCESS' | 'FAILED';
+        };
+      };
+      readonly GitHubAppInstallation: {
+        readonly status: {
+          readonly output: 'CONNECTED' | 'SUSPENDED' | 'DELETED';
+          readonly input: 'CONNECTED' | 'SUSPENDED' | 'DELETED';
+        };
+      };
       readonly LegalConsent: {
         readonly documentType: {
           readonly output: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
@@ -401,6 +413,18 @@ type ColumnTypeOverrides = {
       readonly status: {
         readonly output: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
         readonly input: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+      };
+    };
+    readonly DownloadSyncLog: {
+      readonly status: {
+        readonly output: 'RUNNING' | 'SUCCESS' | 'FAILED';
+        readonly input: 'RUNNING' | 'SUCCESS' | 'FAILED';
+      };
+    };
+    readonly GitHubAppInstallation: {
+      readonly status: {
+        readonly output: 'CONNECTED' | 'SUSPENDED' | 'DELETED';
+        readonly input: 'CONNECTED' | 'SUSPENDED' | 'DELETED';
       };
     };
     readonly LegalConsent: {
@@ -585,6 +609,59 @@ export namespace Models {
     user: public_User;
     readonly [RelationKeys]?: 'plugins' | 'themes' | 'user';
   };
+  export type public_DownloadSyncLog = {
+    completedAt: FieldOutputTypes['public']['DownloadSyncLog']['completedAt'];
+    errorMessage: FieldOutputTypes['public']['DownloadSyncLog']['errorMessage'];
+    id: FieldOutputTypes['public']['DownloadSyncLog']['id'];
+    startedAt: FieldOutputTypes['public']['DownloadSyncLog']['startedAt'];
+    status: FieldOutputTypes['public']['DownloadSyncLog']['status'];
+    syncedAssetsCount: FieldOutputTypes['public']['DownloadSyncLog']['syncedAssetsCount'];
+    totalGitHubDownloads: FieldOutputTypes['public']['DownloadSyncLog']['totalGitHubDownloads'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubAppInstallation = {
+    accountLogin: FieldOutputTypes['public']['GitHubAppInstallation']['accountLogin'];
+    appId: FieldOutputTypes['public']['GitHubAppInstallation']['appId'];
+    appName: FieldOutputTypes['public']['GitHubAppInstallation']['appName'];
+    createdAt: FieldOutputTypes['public']['GitHubAppInstallation']['createdAt'];
+    id: FieldOutputTypes['public']['GitHubAppInstallation']['id'];
+    installationId: FieldOutputTypes['public']['GitHubAppInstallation']['installationId'];
+    lastApiCallAt: FieldOutputTypes['public']['GitHubAppInstallation']['lastApiCallAt'];
+    lastWebhookAt: FieldOutputTypes['public']['GitHubAppInstallation']['lastWebhookAt'];
+    permissions: FieldOutputTypes['public']['GitHubAppInstallation']['permissions'];
+    repositoryName: FieldOutputTypes['public']['GitHubAppInstallation']['repositoryName'];
+    status: FieldOutputTypes['public']['GitHubAppInstallation']['status'];
+    updatedAt: FieldOutputTypes['public']['GitHubAppInstallation']['updatedAt'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubDownloadSnapshot = {
+    assetId: FieldOutputTypes['public']['GitHubDownloadSnapshot']['assetId'];
+    createdAt: FieldOutputTypes['public']['GitHubDownloadSnapshot']['createdAt'];
+    downloadCount: FieldOutputTypes['public']['GitHubDownloadSnapshot']['downloadCount'];
+    id: FieldOutputTypes['public']['GitHubDownloadSnapshot']['id'];
+    snapshotDate: FieldOutputTypes['public']['GitHubDownloadSnapshot']['snapshotDate'];
+    asset: public_GitHubReleaseAsset;
+    readonly [RelationKeys]?: 'asset';
+  };
+  export type public_GitHubReleaseAsset = {
+    createdAt: FieldOutputTypes['public']['GitHubReleaseAsset']['createdAt'];
+    currentDownloadCount: FieldOutputTypes['public']['GitHubReleaseAsset']['currentDownloadCount'];
+    downloadUrl: FieldOutputTypes['public']['GitHubReleaseAsset']['downloadUrl'];
+    fileName: FieldOutputTypes['public']['GitHubReleaseAsset']['fileName'];
+    format: FieldOutputTypes['public']['GitHubReleaseAsset']['format'];
+    githubAssetId: FieldOutputTypes['public']['GitHubReleaseAsset']['githubAssetId'];
+    id: FieldOutputTypes['public']['GitHubReleaseAsset']['id'];
+    lastSyncedAt: FieldOutputTypes['public']['GitHubReleaseAsset']['lastSyncedAt'];
+    platform: FieldOutputTypes['public']['GitHubReleaseAsset']['platform'];
+    releaseChannel: FieldOutputTypes['public']['GitHubReleaseAsset']['releaseChannel'];
+    releaseId: FieldOutputTypes['public']['GitHubReleaseAsset']['releaseId'];
+    releaseTag: FieldOutputTypes['public']['GitHubReleaseAsset']['releaseTag'];
+    size: FieldOutputTypes['public']['GitHubReleaseAsset']['size'];
+    updatedAt: FieldOutputTypes['public']['GitHubReleaseAsset']['updatedAt'];
+    snapshots: public_GitHubDownloadSnapshot[];
+    websiteStats: public_WebsiteDownloadStat[];
+    readonly [RelationKeys]?: 'snapshots' | 'websiteStats';
+  };
   export type public_GitHubToken = {
     createdAt: FieldOutputTypes['public']['GitHubToken']['createdAt'];
     expiresAt: FieldOutputTypes['public']['GitHubToken']['expiresAt'];
@@ -593,6 +670,15 @@ export namespace Models {
     token: FieldOutputTypes['public']['GitHubToken']['token'];
     updatedAt: FieldOutputTypes['public']['GitHubToken']['updatedAt'];
     userId: FieldOutputTypes['public']['GitHubToken']['userId'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_GitHubWebhookDelivery = {
+    action: FieldOutputTypes['public']['GitHubWebhookDelivery']['action'];
+    deliveryId: FieldOutputTypes['public']['GitHubWebhookDelivery']['deliveryId'];
+    event: FieldOutputTypes['public']['GitHubWebhookDelivery']['event'];
+    id: FieldOutputTypes['public']['GitHubWebhookDelivery']['id'];
+    processedAt: FieldOutputTypes['public']['GitHubWebhookDelivery']['processedAt'];
+    repository: FieldOutputTypes['public']['GitHubWebhookDelivery']['repository'];
     readonly [RelationKeys]?: never;
   };
   export type public_LegalConsent = {
@@ -837,6 +923,17 @@ export namespace Models {
       | 'suspendedBy'
       | 'suspensionsIssued';
   };
+  export type public_WebsiteDownloadStat = {
+    assetId: FieldOutputTypes['public']['WebsiteDownloadStat']['assetId'];
+    count: FieldOutputTypes['public']['WebsiteDownloadStat']['count'];
+    countryCode: FieldOutputTypes['public']['WebsiteDownloadStat']['countryCode'];
+    createdAt: FieldOutputTypes['public']['WebsiteDownloadStat']['createdAt'];
+    date: FieldOutputTypes['public']['WebsiteDownloadStat']['date'];
+    id: FieldOutputTypes['public']['WebsiteDownloadStat']['id'];
+    updatedAt: FieldOutputTypes['public']['WebsiteDownloadStat']['updatedAt'];
+    asset: public_GitHubReleaseAsset;
+    readonly [RelationKeys]?: 'asset';
+  };
 }
 
 export declare const models: {
@@ -847,7 +944,12 @@ export declare const models: {
     ContentReport: Models.public_ContentReport;
     DeveloperApplication: Models.public_DeveloperApplication;
     DeveloperProfile: Models.public_DeveloperProfile;
+    DownloadSyncLog: Models.public_DownloadSyncLog;
+    GitHubAppInstallation: Models.public_GitHubAppInstallation;
+    GitHubDownloadSnapshot: Models.public_GitHubDownloadSnapshot;
+    GitHubReleaseAsset: Models.public_GitHubReleaseAsset;
     GitHubToken: Models.public_GitHubToken;
+    GitHubWebhookDelivery: Models.public_GitHubWebhookDelivery;
     LegalConsent: Models.public_LegalConsent;
     LegalDocument: Models.public_LegalDocument;
     News: Models.public_News;
@@ -866,6 +968,7 @@ export declare const models: {
     ThemeTag: Models.public_ThemeTag;
     ThemeVersion: Models.public_ThemeVersion;
     User: Models.public_User;
+    WebsiteDownloadStat: Models.public_WebsiteDownloadStat;
   };
 };
 
@@ -1448,6 +1551,341 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly DownloadSyncLog: {
+              columns: {
+                readonly completedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly errorMessage: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly startedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly syncedAssetsCount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly totalGitHubDownloads: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'DownloadSyncLog_startedAt_idx_cac56236';
+                  readonly prefix: 'DownloadSyncLog_startedAt_idx';
+                  readonly columns: readonly ['startedAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'DownloadSyncLog_status_idx_e98638ab';
+                  readonly prefix: 'DownloadSyncLog_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubAppInstallation: {
+              columns: {
+                readonly accountLogin: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly appId: {
+                  readonly dataType: 'pg/int8';
+                  readonly codecId: 'pg/int8@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly appName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly installationId: {
+                  readonly dataType: 'pg/int8';
+                  readonly codecId: 'pg/int8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly lastApiCallAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastWebhookAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly permissions: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly repositoryName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'CONNECTED'>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['installationId'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'GitHubAppInstallation_repositoryName_idx_254e3e4d';
+                  readonly prefix: 'GitHubAppInstallation_repositoryName_idx';
+                  readonly columns: readonly ['repositoryName'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubDownloadSnapshot: {
+              columns: {
+                readonly assetId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly downloadCount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly snapshotDate: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['assetId', 'snapshotDate'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'GitHubDownloadSnapshot_assetId_idx_4ebe630a';
+                  readonly prefix: 'GitHubDownloadSnapshot_assetId_idx';
+                  readonly columns: readonly ['assetId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'GitHubDownloadSnapshot_snapshotDate_idx_073d86f4';
+                  readonly prefix: 'GitHubDownloadSnapshot_snapshotDate_idx';
+                  readonly columns: readonly ['snapshotDate'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'GitHubDownloadSnapshot';
+                    readonly columns: readonly ['assetId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'GitHubReleaseAsset';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly GitHubReleaseAsset: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly currentDownloadCount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly downloadUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly fileName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly format: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly githubAssetId: {
+                  readonly dataType: 'pg/int8';
+                  readonly codecId: 'pg/int8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly lastSyncedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly platform: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly releaseChannel: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly releaseId: {
+                  readonly dataType: 'pg/int8';
+                  readonly codecId: 'pg/int8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly releaseTag: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly size: {
+                  readonly dataType: 'pg/int8';
+                  readonly codecId: 'pg/int8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['githubAssetId'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'GitHubReleaseAsset_releaseChannel_idx_baa3058e';
+                  readonly prefix: 'GitHubReleaseAsset_releaseChannel_idx';
+                  readonly columns: readonly ['releaseChannel'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'GitHubReleaseAsset_releaseTag_idx_eb9e1f83';
+                  readonly prefix: 'GitHubReleaseAsset_releaseTag_idx';
+                  readonly columns: readonly ['releaseTag'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly GitHubToken: {
               columns: {
                 readonly createdAt: {
@@ -1496,6 +1934,57 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['userId'] }];
               indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly GitHubWebhookDelivery: {
+              columns: {
+                readonly action: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly deliveryId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly event: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly processedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly repository: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['deliveryId'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'GitHubWebhookDelivery_event_idx_0e2c7e2f';
+                  readonly prefix: 'GitHubWebhookDelivery_event_idx';
+                  readonly columns: readonly ['event'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
             readonly LegalConsent: {
@@ -3023,6 +3512,92 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly WebsiteDownloadStat: {
+              columns: {
+                readonly assetId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1>;
+                  };
+                  readonly many: false;
+                };
+                readonly countryCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly date: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['assetId', 'countryCode', 'date'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'WebsiteDownloadStat_assetId_idx_4ebe630a';
+                  readonly prefix: 'WebsiteDownloadStat_assetId_idx';
+                  readonly columns: readonly ['assetId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'WebsiteDownloadStat_countryCode_idx_479cc5a2';
+                  readonly prefix: 'WebsiteDownloadStat_countryCode_idx';
+                  readonly columns: readonly ['countryCode'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'WebsiteDownloadStat_date_idx_b4ca319c';
+                  readonly prefix: 'WebsiteDownloadStat_date_idx';
+                  readonly columns: readonly ['date'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'WebsiteDownloadStat';
+                    readonly columns: readonly ['assetId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'GitHubReleaseAsset';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
           };
           readonly valueSet: {
             readonly AuthTokenType: {
@@ -3042,6 +3617,14 @@ type ContractBase = Omit<
             readonly DeveloperApplicationStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN'];
+            };
+            readonly DownloadSyncStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['RUNNING', 'SUCCESS', 'FAILED'];
+            };
+            readonly GitHubInstallationStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['CONNECTED', 'SUSPENDED', 'DELETED'];
             };
             readonly LegalDocumentStatus: {
               readonly kind: 'valueSet';
@@ -3137,9 +3720,29 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'DeveloperProfile';
     };
+    readonly DownloadSyncLog: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'DownloadSyncLog';
+    };
+    readonly GitHubAppInstallation: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubAppInstallation';
+    };
+    readonly GitHubDownloadSnapshot: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubDownloadSnapshot';
+    };
+    readonly GitHubReleaseAsset: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubReleaseAsset';
+    };
     readonly GitHubToken: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'GitHubToken';
+    };
+    readonly GitHubWebhookDelivery: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'GitHubWebhookDelivery';
     };
     readonly LegalConsent: {
       readonly namespace: 'public' & NamespaceId;
@@ -3189,6 +3792,10 @@ type ContractBase = Omit<
       readonly model: 'ThemeVersion';
     };
     readonly User: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+    readonly WebsiteDownloadStat: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'WebsiteDownloadStat';
+    };
   };
   readonly domain: {
     readonly namespaces: {
@@ -3647,6 +4254,309 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly DownloadSyncLog: {
+            readonly fields: {
+              readonly completedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly errorMessage: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly syncedAssetsCount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly totalGitHubDownloads: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'DownloadSyncLog';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly completedAt: { readonly column: 'completedAt' };
+                readonly errorMessage: { readonly column: 'errorMessage' };
+                readonly id: { readonly column: 'id' };
+                readonly startedAt: { readonly column: 'startedAt' };
+                readonly status: { readonly column: 'status' };
+                readonly syncedAssetsCount: { readonly column: 'syncedAssetsCount' };
+                readonly totalGitHubDownloads: { readonly column: 'totalGitHubDownloads' };
+              };
+            };
+          };
+          readonly GitHubAppInstallation: {
+            readonly fields: {
+              readonly accountLogin: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly appId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
+              };
+              readonly appName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly installationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
+              };
+              readonly lastApiCallAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly lastWebhookAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly permissions: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly repositoryName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubAppInstallation';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly accountLogin: { readonly column: 'accountLogin' };
+                readonly appId: { readonly column: 'appId' };
+                readonly appName: { readonly column: 'appName' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly installationId: { readonly column: 'installationId' };
+                readonly lastApiCallAt: { readonly column: 'lastApiCallAt' };
+                readonly lastWebhookAt: { readonly column: 'lastWebhookAt' };
+                readonly permissions: { readonly column: 'permissions' };
+                readonly repositoryName: { readonly column: 'repositoryName' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly GitHubDownloadSnapshot: {
+            readonly fields: {
+              readonly assetId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly downloadCount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly snapshotDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly asset: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'GitHubReleaseAsset';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['assetId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'GitHubDownloadSnapshot';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly assetId: { readonly column: 'assetId' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly downloadCount: { readonly column: 'downloadCount' };
+                readonly id: { readonly column: 'id' };
+                readonly snapshotDate: { readonly column: 'snapshotDate' };
+              };
+            };
+          };
+          readonly GitHubReleaseAsset: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly currentDownloadCount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly downloadUrl: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fileName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly format: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly githubAssetId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly lastSyncedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly platform: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly releaseChannel: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly releaseId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
+              };
+              readonly releaseTag: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly size: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly snapshots: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'GitHubDownloadSnapshot';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['assetId'];
+                };
+              };
+              readonly websiteStats: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'WebsiteDownloadStat';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['assetId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'GitHubReleaseAsset';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly currentDownloadCount: { readonly column: 'currentDownloadCount' };
+                readonly downloadUrl: { readonly column: 'downloadUrl' };
+                readonly fileName: { readonly column: 'fileName' };
+                readonly format: { readonly column: 'format' };
+                readonly githubAssetId: { readonly column: 'githubAssetId' };
+                readonly id: { readonly column: 'id' };
+                readonly lastSyncedAt: { readonly column: 'lastSyncedAt' };
+                readonly platform: { readonly column: 'platform' };
+                readonly releaseChannel: { readonly column: 'releaseChannel' };
+                readonly releaseId: { readonly column: 'releaseId' };
+                readonly releaseTag: { readonly column: 'releaseTag' };
+                readonly size: { readonly column: 'size' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly GitHubToken: {
             readonly fields: {
               readonly createdAt: {
@@ -3700,6 +4610,50 @@ type ContractBase = Omit<
                 readonly token: { readonly column: 'token' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
+          readonly GitHubWebhookDelivery: {
+            readonly fields: {
+              readonly action: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly deliveryId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly event: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly processedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly repository: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'GitHubWebhookDelivery';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly action: { readonly column: 'action' };
+                readonly deliveryId: { readonly column: 'deliveryId' };
+                readonly event: { readonly column: 'event' };
+                readonly id: { readonly column: 'id' };
+                readonly processedAt: { readonly column: 'processedAt' };
+                readonly repository: { readonly column: 'repository' };
               };
             };
           };
@@ -5062,6 +6016,74 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly WebsiteDownloadStat: {
+            readonly fields: {
+              readonly assetId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly countryCode: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly date: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly asset: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'GitHubReleaseAsset';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['assetId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'WebsiteDownloadStat';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly assetId: { readonly column: 'assetId' };
+                readonly count: { readonly column: 'count' };
+                readonly countryCode: { readonly column: 'countryCode' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly date: { readonly column: 'date' };
+                readonly id: { readonly column: 'id' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
         };
         readonly enum: {
           readonly AuthTokenType: {
@@ -5088,6 +6110,22 @@ type ContractBase = Omit<
               { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
               { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
               { readonly name: 'WITHDRAWN'; readonly value: 'WITHDRAWN' },
+            ];
+          };
+          readonly DownloadSyncStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'RUNNING'; readonly value: 'RUNNING' },
+              { readonly name: 'SUCCESS'; readonly value: 'SUCCESS' },
+              { readonly name: 'FAILED'; readonly value: 'FAILED' },
+            ];
+          };
+          readonly GitHubInstallationStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CONNECTED'; readonly value: 'CONNECTED' },
+              { readonly name: 'SUSPENDED'; readonly value: 'SUSPENDED' },
+              { readonly name: 'DELETED'; readonly value: 'DELETED' },
             ];
           };
           readonly LegalDocumentStatus: {
@@ -5213,6 +6251,16 @@ type ContractBase = Omit<
             { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
             { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
             { readonly name: 'WITHDRAWN'; readonly value: 'WITHDRAWN' },
+          ];
+          readonly DownloadSyncStatus: readonly [
+            { readonly name: 'RUNNING'; readonly value: 'RUNNING' },
+            { readonly name: 'SUCCESS'; readonly value: 'SUCCESS' },
+            { readonly name: 'FAILED'; readonly value: 'FAILED' },
+          ];
+          readonly GitHubInstallationStatus: readonly [
+            { readonly name: 'CONNECTED'; readonly value: 'CONNECTED' },
+            { readonly name: 'SUSPENDED'; readonly value: 'SUSPENDED' },
+            { readonly name: 'DELETED'; readonly value: 'DELETED' },
           ];
           readonly LegalDocumentStatus: readonly [
             { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
@@ -5443,6 +6491,96 @@ type ContractBase = Omit<
           };
         },
         {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'DownloadSyncLog';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'DownloadSyncLog';
+            readonly field: 'startedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubAppInstallation';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubAppInstallation';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubAppInstallation';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubDownloadSnapshot';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubDownloadSnapshot';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubReleaseAsset';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubReleaseAsset';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubReleaseAsset';
+            readonly field: 'lastSyncedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubReleaseAsset';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
           readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'GitHubToken';
@@ -5464,6 +6602,22 @@ type ContractBase = Omit<
           readonly ref: {
             readonly entry: 'GitHubToken';
             readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubWebhookDelivery';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'GitHubWebhookDelivery';
+            readonly field: 'processedAt';
             readonly namespace: 'public';
           };
         },
@@ -5773,6 +6927,31 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'User';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsiteDownloadStat';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsiteDownloadStat';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsiteDownloadStat';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };

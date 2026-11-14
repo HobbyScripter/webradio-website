@@ -65,7 +65,7 @@ export default function ReleaseAssets({
           <div className="flex flex-wrap items-center justify-between gap-2">
             {assessDownloadPackage(asset.name, asset.size) === 'ok' ? (
               <a
-                href={asset.downloadUrl}
+                href={asset.id ? `/api/downloads/${asset.id}` : asset.downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${asset.platformLabel}: ${asset.name} herunterladen`}
