@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'5360db9638eb2aa305bf2b8c833d17b60cce13e5f750ad138d1f63847ac266bb'>;
+  StorageHashBase<'80e32e10d066867f39c44f1dd61537a5d28a2b6e1076b8a375c34cba034c89df'>;
 export type ExecutionHash =
-  ExecutionHashBase<'d5cba691dd92b6a5d3f498b77c5edeec5cad1e1d6085af03199045626ba09926'>;
+  ExecutionHashBase<'563d38fe608cafa6b98fa77be72923b9411bd69e2ef355f5f4d69782173b13b4'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -241,6 +241,74 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly AnalyticsSourceStatus: {
+        readonly source: {
+          readonly output:
+            | 'TRAFFIC_VIEWS'
+            | 'TRAFFIC_CLONES'
+            | 'TRAFFIC_REFERRERS'
+            | 'TRAFFIC_PATHS'
+            | 'RELEASES'
+            | 'REPO_METADATA'
+            | 'COMMIT_ACTIVITY'
+            | 'CONTRIBUTORS'
+            | 'CODE_FREQUENCY'
+            | 'PARTICIPATION'
+            | 'PUNCH_CARD';
+          readonly input:
+            | 'TRAFFIC_VIEWS'
+            | 'TRAFFIC_CLONES'
+            | 'TRAFFIC_REFERRERS'
+            | 'TRAFFIC_PATHS'
+            | 'RELEASES'
+            | 'REPO_METADATA'
+            | 'COMMIT_ACTIVITY'
+            | 'CONTRIBUTORS'
+            | 'CODE_FREQUENCY'
+            | 'PARTICIPATION'
+            | 'PUNCH_CARD';
+        };
+        readonly status: {
+          readonly output:
+            'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+          readonly input:
+            'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+        };
+      };
+      readonly AnalyticsSyncRun: {
+        readonly source: {
+          readonly output:
+            | 'TRAFFIC_VIEWS'
+            | 'TRAFFIC_CLONES'
+            | 'TRAFFIC_REFERRERS'
+            | 'TRAFFIC_PATHS'
+            | 'RELEASES'
+            | 'REPO_METADATA'
+            | 'COMMIT_ACTIVITY'
+            | 'CONTRIBUTORS'
+            | 'CODE_FREQUENCY'
+            | 'PARTICIPATION'
+            | 'PUNCH_CARD';
+          readonly input:
+            | 'TRAFFIC_VIEWS'
+            | 'TRAFFIC_CLONES'
+            | 'TRAFFIC_REFERRERS'
+            | 'TRAFFIC_PATHS'
+            | 'RELEASES'
+            | 'REPO_METADATA'
+            | 'COMMIT_ACTIVITY'
+            | 'CONTRIBUTORS'
+            | 'CODE_FREQUENCY'
+            | 'PARTICIPATION'
+            | 'PUNCH_CARD';
+        };
+        readonly status: {
+          readonly output:
+            'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+          readonly input:
+            'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+        };
+      };
       readonly AuthToken: {
         readonly type: {
           readonly output: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
@@ -387,6 +455,74 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly AnalyticsSourceStatus: {
+      readonly source: {
+        readonly output:
+          | 'TRAFFIC_VIEWS'
+          | 'TRAFFIC_CLONES'
+          | 'TRAFFIC_REFERRERS'
+          | 'TRAFFIC_PATHS'
+          | 'RELEASES'
+          | 'REPO_METADATA'
+          | 'COMMIT_ACTIVITY'
+          | 'CONTRIBUTORS'
+          | 'CODE_FREQUENCY'
+          | 'PARTICIPATION'
+          | 'PUNCH_CARD';
+        readonly input:
+          | 'TRAFFIC_VIEWS'
+          | 'TRAFFIC_CLONES'
+          | 'TRAFFIC_REFERRERS'
+          | 'TRAFFIC_PATHS'
+          | 'RELEASES'
+          | 'REPO_METADATA'
+          | 'COMMIT_ACTIVITY'
+          | 'CONTRIBUTORS'
+          | 'CODE_FREQUENCY'
+          | 'PARTICIPATION'
+          | 'PUNCH_CARD';
+      };
+      readonly status: {
+        readonly output:
+          'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+        readonly input:
+          'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+      };
+    };
+    readonly AnalyticsSyncRun: {
+      readonly source: {
+        readonly output:
+          | 'TRAFFIC_VIEWS'
+          | 'TRAFFIC_CLONES'
+          | 'TRAFFIC_REFERRERS'
+          | 'TRAFFIC_PATHS'
+          | 'RELEASES'
+          | 'REPO_METADATA'
+          | 'COMMIT_ACTIVITY'
+          | 'CONTRIBUTORS'
+          | 'CODE_FREQUENCY'
+          | 'PARTICIPATION'
+          | 'PUNCH_CARD';
+        readonly input:
+          | 'TRAFFIC_VIEWS'
+          | 'TRAFFIC_CLONES'
+          | 'TRAFFIC_REFERRERS'
+          | 'TRAFFIC_PATHS'
+          | 'RELEASES'
+          | 'REPO_METADATA'
+          | 'COMMIT_ACTIVITY'
+          | 'CONTRIBUTORS'
+          | 'CODE_FREQUENCY'
+          | 'PARTICIPATION'
+          | 'PUNCH_CARD';
+      };
+      readonly status: {
+        readonly output:
+          'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+        readonly input:
+          'RUNNING' | 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'EMPTY' | 'UNSUPPORTED';
+      };
+    };
     readonly AuthToken: {
       readonly type: {
         readonly output: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
@@ -532,6 +668,30 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 >;
 
 export namespace Models {
+  export type public_AnalyticsSourceStatus = {
+    id: FieldOutputTypes['public']['AnalyticsSourceStatus']['id'];
+    lastErrorCode: FieldOutputTypes['public']['AnalyticsSourceStatus']['lastErrorCode'];
+    lastErrorMessage: FieldOutputTypes['public']['AnalyticsSourceStatus']['lastErrorMessage'];
+    lastFailureAt: FieldOutputTypes['public']['AnalyticsSourceStatus']['lastFailureAt'];
+    lastHttpStatus: FieldOutputTypes['public']['AnalyticsSourceStatus']['lastHttpStatus'];
+    lastSuccessAt: FieldOutputTypes['public']['AnalyticsSourceStatus']['lastSuccessAt'];
+    source: FieldOutputTypes['public']['AnalyticsSourceStatus']['source'];
+    status: FieldOutputTypes['public']['AnalyticsSourceStatus']['status'];
+    updatedAt: FieldOutputTypes['public']['AnalyticsSourceStatus']['updatedAt'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_AnalyticsSyncRun = {
+    completedAt: FieldOutputTypes['public']['AnalyticsSyncRun']['completedAt'];
+    errorCode: FieldOutputTypes['public']['AnalyticsSyncRun']['errorCode'];
+    errorMessage: FieldOutputTypes['public']['AnalyticsSyncRun']['errorMessage'];
+    httpStatus: FieldOutputTypes['public']['AnalyticsSyncRun']['httpStatus'];
+    id: FieldOutputTypes['public']['AnalyticsSyncRun']['id'];
+    itemCount: FieldOutputTypes['public']['AnalyticsSyncRun']['itemCount'];
+    source: FieldOutputTypes['public']['AnalyticsSyncRun']['source'];
+    startedAt: FieldOutputTypes['public']['AnalyticsSyncRun']['startedAt'];
+    status: FieldOutputTypes['public']['AnalyticsSyncRun']['status'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_AuditLog = {
     action: FieldOutputTypes['public']['AuditLog']['action'];
     createdAt: FieldOutputTypes['public']['AuditLog']['createdAt'];
@@ -1055,6 +1215,8 @@ export namespace Models {
 
 export declare const models: {
   public: {
+    AnalyticsSourceStatus: Models.public_AnalyticsSourceStatus;
+    AnalyticsSyncRun: Models.public_AnalyticsSyncRun;
     AuditLog: Models.public_AuditLog;
     AuthToken: Models.public_AuthToken;
     Changelog: Models.public_Changelog;
@@ -1118,6 +1280,147 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly AnalyticsSourceStatus: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly lastErrorCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastErrorMessage: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastFailureAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastHttpStatus: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastSuccessAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly source: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['source'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly AnalyticsSyncRun: {
+              columns: {
+                readonly completedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly errorCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly errorMessage: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly httpStatus: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly itemCount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly source: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly startedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'AnalyticsSyncRun_source_startedAt_idx_9afd1603';
+                  readonly prefix: 'AnalyticsSyncRun_source_startedAt_idx';
+                  readonly columns: readonly ['source', 'startedAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AnalyticsSyncRun_status_idx_e98638ab';
+                  readonly prefix: 'AnalyticsSyncRun_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly AuditLog: {
               columns: {
                 readonly action: {
@@ -4502,6 +4805,34 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly AnalyticsSource: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'TRAFFIC_VIEWS',
+                'TRAFFIC_CLONES',
+                'TRAFFIC_REFERRERS',
+                'TRAFFIC_PATHS',
+                'RELEASES',
+                'REPO_METADATA',
+                'COMMIT_ACTIVITY',
+                'CONTRIBUTORS',
+                'CODE_FREQUENCY',
+                'PARTICIPATION',
+                'PUNCH_CARD',
+              ];
+            };
+            readonly AnalyticsSyncStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'RUNNING',
+                'SUCCESS',
+                'PARTIAL',
+                'FAILED',
+                'PENDING',
+                'EMPTY',
+                'UNSUPPORTED',
+              ];
+            };
             readonly AuthTokenType: {
               readonly kind: 'valueSet';
               readonly values: readonly ['EMAIL_VERIFICATION', 'PASSWORD_RESET'];
@@ -4607,6 +4938,14 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly AnalyticsSourceStatus: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AnalyticsSourceStatus';
+    };
+    readonly AnalyticsSyncRun: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AnalyticsSyncRun';
+    };
     readonly AuditLog: { readonly namespace: 'public' & NamespaceId; readonly model: 'AuditLog' };
     readonly AuthToken: { readonly namespace: 'public' & NamespaceId; readonly model: 'AuthToken' };
     readonly Changelog: { readonly namespace: 'public' & NamespaceId; readonly model: 'Changelog' };
@@ -4747,6 +5086,133 @@ type ContractBase = Omit<
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly AnalyticsSourceStatus: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly lastErrorCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly lastErrorMessage: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly lastFailureAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly lastHttpStatus: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly lastSuccessAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly source: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'AnalyticsSourceStatus';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly lastErrorCode: { readonly column: 'lastErrorCode' };
+                readonly lastErrorMessage: { readonly column: 'lastErrorMessage' };
+                readonly lastFailureAt: { readonly column: 'lastFailureAt' };
+                readonly lastHttpStatus: { readonly column: 'lastHttpStatus' };
+                readonly lastSuccessAt: { readonly column: 'lastSuccessAt' };
+                readonly source: { readonly column: 'source' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly AnalyticsSyncRun: {
+            readonly fields: {
+              readonly completedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly errorCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly errorMessage: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly httpStatus: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly itemCount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly source: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'AnalyticsSyncRun';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly completedAt: { readonly column: 'completedAt' };
+                readonly errorCode: { readonly column: 'errorCode' };
+                readonly errorMessage: { readonly column: 'errorMessage' };
+                readonly httpStatus: { readonly column: 'httpStatus' };
+                readonly id: { readonly column: 'id' };
+                readonly itemCount: { readonly column: 'itemCount' };
+                readonly source: { readonly column: 'source' };
+                readonly startedAt: { readonly column: 'startedAt' };
+                readonly status: { readonly column: 'status' };
+              };
+            };
+          };
           readonly AuditLog: {
             readonly fields: {
               readonly action: {
@@ -7648,6 +8114,34 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
+          readonly AnalyticsSource: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'TRAFFIC_VIEWS'; readonly value: 'TRAFFIC_VIEWS' },
+              { readonly name: 'TRAFFIC_CLONES'; readonly value: 'TRAFFIC_CLONES' },
+              { readonly name: 'TRAFFIC_REFERRERS'; readonly value: 'TRAFFIC_REFERRERS' },
+              { readonly name: 'TRAFFIC_PATHS'; readonly value: 'TRAFFIC_PATHS' },
+              { readonly name: 'RELEASES'; readonly value: 'RELEASES' },
+              { readonly name: 'REPO_METADATA'; readonly value: 'REPO_METADATA' },
+              { readonly name: 'COMMIT_ACTIVITY'; readonly value: 'COMMIT_ACTIVITY' },
+              { readonly name: 'CONTRIBUTORS'; readonly value: 'CONTRIBUTORS' },
+              { readonly name: 'CODE_FREQUENCY'; readonly value: 'CODE_FREQUENCY' },
+              { readonly name: 'PARTICIPATION'; readonly value: 'PARTICIPATION' },
+              { readonly name: 'PUNCH_CARD'; readonly value: 'PUNCH_CARD' },
+            ];
+          };
+          readonly AnalyticsSyncStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'RUNNING'; readonly value: 'RUNNING' },
+              { readonly name: 'SUCCESS'; readonly value: 'SUCCESS' },
+              { readonly name: 'PARTIAL'; readonly value: 'PARTIAL' },
+              { readonly name: 'FAILED'; readonly value: 'FAILED' },
+              { readonly name: 'PENDING'; readonly value: 'PENDING' },
+              { readonly name: 'EMPTY'; readonly value: 'EMPTY' },
+              { readonly name: 'UNSUPPORTED'; readonly value: 'UNSUPPORTED' },
+            ];
+          };
           readonly AuthTokenType: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -7797,6 +8291,28 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly AnalyticsSource: readonly [
+            { readonly name: 'TRAFFIC_VIEWS'; readonly value: 'TRAFFIC_VIEWS' },
+            { readonly name: 'TRAFFIC_CLONES'; readonly value: 'TRAFFIC_CLONES' },
+            { readonly name: 'TRAFFIC_REFERRERS'; readonly value: 'TRAFFIC_REFERRERS' },
+            { readonly name: 'TRAFFIC_PATHS'; readonly value: 'TRAFFIC_PATHS' },
+            { readonly name: 'RELEASES'; readonly value: 'RELEASES' },
+            { readonly name: 'REPO_METADATA'; readonly value: 'REPO_METADATA' },
+            { readonly name: 'COMMIT_ACTIVITY'; readonly value: 'COMMIT_ACTIVITY' },
+            { readonly name: 'CONTRIBUTORS'; readonly value: 'CONTRIBUTORS' },
+            { readonly name: 'CODE_FREQUENCY'; readonly value: 'CODE_FREQUENCY' },
+            { readonly name: 'PARTICIPATION'; readonly value: 'PARTICIPATION' },
+            { readonly name: 'PUNCH_CARD'; readonly value: 'PUNCH_CARD' },
+          ];
+          readonly AnalyticsSyncStatus: readonly [
+            { readonly name: 'RUNNING'; readonly value: 'RUNNING' },
+            { readonly name: 'SUCCESS'; readonly value: 'SUCCESS' },
+            { readonly name: 'PARTIAL'; readonly value: 'PARTIAL' },
+            { readonly name: 'FAILED'; readonly value: 'FAILED' },
+            { readonly name: 'PENDING'; readonly value: 'PENDING' },
+            { readonly name: 'EMPTY'; readonly value: 'EMPTY' },
+            { readonly name: 'UNSUPPORTED'; readonly value: 'UNSUPPORTED' },
+          ];
           readonly AuthTokenType: readonly [
             { readonly name: 'EMAIL_VERIFICATION'; readonly value: 'EMAIL_VERIFICATION' },
             { readonly name: 'PASSWORD_RESET'; readonly value: 'PASSWORD_RESET' },
@@ -7929,6 +8445,39 @@ type ContractBase = Omit<
     readonly executionHash: ExecutionHash;
     readonly mutations: {
       readonly defaults: readonly [
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AnalyticsSourceStatus';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AnalyticsSourceStatus';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AnalyticsSyncRun';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AnalyticsSyncRun';
+            readonly field: 'startedAt';
+            readonly namespace: 'public';
+          };
+        },
         {
           readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {

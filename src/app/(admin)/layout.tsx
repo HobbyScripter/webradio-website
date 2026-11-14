@@ -17,6 +17,7 @@ import {
   AlertIcon,
   DownloadIcon,
   GitHubIcon,
+  RadioIcon,
 } from '@/components/ui/icons';
 
 export const metadata: Metadata = {
@@ -64,6 +65,11 @@ const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
     label: 'Rechtliche Inhalte',
     href: '/admin/legal',
     icon: <BookIcon className="h-5 w-5" />,
+  },
+  {
+    label: 'Analytics',
+    href: '/admin/analytics',
+    icon: <RadioIcon className="h-5 w-5" />,
   },
   {
     label: 'Download Analytics',

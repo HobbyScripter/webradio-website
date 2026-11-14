@@ -853,6 +853,61 @@ model WebsiteDownloadRequestDaily {
   @@index([releaseTag])
 }
 
+// ---------------------------------------------------------------------------
+// Analytics Sync Status
+// ---------------------------------------------------------------------------
+
+enum AnalyticsSyncStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+  PENDING
+  EMPTY
+  UNSUPPORTED
+}
+
+enum AnalyticsSource {
+  TRAFFIC_VIEWS
+  TRAFFIC_CLONES
+  TRAFFIC_REFERRERS
+  TRAFFIC_PATHS
+  RELEASES
+  REPO_METADATA
+  COMMIT_ACTIVITY
+  CONTRIBUTORS
+  CODE_FREQUENCY
+  PARTICIPATION
+  PUNCH_CARD
+}
+
+model AnalyticsSyncRun {
+  id           String              @id @onCreate(uuid(7))
+  source       AnalyticsSource
+  status       AnalyticsSyncStatus
+  startedAt    DateTime            @onCreate(now())
+  completedAt  DateTime?
+  httpStatus   Int?
+  itemCount    Int                 @default(0)
+  errorCode    String?
+  errorMessage String?
+
+  @@index([source, startedAt])
+  @@index([status])
+}
+
+model AnalyticsSourceStatus {
+  id               String              @id @onCreate(uuid(7))
+  source           AnalyticsSource     @unique
+  status           AnalyticsSyncStatus
+  lastSuccessAt    DateTime?
+  lastFailureAt    DateTime?
+  lastHttpStatus   Int?
+  lastErrorCode    String?
+  lastErrorMessage String?
+  updatedAt        DateTime            @onCreate(now()) @onUpdate(now())
+}
+
 model DownloadSyncLog {
   id                   String             @id @onCreate(uuid(7))
   status               DownloadSyncStatus

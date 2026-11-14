@@ -1,0 +1,244 @@
+[
+  {
+    "id": "table.AnalyticsSourceStatus",
+    "label": "Create table \"AnalyticsSourceStatus\"",
+    "summary": "Creates table \"AnalyticsSourceStatus\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AnalyticsSourceStatus"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AnalyticsSourceStatus\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSourceStatus\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AnalyticsSourceStatus\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AnalyticsSourceStatus\"",
+        "sql": "CREATE TABLE \"public\".\"AnalyticsSourceStatus\" (\n  \"id\" text NOT NULL,\n  \"lastErrorCode\" text,\n  \"lastErrorMessage\" text,\n  \"lastFailureAt\" timestamptz,\n  \"lastHttpStatus\" int4,\n  \"lastSuccessAt\" timestamptz,\n  \"source\" text NOT NULL,\n  \"status\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AnalyticsSourceStatus_source_check_de1cf053\" CHECK (\"source\" IN ('TRAFFIC_VIEWS', 'TRAFFIC_CLONES', 'TRAFFIC_REFERRERS', 'TRAFFIC_PATHS', 'RELEASES', 'REPO_METADATA', 'COMMIT_ACTIVITY', 'CONTRIBUTORS', 'CODE_FREQUENCY', 'PARTICIPATION', 'PUNCH_CARD')),\n  CONSTRAINT \"AnalyticsSourceStatus_status_check_e440e353\" CHECK (\"status\" IN ('RUNNING', 'SUCCESS', 'PARTIAL', 'FAILED', 'PENDING', 'EMPTY', 'UNSUPPORTED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AnalyticsSourceStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSourceStatus\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AnalyticsSourceStatus\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.AnalyticsSyncRun",
+    "label": "Create table \"AnalyticsSyncRun\"",
+    "summary": "Creates table \"AnalyticsSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AnalyticsSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AnalyticsSyncRun\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSyncRun\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AnalyticsSyncRun\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AnalyticsSyncRun\"",
+        "sql": "CREATE TABLE \"public\".\"AnalyticsSyncRun\" (\n  \"completedAt\" timestamptz,\n  \"errorCode\" text,\n  \"errorMessage\" text,\n  \"httpStatus\" int4,\n  \"id\" text NOT NULL,\n  \"itemCount\" int4 DEFAULT 0 NOT NULL,\n  \"source\" text NOT NULL,\n  \"startedAt\" timestamptz NOT NULL,\n  \"status\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AnalyticsSyncRun_source_check_de1cf053\" CHECK (\"source\" IN ('TRAFFIC_VIEWS', 'TRAFFIC_CLONES', 'TRAFFIC_REFERRERS', 'TRAFFIC_PATHS', 'RELEASES', 'REPO_METADATA', 'COMMIT_ACTIVITY', 'CONTRIBUTORS', 'CODE_FREQUENCY', 'PARTICIPATION', 'PUNCH_CARD')),\n  CONSTRAINT \"AnalyticsSyncRun_status_check_e440e353\" CHECK (\"status\" IN ('RUNNING', 'SUCCESS', 'PARTIAL', 'FAILED', 'PENDING', 'EMPTY', 'UNSUPPORTED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AnalyticsSyncRun\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSyncRun\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AnalyticsSyncRun\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.AnalyticsSourceStatus.AnalyticsSourceStatus_source_key",
+    "label": "Add unique constraint on \"AnalyticsSourceStatus\" (source)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "AnalyticsSourceStatus_source_key",
+        "table": "AnalyticsSourceStatus"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"AnalyticsSourceStatus_source_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AnalyticsSourceStatus_source_key",
+          "public",
+          "\"public\".\"AnalyticsSourceStatus\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"AnalyticsSourceStatus_source_key\" on \"AnalyticsSourceStatus\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"AnalyticsSourceStatus_source_key\"",
+        "sql": "ALTER TABLE \"public\".\"AnalyticsSourceStatus\" ADD CONSTRAINT \"AnalyticsSourceStatus_source_key\" UNIQUE (\"source\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"AnalyticsSourceStatus_source_key\" exists on (source)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "AnalyticsSourceStatus_source_key",
+          "public",
+          "\"public\".\"AnalyticsSourceStatus\"",
+          "u",
+          "[\"source\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AnalyticsSyncRun.AnalyticsSyncRun_source_startedAt_idx_9afd1603",
+    "label": "Create index \"AnalyticsSyncRun_source_startedAt_idx_9afd1603\" on \"AnalyticsSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AnalyticsSyncRun_source_startedAt_idx_9afd1603",
+        "table": "AnalyticsSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AnalyticsSyncRun_source_startedAt_idx_9afd1603\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSyncRun_source_startedAt_idx_9afd1603\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AnalyticsSyncRun_source_startedAt_idx_9afd1603\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AnalyticsSyncRun_source_startedAt_idx_9afd1603\"",
+        "sql": "CREATE INDEX \"AnalyticsSyncRun_source_startedAt_idx_9afd1603\" ON \"public\".\"AnalyticsSyncRun\" (\"source\", \"startedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AnalyticsSyncRun_source_startedAt_idx_9afd1603\" exists on \"AnalyticsSyncRun\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSyncRun_source_startedAt_idx_9afd1603\"",
+          "i",
+          "I",
+          "\"public\".\"AnalyticsSyncRun\"",
+          "btree",
+          "[\"source\",\"startedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AnalyticsSyncRun.AnalyticsSyncRun_status_idx_e98638ab",
+    "label": "Create index \"AnalyticsSyncRun_status_idx_e98638ab\" on \"AnalyticsSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AnalyticsSyncRun_status_idx_e98638ab",
+        "table": "AnalyticsSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AnalyticsSyncRun_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSyncRun_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AnalyticsSyncRun_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AnalyticsSyncRun_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"AnalyticsSyncRun_status_idx_e98638ab\" ON \"public\".\"AnalyticsSyncRun\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AnalyticsSyncRun_status_idx_e98638ab\" exists on \"AnalyticsSyncRun\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AnalyticsSyncRun_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"AnalyticsSyncRun\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  }
+]
