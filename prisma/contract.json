@@ -160,8 +160,16 @@
       "model": "User",
       "namespace": "public"
     },
+    "WebsiteDownloadRequestDaily": {
+      "model": "WebsiteDownloadRequestDaily",
+      "namespace": "public"
+    },
     "WebsiteDownloadStat": {
       "model": "WebsiteDownloadStat",
+      "namespace": "public"
+    },
+    "WebsitePageViewDaily": {
+      "model": "WebsitePageViewDaily",
       "namespace": "public"
     }
   },
@@ -4830,6 +4838,137 @@
               "table": "User"
             }
           },
+          "WebsiteDownloadRequestDaily": {
+            "fields": {
+              "arch": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "assetId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "channel": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "count": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "countryCode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "day": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "platform": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "referrerHost": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "releaseTag": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "arch": {
+                  "column": "arch"
+                },
+                "assetId": {
+                  "column": "assetId"
+                },
+                "channel": {
+                  "column": "channel"
+                },
+                "count": {
+                  "column": "count"
+                },
+                "countryCode": {
+                  "column": "countryCode"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "day": {
+                  "column": "day"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "platform": {
+                  "column": "platform"
+                },
+                "referrerHost": {
+                  "column": "referrerHost"
+                },
+                "releaseTag": {
+                  "column": "releaseTag"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "WebsiteDownloadRequestDaily"
+            }
+          },
           "WebsiteDownloadStat": {
             "fields": {
               "assetId": {
@@ -4926,6 +5065,117 @@
               },
               "namespaceId": "public",
               "table": "WebsiteDownloadStat"
+            }
+          },
+          "WebsitePageViewDaily": {
+            "fields": {
+              "count": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "countryCode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "day": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "deviceType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "os": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "path": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "referrerHost": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "count": {
+                  "column": "count"
+                },
+                "countryCode": {
+                  "column": "countryCode"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "day": {
+                  "column": "day"
+                },
+                "deviceType": {
+                  "column": "deviceType"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "os": {
+                  "column": "os"
+                },
+                "path": {
+                  "column": "path"
+                },
+                "referrerHost": {
+                  "column": "referrerHost"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "WebsitePageViewDaily"
             }
           }
         }
@@ -8564,6 +8814,140 @@
                 }
               ]
             },
+            "WebsiteDownloadRequestDaily": {
+              "columns": {
+                "arch": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "assetId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "channel": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "count": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 1
+                  },
+                  "nullable": false
+                },
+                "countryCode": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "XX"
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "day": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "platform": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "referrerHost": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "releaseTag": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "day"
+                  ],
+                  "name": "WebsiteDownloadRequestDaily_day_idx_930fcf9b",
+                  "prefix": "WebsiteDownloadRequestDaily_day_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "releaseTag"
+                  ],
+                  "name": "WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83",
+                  "prefix": "WebsiteDownloadRequestDaily_releaseTag_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "day",
+                    "assetId",
+                    "releaseTag",
+                    "channel",
+                    "platform",
+                    "arch",
+                    "countryCode",
+                    "referrerHost"
+                  ]
+                }
+              ]
+            },
             "WebsiteDownloadStat": {
               "columns": {
                 "assetId": {
@@ -8665,6 +9049,116 @@
                     "assetId",
                     "countryCode",
                     "date"
+                  ]
+                }
+              ]
+            },
+            "WebsitePageViewDaily": {
+              "columns": {
+                "count": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 1
+                  },
+                  "nullable": false
+                },
+                "countryCode": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "XX"
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "day": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "deviceType": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "unknown"
+                  },
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "os": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "unknown"
+                  },
+                  "nullable": false
+                },
+                "path": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "referrerHost": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "day"
+                  ],
+                  "name": "WebsitePageViewDaily_day_idx_930fcf9b",
+                  "prefix": "WebsitePageViewDaily_day_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "path"
+                  ],
+                  "name": "WebsitePageViewDaily_path_idx_a72f861c",
+                  "prefix": "WebsitePageViewDaily_path_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "day",
+                    "path",
+                    "referrerHost",
+                    "countryCode",
+                    "deviceType",
+                    "os"
                   ]
                 }
               ]
@@ -8826,10 +9320,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "05013c21e484e53976d1e87bab62e7714d631e06d5048d7ac4d4d97117d070c2"
+    "storageHash": "5360db9638eb2aa305bf2b8c833d17b60cce13e5f750ad138d1f63847ac266bb"
   },
   "execution": {
-    "executionHash": "0bb11d1e24aba19518392a56074c1d8f8d3725d5f87c87422dbf4152e2474e70",
+    "executionHash": "d5cba691dd92b6a5d3f498b77c5edeec5cad1e1d6085af03199045626ba09926",
     "mutations": {
       "defaults": [
         {
@@ -9858,6 +10352,43 @@
             "kind": "generator"
           },
           "ref": {
+            "entry": "WebsiteDownloadRequestDaily",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "WebsiteDownloadRequestDaily",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "WebsiteDownloadRequestDaily",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
             "entry": "WebsiteDownloadStat",
             "field": "createdAt",
             "namespace": "public"
@@ -9885,6 +10416,43 @@
           },
           "ref": {
             "entry": "WebsiteDownloadStat",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "WebsitePageViewDaily",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "WebsitePageViewDaily",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "WebsitePageViewDaily",
             "field": "updatedAt",
             "namespace": "public"
           }

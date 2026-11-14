@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'05013c21e484e53976d1e87bab62e7714d631e06d5048d7ac4d4d97117d070c2'>;
+  StorageHashBase<'5360db9638eb2aa305bf2b8c833d17b60cce13e5f750ad138d1f63847ac266bb'>;
 export type ExecutionHash =
-  ExecutionHashBase<'0bb11d1e24aba19518392a56074c1d8f8d3725d5f87c87422dbf4152e2474e70'>;
+  ExecutionHashBase<'d5cba691dd92b6a5d3f498b77c5edeec5cad1e1d6085af03199045626ba09926'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -1012,6 +1012,21 @@ export namespace Models {
       | 'suspendedBy'
       | 'suspensionsIssued';
   };
+  export type public_WebsiteDownloadRequestDaily = {
+    arch: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['arch'];
+    assetId: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['assetId'];
+    channel: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['channel'];
+    count: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['count'];
+    countryCode: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['countryCode'];
+    createdAt: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['createdAt'];
+    day: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['day'];
+    id: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['id'];
+    platform: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['platform'];
+    referrerHost: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['referrerHost'];
+    releaseTag: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['releaseTag'];
+    updatedAt: FieldOutputTypes['public']['WebsiteDownloadRequestDaily']['updatedAt'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_WebsiteDownloadStat = {
     assetId: FieldOutputTypes['public']['WebsiteDownloadStat']['assetId'];
     count: FieldOutputTypes['public']['WebsiteDownloadStat']['count'];
@@ -1022,6 +1037,19 @@ export namespace Models {
     updatedAt: FieldOutputTypes['public']['WebsiteDownloadStat']['updatedAt'];
     asset: public_GitHubReleaseAsset;
     readonly [RelationKeys]?: 'asset';
+  };
+  export type public_WebsitePageViewDaily = {
+    count: FieldOutputTypes['public']['WebsitePageViewDaily']['count'];
+    countryCode: FieldOutputTypes['public']['WebsitePageViewDaily']['countryCode'];
+    createdAt: FieldOutputTypes['public']['WebsitePageViewDaily']['createdAt'];
+    day: FieldOutputTypes['public']['WebsitePageViewDaily']['day'];
+    deviceType: FieldOutputTypes['public']['WebsitePageViewDaily']['deviceType'];
+    id: FieldOutputTypes['public']['WebsitePageViewDaily']['id'];
+    os: FieldOutputTypes['public']['WebsitePageViewDaily']['os'];
+    path: FieldOutputTypes['public']['WebsitePageViewDaily']['path'];
+    referrerHost: FieldOutputTypes['public']['WebsitePageViewDaily']['referrerHost'];
+    updatedAt: FieldOutputTypes['public']['WebsitePageViewDaily']['updatedAt'];
+    readonly [RelationKeys]?: never;
   };
 }
 
@@ -1066,7 +1094,9 @@ export declare const models: {
     ThemeTag: Models.public_ThemeTag;
     ThemeVersion: Models.public_ThemeVersion;
     User: Models.public_User;
+    WebsiteDownloadRequestDaily: Models.public_WebsiteDownloadRequestDaily;
     WebsiteDownloadStat: Models.public_WebsiteDownloadStat;
+    WebsitePageViewDaily: Models.public_WebsitePageViewDaily;
   };
 };
 
@@ -4134,6 +4164,144 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly WebsiteDownloadRequestDaily: {
+              columns: {
+                readonly arch: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+                readonly assetId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+                readonly channel: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1>;
+                  };
+                  readonly many: false;
+                };
+                readonly countryCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'XX'>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly day: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly platform: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+                readonly referrerHost: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+                readonly releaseTag: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                {
+                  readonly columns: readonly [
+                    'day',
+                    'assetId',
+                    'releaseTag',
+                    'channel',
+                    'platform',
+                    'arch',
+                    'countryCode',
+                    'referrerHost',
+                  ];
+                },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'WebsiteDownloadRequestDaily_day_idx_930fcf9b';
+                  readonly prefix: 'WebsiteDownloadRequestDaily_day_idx';
+                  readonly columns: readonly ['day'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83';
+                  readonly prefix: 'WebsiteDownloadRequestDaily_releaseTag_idx';
+                  readonly columns: readonly ['releaseTag'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly WebsiteDownloadStat: {
               columns: {
                 readonly assetId: {
@@ -4219,6 +4387,118 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly WebsitePageViewDaily: {
+              columns: {
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1>;
+                  };
+                  readonly many: false;
+                };
+                readonly countryCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'XX'>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly day: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly deviceType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'unknown'>;
+                  };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly os: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'unknown'>;
+                  };
+                  readonly many: false;
+                };
+                readonly path: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly referrerHost: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                {
+                  readonly columns: readonly [
+                    'day',
+                    'path',
+                    'referrerHost',
+                    'countryCode',
+                    'deviceType',
+                    'os',
+                  ];
+                },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'WebsitePageViewDaily_day_idx_930fcf9b';
+                  readonly prefix: 'WebsitePageViewDaily_day_idx';
+                  readonly columns: readonly ['day'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'WebsitePageViewDaily_path_idx_a72f861c';
+                  readonly prefix: 'WebsitePageViewDaily_path_idx';
+                  readonly columns: readonly ['path'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
             };
           };
           readonly valueSet: {
@@ -4450,9 +4730,17 @@ type ContractBase = Omit<
       readonly model: 'ThemeVersion';
     };
     readonly User: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+    readonly WebsiteDownloadRequestDaily: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'WebsiteDownloadRequestDaily';
+    };
     readonly WebsiteDownloadStat: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'WebsiteDownloadStat';
+    };
+    readonly WebsitePageViewDaily: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'WebsitePageViewDaily';
     };
   };
   readonly domain: {
@@ -7140,6 +7428,86 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly WebsiteDownloadRequestDaily: {
+            readonly fields: {
+              readonly arch: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly assetId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly channel: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly countryCode: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly day: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly platform: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly referrerHost: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly releaseTag: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'WebsiteDownloadRequestDaily';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly arch: { readonly column: 'arch' };
+                readonly assetId: { readonly column: 'assetId' };
+                readonly channel: { readonly column: 'channel' };
+                readonly count: { readonly column: 'count' };
+                readonly countryCode: { readonly column: 'countryCode' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly day: { readonly column: 'day' };
+                readonly id: { readonly column: 'id' };
+                readonly platform: { readonly column: 'platform' };
+                readonly referrerHost: { readonly column: 'referrerHost' };
+                readonly releaseTag: { readonly column: 'releaseTag' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly WebsiteDownloadStat: {
             readonly fields: {
               readonly assetId: {
@@ -7204,6 +7572,76 @@ type ContractBase = Omit<
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly date: { readonly column: 'date' };
                 readonly id: { readonly column: 'id' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly WebsitePageViewDaily: {
+            readonly fields: {
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly countryCode: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly day: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly deviceType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly os: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly path: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly referrerHost: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'WebsitePageViewDaily';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly count: { readonly column: 'count' };
+                readonly countryCode: { readonly column: 'countryCode' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly day: { readonly column: 'day' };
+                readonly deviceType: { readonly column: 'deviceType' };
+                readonly id: { readonly column: 'id' };
+                readonly os: { readonly column: 'os' };
+                readonly path: { readonly column: 'path' };
+                readonly referrerHost: { readonly column: 'referrerHost' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
@@ -8211,6 +8649,31 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
+            readonly entry: 'WebsiteDownloadRequestDaily';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsiteDownloadRequestDaily';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsiteDownloadRequestDaily';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
             readonly entry: 'WebsiteDownloadStat';
             readonly field: 'createdAt';
             readonly namespace: 'public';
@@ -8229,6 +8692,31 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'WebsiteDownloadStat';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsitePageViewDaily';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsitePageViewDaily';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'WebsitePageViewDaily';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };

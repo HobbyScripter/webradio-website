@@ -813,6 +813,46 @@ model GitHubPunchCardSlot {
   @@unique([weekday, hour])
 }
 
+// ---------------------------------------------------------------------------
+// Website Analytics (anonymous daily aggregates, no identifiers)
+// ---------------------------------------------------------------------------
+
+model WebsitePageViewDaily {
+  id           String   @id @onCreate(uuid(7))
+  day          DateTime
+  path         String
+  referrerHost String   @default("")
+  countryCode  String   @default("XX")
+  deviceType   String   @default("unknown")
+  os           String   @default("unknown")
+  count        Int      @default(1)
+  createdAt    DateTime @onCreate(now())
+  updatedAt    DateTime @onCreate(now()) @onUpdate(now())
+
+  @@unique([day, path, referrerHost, countryCode, deviceType, os])
+  @@index([day])
+  @@index([path])
+}
+
+model WebsiteDownloadRequestDaily {
+  id           String   @id @onCreate(uuid(7))
+  day          DateTime
+  assetId      String   @default("")
+  releaseTag   String   @default("")
+  channel      String   @default("")
+  platform     String   @default("")
+  arch         String   @default("")
+  countryCode  String   @default("XX")
+  referrerHost String   @default("")
+  count        Int      @default(1)
+  createdAt    DateTime @onCreate(now())
+  updatedAt    DateTime @onCreate(now()) @onUpdate(now())
+
+  @@unique([day, assetId, releaseTag, channel, platform, arch, countryCode, referrerHost])
+  @@index([day])
+  @@index([releaseTag])
+}
+
 model DownloadSyncLog {
   id                   String             @id @onCreate(uuid(7))
   status               DownloadSyncStatus

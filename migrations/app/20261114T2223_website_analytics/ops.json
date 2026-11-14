@@ -1,0 +1,388 @@
+[
+  {
+    "id": "table.WebsiteDownloadRequestDaily",
+    "label": "Create table \"WebsiteDownloadRequestDaily\"",
+    "summary": "Creates table \"WebsiteDownloadRequestDaily\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "WebsiteDownloadRequestDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"WebsiteDownloadRequestDaily\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadRequestDaily\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"WebsiteDownloadRequestDaily\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"WebsiteDownloadRequestDaily\"",
+        "sql": "CREATE TABLE \"public\".\"WebsiteDownloadRequestDaily\" (\n  \"arch\" text DEFAULT '' NOT NULL,\n  \"assetId\" text DEFAULT '' NOT NULL,\n  \"channel\" text DEFAULT '' NOT NULL,\n  \"count\" int4 DEFAULT 1 NOT NULL,\n  \"countryCode\" text DEFAULT 'XX' NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"day\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"platform\" text DEFAULT '' NOT NULL,\n  \"referrerHost\" text DEFAULT '' NOT NULL,\n  \"releaseTag\" text DEFAULT '' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"WebsiteDownloadRequestDaily\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadRequestDaily\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"WebsiteDownloadRequestDaily\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.WebsitePageViewDaily",
+    "label": "Create table \"WebsitePageViewDaily\"",
+    "summary": "Creates table \"WebsitePageViewDaily\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "WebsitePageViewDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"WebsitePageViewDaily\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsitePageViewDaily\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"WebsitePageViewDaily\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"WebsitePageViewDaily\"",
+        "sql": "CREATE TABLE \"public\".\"WebsitePageViewDaily\" (\n  \"count\" int4 DEFAULT 1 NOT NULL,\n  \"countryCode\" text DEFAULT 'XX' NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"day\" timestamptz NOT NULL,\n  \"deviceType\" text DEFAULT 'unknown' NOT NULL,\n  \"id\" text NOT NULL,\n  \"os\" text DEFAULT 'unknown' NOT NULL,\n  \"path\" text NOT NULL,\n  \"referrerHost\" text DEFAULT '' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"WebsitePageViewDaily\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsitePageViewDaily\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"WebsitePageViewDaily\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.WebsiteDownloadRequestDaily.WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat",
+    "label": "Add unique constraint on \"WebsiteDownloadRequestDaily\" (day, assetId, releaseTag, channel, platform, arch, countryCode, referrerHost)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat",
+        "table": "WebsiteDownloadRequestDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat",
+          "public",
+          "\"public\".\"WebsiteDownloadRequestDaily\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat\" on \"WebsiteDownloadRequestDaily\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat\"",
+        "sql": "ALTER TABLE \"public\".\"WebsiteDownloadRequestDaily\" ADD CONSTRAINT \"WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat\" UNIQUE (\"day\", \"assetId\", \"releaseTag\", \"channel\", \"platform\", \"arch\", \"countryCode\", \"referrerHost\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat\" exists on (day, assetId, releaseTag, channel, platform, arch, countryCode, referrerHost)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "WebsiteDownloadRequestDaily_day_assetId_releaseTag_channel_plat",
+          "public",
+          "\"public\".\"WebsiteDownloadRequestDaily\"",
+          "u",
+          "[\"day\",\"assetId\",\"releaseTag\",\"channel\",\"platform\",\"arch\",\"countryCode\",\"referrerHost\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.WebsitePageViewDaily.WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy",
+    "label": "Add unique constraint on \"WebsitePageViewDaily\" (day, path, referrerHost, countryCode, deviceType, os)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy",
+        "table": "WebsitePageViewDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy",
+          "public",
+          "\"public\".\"WebsitePageViewDaily\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy\" on \"WebsitePageViewDaily\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy\"",
+        "sql": "ALTER TABLE \"public\".\"WebsitePageViewDaily\" ADD CONSTRAINT \"WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy\" UNIQUE (\"day\", \"path\", \"referrerHost\", \"countryCode\", \"deviceType\", \"os\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy\" exists on (day, path, referrerHost, countryCode, deviceType, os)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "WebsitePageViewDaily_day_path_referrerHost_countryCode_deviceTy",
+          "public",
+          "\"public\".\"WebsitePageViewDaily\"",
+          "u",
+          "[\"day\",\"path\",\"referrerHost\",\"countryCode\",\"deviceType\",\"os\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.WebsiteDownloadRequestDaily.WebsiteDownloadRequestDaily_day_idx_930fcf9b",
+    "label": "Create index \"WebsiteDownloadRequestDaily_day_idx_930fcf9b\" on \"WebsiteDownloadRequestDaily\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "WebsiteDownloadRequestDaily_day_idx_930fcf9b",
+        "table": "WebsiteDownloadRequestDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"WebsiteDownloadRequestDaily_day_idx_930fcf9b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadRequestDaily_day_idx_930fcf9b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"WebsiteDownloadRequestDaily_day_idx_930fcf9b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"WebsiteDownloadRequestDaily_day_idx_930fcf9b\"",
+        "sql": "CREATE INDEX \"WebsiteDownloadRequestDaily_day_idx_930fcf9b\" ON \"public\".\"WebsiteDownloadRequestDaily\" (\"day\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"WebsiteDownloadRequestDaily_day_idx_930fcf9b\" exists on \"WebsiteDownloadRequestDaily\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadRequestDaily_day_idx_930fcf9b\"",
+          "i",
+          "I",
+          "\"public\".\"WebsiteDownloadRequestDaily\"",
+          "btree",
+          "[\"day\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.WebsiteDownloadRequestDaily.WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83",
+    "label": "Create index \"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\" on \"WebsiteDownloadRequestDaily\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83",
+        "table": "WebsiteDownloadRequestDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\"",
+        "sql": "CREATE INDEX \"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\" ON \"public\".\"WebsiteDownloadRequestDaily\" (\"releaseTag\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\" exists on \"WebsiteDownloadRequestDaily\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsiteDownloadRequestDaily_releaseTag_idx_eb9e1f83\"",
+          "i",
+          "I",
+          "\"public\".\"WebsiteDownloadRequestDaily\"",
+          "btree",
+          "[\"releaseTag\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.WebsitePageViewDaily.WebsitePageViewDaily_day_idx_930fcf9b",
+    "label": "Create index \"WebsitePageViewDaily_day_idx_930fcf9b\" on \"WebsitePageViewDaily\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "WebsitePageViewDaily_day_idx_930fcf9b",
+        "table": "WebsitePageViewDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"WebsitePageViewDaily_day_idx_930fcf9b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsitePageViewDaily_day_idx_930fcf9b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"WebsitePageViewDaily_day_idx_930fcf9b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"WebsitePageViewDaily_day_idx_930fcf9b\"",
+        "sql": "CREATE INDEX \"WebsitePageViewDaily_day_idx_930fcf9b\" ON \"public\".\"WebsitePageViewDaily\" (\"day\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"WebsitePageViewDaily_day_idx_930fcf9b\" exists on \"WebsitePageViewDaily\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsitePageViewDaily_day_idx_930fcf9b\"",
+          "i",
+          "I",
+          "\"public\".\"WebsitePageViewDaily\"",
+          "btree",
+          "[\"day\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.WebsitePageViewDaily.WebsitePageViewDaily_path_idx_a72f861c",
+    "label": "Create index \"WebsitePageViewDaily_path_idx_a72f861c\" on \"WebsitePageViewDaily\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "WebsitePageViewDaily_path_idx_a72f861c",
+        "table": "WebsitePageViewDaily"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"WebsitePageViewDaily_path_idx_a72f861c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"WebsitePageViewDaily_path_idx_a72f861c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"WebsitePageViewDaily_path_idx_a72f861c\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"WebsitePageViewDaily_path_idx_a72f861c\"",
+        "sql": "CREATE INDEX \"WebsitePageViewDaily_path_idx_a72f861c\" ON \"public\".\"WebsitePageViewDaily\" (\"path\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"WebsitePageViewDaily_path_idx_a72f861c\" exists on \"WebsitePageViewDaily\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"WebsitePageViewDaily_path_idx_a72f861c\"",
+          "i",
+          "I",
+          "\"public\".\"WebsitePageViewDaily\"",
+          "btree",
+          "[\"path\"]"
+        ]
+      }
+    ]
+  }
+]

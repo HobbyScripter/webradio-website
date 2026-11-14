@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type * as DbModule from '@/lib/db';
 import { enforceIpRateLimit } from '@/lib/rate-limit-http';
 import { trackWebsiteDownload } from '@/lib/download-analytics-service';
+import { recordDownloadRequest } from '@/lib/analytics/website';
 
 async function getDb(): Promise<typeof DbModule.db> {
   const mod = await import('@/lib/db');
@@ -104,6 +105,15 @@ export async function GET(
 
   // 5. Track download invocation (asynchronous / non-blocking)
   trackWebsiteDownload(asset.id, countryCode).catch(() => {});
+  recordDownloadRequest({
+    assetId: asset.id,
+    releaseTag: asset.releaseTag,
+    channel: asset.releaseChannel,
+    platform: asset.platform,
+    fileName: asset.fileName,
+    referrer: request.headers.get('referer'),
+    headers: request.headers,
+  }).catch(() => {});
 
   // 6. Secure redirect (HTTP 307 Temporary Redirect) to GitHub
   return NextResponse.redirect(asset.downloadUrl, {
