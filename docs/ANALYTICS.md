@@ -21,8 +21,10 @@ erfolgreichen Downloads.
 
 - Alle Admin-Seiten unter `/admin/analytics` prüfen `ADMIN`/`SYSTEM_ADMIN`;
   Rollen wurden nicht verändert.
-- Der Sync-Endpunkt akzeptiert entweder `Authorization: Bearer $CRON_SECRET`
-  oder eine Admin-Session. Alles andere erhält `401`.
+- Der manuelle Sync-Endpunkt `/api/admin/analytics/sync` erfordert eine
+  Admin-Session. Der frühere `CRON_SECRET`-Bearer-Pfad wurde entfernt, weil
+  keine geplante Instanz diesen Endpunkt mehr aufruft. Alles andere erhält
+  `401`.
 - GitHub-Zugriffe sind ausschließlich lesend und verwenden das bestehende
   Installationstoken der GitHub App.
 
@@ -59,29 +61,34 @@ Eigenschaften:
   Erhebungstag.
 - **Status:** `SUCCESS`, `FAILED`, `PENDING` (202), `EMPTY` (204),
   `UNSUPPORTED` (422). `PENDING` wird im selben Lauf nicht wiederholt.
-- **Retention:** `cleanupAnalyticsRetention()` läuft am Ende jedes Syncs.
+- **Retention:** `cleanupAnalyticsRetention()` läuft im manuellen Sync weiterhin
+  standardmäßig mit (`includeRetention: true`). Die geplanten Analytics-Läufe
+  überspringen sie und der eigene Schedule `analytics-retention` führt sie aus.
+- **Fehlerstatus:** Ein fehlgeschlagener Cleanup meldet `RETENTION_FAILED` und
+  setzt `ok: false` – im manuellen Lauf wie im Retention-Schedule.
 
 ### Endpunkt
 
-```bash
-# Cron / manuell
-curl -X POST https://<host>/api/admin/analytics/sync \
-  -H "Authorization: Bearer $CRON_SECRET"
-```
-
-`GET` und `POST` verhalten sich gleich; Vercel Cron verwendet `GET`.
+`GET` und `POST` verhalten sich gleich und sind ausschließlich mit
+Admin-Session erreichbar. Für geplante Läufe wird dieser Endpunkt nicht mehr
+verwendet.
 
 ### Zeitplan
 
-`vercel.json`:
+`vercel.json` deklariert vier private Schedules auf einer gemeinsamen Function
+(`api/schedules/analytics` mit `schedule/v1beta`); der frühere `crons`-Eintrag
+ist entfernt:
 
-```json
-"crons": [{ "path": "/api/admin/analytics/sync", "schedule": "15 3 * * *" }]
-```
+| Schedule | Zeit (UTC) | Aufgabe |
+|---|---|---|
+| `analytics-traffic` | 03:15 | Traffic |
+| `analytics-repo-stats` | 03:45 | Repository-Statistiken |
+| `analytics-releases` | 04:15 | Releases/Assets |
+| `analytics-retention` | 04:45 | nur Retention-Cleanup |
 
-Täglich 03:15 UTC. Auf Vercel Hobby ist ein Lauf pro Tag möglich; alle Quellen
-laufen sequenziell. Bei Timeout kann der Lauf in zwei Cron-Einträge
-(Traffic/Stats) geteilt werden.
+Jeder Lauf führt genau einen Job aus und läuft damit deutlich kürzer als der
+frühere Gesamtlauf. Auf Vercel Hobby gilt ein Jitter von 15 Minuten; die
+30-Minuten-Abstände verhindern Überlappungen.
 
 ## 4. Retention
 
@@ -131,16 +138,17 @@ Kurzfassung; Details in [`PRIVACY.md`](./PRIVACY.md).
    `npm run db:verify`. Für Produktion nur nach ausdrücklicher Freigabe.
 3. **Deploy:** Anwendung deployen; die Migration muss vor dem ersten Request
    abgeschlossen sein.
-4. **Cron-Secret:** `CRON_SECRET` in Produktion setzen (wird bereits für den
-   Download-Sync verwendet).
-5. **Manueller Smoke-Test:**
-   `curl -X POST https://<host>/api/admin/analytics/sync -H "Authorization: Bearer $CRON_SECRET"`.
-   Erwartet: `200`, elf Quellenstatus, keine Tokens in der Antwort.
+4. **Secret:** `CRON_SECRET` bleibt nur für den Download-Sync relevant; die
+   Analytics-Schedules benötigen es nicht.
+5. **Manueller Smoke-Test:** als Admin angemeldet
+   `POST /api/admin/analytics/sync`. Erwartet: `200`, elf Quellenstatus, keine
+   Tokens in der Antwort.
 6. **Status prüfen:** `/admin/analytics/sync` und
    `/admin/analytics/traffic`; bei fehlender Traffic-Berechtigung
    `PERMISSION_DENIED` prüfen.
-7. **Cron beobachten:** Nach dem ersten geplanten Lauf prüfen, ob
-   `AnalyticsSyncRun` neue Einträge enthält.
+7. **Schedules beobachten:** Nach dem ersten geplanten Lauf die
+   Vercel-Execution-History (Logzeile `analytics.schedule`) und
+   `AnalyticsSyncRun` prüfen.
 
 **Rollback:** Ein App-Rollback ist unkritisch, weil alle Analytics-Schreibpfade
 additiv sind und keine bestehenden Tabellen verändern. Migrationen werden nicht
@@ -156,7 +164,8 @@ Daten gelöscht.
 | `RATE_LIMITED` | GitHub-Quota erschöpft; nächster Lauf versucht es erneut |
 | `PENDING` bleibt über mehrere Läufe | GitHub berechnet die Statistik noch oder Repository ist zu jung |
 | Admin-Seiten zeigen „–“ | Tabelle fehlt oder DB nicht erreichbar; `db verify` prüfen |
-| Cron läuft nicht | `CRON_SECRET` fehlt, Deployment nicht aktiv oder Hobby-Plan-Limit |
+| Schedule läuft nicht | Schedules-Beta für das Team nicht aktiv, Deployment nicht aktiv oder Hobby-Plan-Limit |
+| `RETENTION_FAILED` | Cleanup-Query fehlgeschlagen; Retention-Schedule und manueller Lauf melden es als Fehler |
 
 ## 9. Nicht umgesetzt
 
