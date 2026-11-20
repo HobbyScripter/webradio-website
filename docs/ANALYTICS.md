@@ -94,7 +94,8 @@ frühere Gesamtlauf. Auf Vercel Hobby gilt ein Jitter von 15 Minuten; die
 Ein Unit-Test (`src/lib/__tests__/analytics-schedule-contract.test.ts`) hält
 `vercel.json` und `ANALYTICS_SCHEDULES` zusammen: Schedule-Namen,
 gemeinsames Function-Ziel und der `schedule/v1beta`-Trigger müssen
-übereinstimmen. Ein Rename löscht sonst still die Schedule-Historie, ein
+übereinstimmen, und jeder Eintrag braucht einen Cron-Ausdruck (fünf Felder)
+und eine Zeitzone. Ein Rename löscht sonst still die Schedule-Historie, ein
 falsches Ziel lässt die Schedules nie laufen.
 
 ### Watchdog

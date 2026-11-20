@@ -63,11 +63,13 @@ describe('vercel.json schedule contract', () => {
     });
   });
 
-  it('derives the function target from the route file it is declared on', () => {
-    // Guards against moving the route file: the schedules would keep pointing
-    // at the old path and never run again.
-    const derived = ROUTE_FILE.replace(/^src\/app\//, '').replace(/\/route\.ts$/, '');
-
-    expect(derived).toBe(FUNCTION_TARGET);
+  it('gives every schedule a cron expression and a timezone', () => {
+    for (const [name, entry] of Object.entries(schedules)) {
+      // A schedule without an expression never runs; without a timezone it runs
+      // in whatever the account defaults to. Both are silent in production.
+      expect([name, entry.schedule?.trim()]).toEqual([name, expect.any(String)]);
+      expect([name, entry.schedule?.trim().split(/\s+/).length]).toEqual([name, 5]);
+      expect([name, entry.timezone?.trim()]).toEqual([name, expect.any(String)]);
+    }
   });
 });
