@@ -21,6 +21,17 @@ const assets: DownloadOption[] = [
 ];
 
 describe('DownloadButton', () => {
+  // jsdom derives navigator.userAgent from the host OS, so the component's
+  // system detection would answer "linux" on CI and "windows" on a Windows
+  // workstation. Pin the user agent so the expectation holds everywhere.
+  beforeAll(() => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    });
+  });
+
   it('renders a working link without JavaScript and offers other platforms', () => {
     render(<DownloadButton assets={assets} version="1.0.6" otherPlatformsHref="#stable-heading" />);
 
