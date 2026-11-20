@@ -91,6 +91,12 @@ Jeder Lauf führt genau eine Aufgabe aus und läuft damit deutlich kürzer als d
 frühere Gesamtlauf. Auf Vercel Hobby gilt ein Jitter von 15 Minuten; die
 30-Minuten-Abstände verhindern Überlappungen.
 
+Ein Unit-Test (`src/lib/__tests__/analytics-schedule-contract.test.ts`) hält
+`vercel.json` und `ANALYTICS_SCHEDULES` zusammen: Schedule-Namen,
+gemeinsames Function-Ziel und der `schedule/v1beta`-Trigger müssen
+übereinstimmen. Ein Rename löscht sonst still die Schedule-Historie, ein
+falsches Ziel lässt die Schedules nie laufen.
+
 ### Watchdog
 
 `analytics-watchdog` prüft um 05:15 UTC, nachdem alle schreibenden Läufe
