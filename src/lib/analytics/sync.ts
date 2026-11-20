@@ -53,6 +53,9 @@ const JOB_SOURCES: Record<AnalyticsJobId, string[]> = {
 
 const ALL_JOBS: AnalyticsJobId[] = ['traffic', 'repo_stats', 'releases'];
 
+/** Every source the sync writes a status row for, in schedule order. */
+export const ANALYTICS_SOURCES: string[] = [...new Set(Object.values(JOB_SOURCES).flat())];
+
 function mapTraffic(result: TrafficSyncResult): SourceOutcome[] {
   const sources: {
     source: string;

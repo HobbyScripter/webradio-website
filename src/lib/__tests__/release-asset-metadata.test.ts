@@ -40,6 +40,8 @@ jest.mock('@/lib/db', () => {
           },
           GitHubReleaseAsset: {
             first: async () => state.existingAsset,
+            // The sync prefetches every known asset in one query.
+            all: async () => (state.existingAsset ? [state.existingAsset] : []),
             create: async (data: Row) => {
               state.created.push(data);
               return { id: 'asset-1', ...data };
@@ -52,8 +54,11 @@ jest.mock('@/lib/db', () => {
           },
           GitHubDownloadSnapshot: {
             first: async () => null,
+            all: async () => state.snapshots,
+            where: () => ({ all: async () => [] }),
             create: async (data: Row) => {
               state.snapshots.push(data);
+              return { id: 'snapshot-1', ...data };
             },
           },
         },
@@ -169,7 +174,7 @@ describe('syncGitHubDownloadStats metadata', () => {
   });
 
   it('writes the metadata when an asset already exists', async () => {
-    state.existingAsset = { id: 'asset-existing' };
+    state.existingAsset = { id: 'asset-existing', githubAssetId: BigInt(443494960) };
     installFetch([release({ prerelease: false, name: null, tag_name: 'v2.0.0' })]);
 
     await syncGitHubDownloadStats();

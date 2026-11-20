@@ -27,6 +27,11 @@
       "schedule": "45 4 * * *",
       "timezone": "UTC",
       "function": "api/schedules/analytics"
+    },
+    "analytics-watchdog": {
+      "schedule": "15 5 * * *",
+      "timezone": "UTC",
+      "function": "api/schedules/analytics"
     }
   }
 }

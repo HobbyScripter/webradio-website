@@ -45,6 +45,7 @@ function result(overrides: Partial<AnalyticsScheduleResult> = {}): AnalyticsSche
     sources: ['TRAFFIC_VIEWS'],
     jobs: [],
     retention: null,
+    watchdog: null,
     ...overrides,
   };
 }

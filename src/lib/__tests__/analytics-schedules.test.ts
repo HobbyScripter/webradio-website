@@ -9,15 +9,21 @@ import {
   runAnalyticsSchedule,
 } from '../analytics/schedules';
 import * as sync from '../analytics/sync';
+import * as watchdogModule from '../analytics/watchdog';
 
 jest.mock('../analytics/sync', () => ({
   runAnalyticsSync: jest.fn(),
   runAnalyticsRetention: jest.fn(),
 }));
 
+jest.mock('../analytics/watchdog', () => ({ runAnalyticsWatchdog: jest.fn() }));
+
 const syncMock = sync.runAnalyticsSync as jest.MockedFunction<typeof sync.runAnalyticsSync>;
 const retentionMock = sync.runAnalyticsRetention as jest.MockedFunction<
   typeof sync.runAnalyticsRetention
+>;
+const watchdogMock = watchdogModule.runAnalyticsWatchdog as jest.MockedFunction<
+  typeof watchdogModule.runAnalyticsWatchdog
 >;
 
 function summary(overrides: Partial<sync.AnalyticsSyncSummary> = {}): sync.AnalyticsSyncSummary {
@@ -52,6 +58,18 @@ function summary(overrides: Partial<sync.AnalyticsSyncSummary> = {}): sync.Analy
 beforeEach(() => {
   syncMock.mockReset();
   retentionMock.mockReset();
+  watchdogMock.mockReset();
+  watchdogMock.mockResolvedValue({
+    ok: true,
+    startedAt: '2026-11-14T05:15:00Z',
+    completedAt: '2026-11-14T05:15:01Z',
+    durationMs: 1000,
+    checkedSources: 11,
+    findings: [],
+    orphanedRunsRepaired: 0,
+    notification: null,
+    errorCode: null,
+  });
   syncMock.mockResolvedValue(summary());
   retentionMock.mockResolvedValue({
     ok: true,
@@ -64,12 +82,13 @@ beforeEach(() => {
 });
 
 describe('ANALYTICS_SCHEDULES', () => {
-  it('keeps the four stable schedule names', () => {
+  it('keeps the stable schedule names', () => {
     expect(Object.keys(ANALYTICS_SCHEDULES).sort()).toEqual([
       'analytics-releases',
       'analytics-repo-stats',
       'analytics-retention',
       'analytics-traffic',
+      'analytics-watchdog',
     ]);
     expect(isAnalyticsScheduleName('analytics-traffic')).toBe(true);
     expect(isAnalyticsScheduleName('analytics-sync')).toBe(false);
@@ -108,6 +127,24 @@ describe('ANALYTICS_SCHEDULES', () => {
       jobs: [],
       retention: { pageViewsDeleted: 4, downloadRequestsDeleted: 2 },
     });
+  });
+
+  it('runs only the watchdog for analytics-watchdog', async () => {
+    const result = await runAnalyticsSchedule('analytics-watchdog', 'exec-7');
+
+    expect(watchdogMock).toHaveBeenCalledTimes(1);
+    expect(syncMock).not.toHaveBeenCalled();
+    expect(retentionMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      schedule: 'analytics-watchdog',
+      executionId: 'exec-7',
+      ok: true,
+      errorCode: null,
+      sources: [],
+      jobs: [],
+      retention: null,
+    });
+    expect(result.watchdog).toMatchObject({ checkedSources: 11 });
   });
 
   it('surfaces a failed job with its error code', async () => {

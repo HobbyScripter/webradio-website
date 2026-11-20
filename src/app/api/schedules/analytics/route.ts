@@ -33,6 +33,7 @@ export const POST = handleSchedule(async (metadata) => {
       })),
     })),
     retention: result.retention,
+    watchdog: result.watchdog,
   };
 
   if (result.ok) {

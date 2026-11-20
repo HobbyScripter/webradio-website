@@ -75,7 +75,7 @@ verwendet.
 
 ### Zeitplan
 
-`vercel.json` deklariert vier private Schedules auf einer gemeinsamen Function
+`vercel.json` deklariert fünf private Schedules auf einer gemeinsamen Function
 (`api/schedules/analytics` mit `schedule/v1beta`); der frühere `crons`-Eintrag
 ist entfernt:
 
@@ -85,10 +85,49 @@ ist entfernt:
 | `analytics-repo-stats` | 03:45 | Repository-Statistiken |
 | `analytics-releases` | 04:15 | Releases/Assets |
 | `analytics-retention` | 04:45 | nur Retention-Cleanup |
+| `analytics-watchdog` | 05:15 | Betriebsprüfung und Alarm-Mail |
 
-Jeder Lauf führt genau einen Job aus und läuft damit deutlich kürzer als der
+Jeder Lauf führt genau eine Aufgabe aus und läuft damit deutlich kürzer als der
 frühere Gesamtlauf. Auf Vercel Hobby gilt ein Jitter von 15 Minuten; die
 30-Minuten-Abstände verhindern Überlappungen.
+
+### Watchdog
+
+`analytics-watchdog` prüft um 05:15 UTC, nachdem alle schreibenden Läufe
+abgeschlossen sind:
+
+| Prüfung | Schwelle | Bedeutung |
+|---|---|---|
+| Quelle ohne Erfolg | > 28 h | ein ganzer Tageslauf fehlt |
+| Lauf in `RUNNING` | > 15 min | Function wurde abgebrochen (Limit 300 s); der Lauf wird als `FAILED`/`ORPHANED` geschlossen |
+| Traffic-Fenster | ≤ 4 verbleibende Tage | Warnung |
+| Traffic-Fenster | ≤ 1 verbleibender Tag | kritisch |
+
+Die verbleibenden Tage ergeben sich aus dem jüngsten Tag in
+`GitHubTrafficDaily`. GitHub liefert nur die letzten 14 Tage; nach einem
+längeren Ausfall sind die fehlenden Tage endgültig verloren. Anders als
+Releases oder Repository-Statistiken lässt sich Traffic nicht rückwirkend
+abrufen – deshalb ist diese Prüfung die einzige Warnung vor einem dauerhaften
+Datenverlust.
+
+Pro Lauf geht höchstens eine Mail an `ANALYTICS_ALERT_EMAIL` über
+`src/lib/email.ts` (Resend/SMTP; Versand nur mit `EMAIL_DELIVERY_ENABLED=true`).
+Sie enthält alle Befunde des Laufs. Gemeldet wird ein Vorfall nur einmal: Der
+Watchdog speichert keinen Alarmzustand – das würde eine Migration erfordern –,
+sondern leitet den Beginn des Vorfalls aus den Daten ab und mailt ihn nur
+innerhalb von 25 Stunden. Ein andauernder Ausfall erzeugt damit genau eine
+Mail, plus eine Eskalationsmail bei 56 h Quellen-Alter bzw. einem verbleibenden
+Traffic-Tag. Verpasst der Watchdog selbst den Tag des Schwellenübertritts,
+entfällt diese eine Mail; der nächste Vorfall meldet sich wieder.
+
+Einzige Ausnahme: Liegt noch gar kein Traffic-Tag vor, gibt es keinen Zeitpunkt,
+an dem der Vorfall begann. Dieser Hinweis wiederholt sich deshalb täglich, bis
+der erste Lauf Daten schreibt.
+
+Kann die Mail nicht zugestellt werden (Empfänger fehlt, Versand pausiert,
+Provider-Fehler), endet der Lauf mit `NOTIFICATION_FAILED` und die
+Vercel-Ausführung wird rot. Konnte der Watchdog die Statuszeilen nicht lesen,
+meldet er `WATCHDOG_FAILED`.
 
 ## 4. Retention
 
@@ -138,8 +177,11 @@ Kurzfassung; Details in [`PRIVACY.md`](./PRIVACY.md).
    `npm run db:verify`. Für Produktion nur nach ausdrücklicher Freigabe.
 3. **Deploy:** Anwendung deployen; die Migration muss vor dem ersten Request
    abgeschlossen sein.
-4. **Secret:** `CRON_SECRET` bleibt nur für den Download-Sync relevant; die
-   Analytics-Schedules benötigen es nicht.
+4. **Secrets:** `CRON_SECRET` bleibt nur für den Download-Sync relevant; die
+   Analytics-Schedules benötigen es nicht. Für den Watchdog zusätzlich
+   `ANALYTICS_ALERT_EMAIL` setzen und den Versand mit
+   `EMAIL_DELIVERY_ENABLED=true` freigeben; ohne beides bleibt der Alarm aus
+   und der Watchdog meldet `NOTIFICATION_FAILED`.
 5. **Manueller Smoke-Test:** als Admin angemeldet
    `POST /api/admin/analytics/sync`. Erwartet: `200`, elf Quellenstatus, keine
    Tokens in der Antwort.
@@ -166,10 +208,16 @@ Daten gelöscht.
 | Admin-Seiten zeigen „–“ | Tabelle fehlt oder DB nicht erreichbar; `db verify` prüfen |
 | Schedule läuft nicht | Schedules-Beta für das Team nicht aktiv, Deployment nicht aktiv oder Hobby-Plan-Limit |
 | `RETENTION_FAILED` | Cleanup-Query fehlgeschlagen; Retention-Schedule und manueller Lauf melden es als Fehler |
+| `NOTIFICATION_FAILED` | Watchdog konnte nicht mailen: `ANALYTICS_ALERT_EMAIL` fehlt, `EMAIL_DELIVERY_ENABLED` ist nicht `true` oder der Provider lehnte ab |
+| `WATCHDOG_FAILED` | Watchdog konnte die Statuszeilen nicht lesen (Datenbank nicht erreichbar) |
+| Watchdog meldet Traffic-Fenster | Traffic-Sync ausgefallen; Lauf anstoßen, bevor die 14 Tage ablaufen – danach sind die Tage verloren |
+| Lauf steht dauerhaft auf `RUNNING` | Function abgebrochen; der Watchdog schließt ihn nach 15 min als `FAILED`/`ORPHANED` |
 
 ## 9. Nicht umgesetzt
 
 - Kein Live-Test gegen GitHub in dieser Umgebung (keine App-Credentials).
 - Kein visueller Browser-Test der Admin-Seiten.
 - Keine automatische Löschung von Referrer-/Pfad-Snapshots und Sync-Läufen.
+- Kein dauerhafter Alarmzustand in der Datenbank: Der Watchdog meldet einen
+  Vorfall über das 25-Stunden-Fenster genau einmal (siehe §3).
 - Keine Produktionsmigration und kein Deployment im Rahmen der Umsetzung.

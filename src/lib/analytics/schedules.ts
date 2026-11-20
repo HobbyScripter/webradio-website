@@ -5,6 +5,7 @@ import {
   type AnalyticsJobResult,
   type AnalyticsSyncSummary,
 } from './sync';
+import { runAnalyticsWatchdog, type AnalyticsWatchdogResult } from './watchdog';
 
 /**
  * Static Vercel Schedules share one private function, so the entry point maps
@@ -16,9 +17,12 @@ export const ANALYTICS_SCHEDULES = {
   'analytics-repo-stats': { job: 'repo_stats' },
   'analytics-releases': { job: 'releases' },
   'analytics-retention': { retentionOnly: true },
+  'analytics-watchdog': { watchdogOnly: true },
 } as const satisfies Record<
   string,
-  { job: AnalyticsJobId; retentionOnly?: false } | { retentionOnly: true; job?: never }
+  | { job: AnalyticsJobId; retentionOnly?: false; watchdogOnly?: false }
+  | { retentionOnly: true; job?: never; watchdogOnly?: false }
+  | { watchdogOnly: true; job?: never; retentionOnly?: never }
 >;
 
 export type AnalyticsScheduleName = keyof typeof ANALYTICS_SCHEDULES;
@@ -34,6 +38,8 @@ export type AnalyticsScheduleResult = {
   sources: string[];
   jobs: AnalyticsJobResult[];
   retention: AnalyticsSyncSummary['retention'];
+  /** Set only for `analytics-watchdog`. */
+  watchdog: AnalyticsWatchdogResult | null;
 };
 
 export function isAnalyticsScheduleName(name: string): name is AnalyticsScheduleName {
@@ -67,6 +73,24 @@ export async function runAnalyticsSchedule(
       sources: ['RETENTION'],
       jobs: [],
       retention: result.retention,
+      watchdog: null,
+    };
+  }
+
+  if ('watchdogOnly' in definition) {
+    const result = await runAnalyticsWatchdog();
+    return {
+      schedule: name,
+      executionId,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
+      durationMs: result.durationMs,
+      ok: result.ok,
+      errorCode: result.errorCode,
+      sources: [],
+      jobs: [],
+      retention: null,
+      watchdog: result,
     };
   }
 
@@ -91,5 +115,6 @@ export async function runAnalyticsSchedule(
     sources,
     jobs: summary.jobs,
     retention: summary.retention,
+    watchdog: null,
   };
 }

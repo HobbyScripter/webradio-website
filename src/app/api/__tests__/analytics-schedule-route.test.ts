@@ -38,6 +38,7 @@ function result(overrides: Record<string, unknown> = {}) {
     sources: ['TRAFFIC_VIEWS'],
     jobs: [],
     retention: null,
+    watchdog: null,
     ...overrides,
   };
 }
