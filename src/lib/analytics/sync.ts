@@ -23,6 +23,8 @@ export type AnalyticsJobResult = {
   skipped: boolean;
   attempts: number;
   outcomes: SourceOutcome[];
+  /** Why a job did not run, or why it failed as a whole. */
+  errorCode: 'LOCKED' | 'LOCK_ERROR' | null;
 };
 
 export type AnalyticsSyncSummary = {
@@ -31,6 +33,8 @@ export type AnalyticsSyncSummary = {
   completedAt: string;
   durationMs: number;
   jobs: AnalyticsJobResult[];
+  /** Set when the optional retention cleanup failed; it is never silent. */
+  errorCode: 'RETENTION_FAILED' | null;
   retention: { pageViewsDeleted: number; downloadRequestsDeleted: number } | null;
 };
 
@@ -48,6 +52,9 @@ const JOB_SOURCES: Record<AnalyticsJobId, string[]> = {
 };
 
 const ALL_JOBS: AnalyticsJobId[] = ['traffic', 'repo_stats', 'releases'];
+
+/** Every source the sync writes a status row for, in schedule order. */
+export const ANALYTICS_SOURCES: string[] = [...new Set(Object.values(JOB_SOURCES).flat())];
 
 function mapTraffic(result: TrafficSyncResult): SourceOutcome[] {
   const sources: {
@@ -241,18 +248,62 @@ async function finishRuns(
   }
 }
 
+export type AnalyticsRetentionResult = {
+  ok: boolean;
+  startedAt: string;
+  completedAt: string;
+  durationMs: number;
+  retention: AnalyticsSyncSummary['retention'];
+  errorCode: 'RETENTION_FAILED' | null;
+};
+
+/**
+ * Runs only the retention cleanup. Schedules use this as a dedicated task so
+ * the three analytics jobs never delete data as a side effect.
+ */
+export async function runAnalyticsRetention(): Promise<AnalyticsRetentionResult> {
+  const startedAt = Temporal.Now.instant();
+  const startMs = Date.now();
+  try {
+    const retention = await cleanupAnalyticsRetention();
+    return {
+      ok: true,
+      startedAt: String(startedAt),
+      completedAt: String(Temporal.Now.instant()),
+      durationMs: Date.now() - startMs,
+      retention,
+      errorCode: null,
+    };
+  } catch {
+    return {
+      ok: false,
+      startedAt: String(startedAt),
+      completedAt: String(Temporal.Now.instant()),
+      durationMs: Date.now() - startMs,
+      retention: null,
+      errorCode: 'RETENTION_FAILED',
+    };
+  }
+}
+
 /**
  * Runs the analytics jobs with a per-source lock, bounded retries and durable
  * status rows. A failing job never prevents the other jobs from running, and a
  * source that is already running is skipped rather than duplicated.
  */
 export async function runAnalyticsSync(
-  options: { jobs?: AnalyticsJobId[]; retryDelaysMs?: number[] } = {},
+  options: {
+    jobs?: AnalyticsJobId[];
+    retryDelaysMs?: number[];
+    /** Cleanup runs by default; schedules disable it and run it separately. */
+    includeRetention?: boolean;
+  } = {},
 ): Promise<AnalyticsSyncSummary> {
   const startedAt = Temporal.Now.instant();
   const startMs = Date.now();
   const jobsToRun = options.jobs?.length ? options.jobs : ALL_JOBS;
   const retryDelays = options.retryDelaysMs ?? DEFAULT_RETRY_DELAYS_MS;
+  const includeRetention = options.includeRetention !== false;
   const results: AnalyticsJobResult[] = [];
 
   for (const job of jobsToRun) {
@@ -261,12 +312,18 @@ export async function runAnalyticsSync(
     try {
       locks = await acquireLocks(sources);
     } catch {
-      results.push({ job, skipped: true, attempts: 0, outcomes: [] });
+      results.push({
+        job,
+        skipped: true,
+        attempts: 0,
+        outcomes: [],
+        errorCode: 'LOCK_ERROR',
+      });
       continue;
     }
 
     if (!locks) {
-      results.push({ job, skipped: true, attempts: 0, outcomes: [] });
+      results.push({ job, skipped: true, attempts: 0, outcomes: [], errorCode: 'LOCKED' });
       continue;
     }
 
@@ -295,21 +352,29 @@ export async function runAnalyticsSync(
       // Status persistence must not fail the whole run; the next run repairs it.
     }
 
-    results.push({ job, skipped: false, attempts, outcomes });
+    results.push({ job, skipped: false, attempts, outcomes, errorCode: null });
   }
 
   let retention: AnalyticsSyncSummary['retention'] = null;
-  try {
-    retention = await cleanupAnalyticsRetention();
-  } catch {
-    retention = null;
+  let retentionError: AnalyticsSyncSummary['errorCode'] = null;
+  if (includeRetention) {
+    try {
+      retention = await cleanupAnalyticsRetention();
+    } catch {
+      // A failed cleanup must not be reported as a successful run; the manual
+      // admin run reports the same errorCode the dedicated schedule surfaces.
+      retention = null;
+      retentionError = 'RETENTION_FAILED';
+    }
   }
 
-  const ok = results.every(
+  // A skipped job is not a success: the schedule run must surface the lock so
+  // the execution history does not report green while nothing was synced.
+  const jobsOk = results.every(
     (result) =>
-      result.skipped ||
-      result.outcomes.every((outcome) => outcome.status !== 'FAILED'),
+      !result.skipped && result.outcomes.every((outcome) => outcome.status !== 'FAILED'),
   );
+  const ok = jobsOk && retentionError === null;
 
   return {
     ok,
@@ -317,6 +382,7 @@ export async function runAnalyticsSync(
     completedAt: String(Temporal.Now.instant()),
     durationMs: Date.now() - startMs,
     jobs: results,
+    errorCode: retentionError,
     retention,
   };
 }

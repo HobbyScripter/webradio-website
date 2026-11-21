@@ -144,6 +144,16 @@ export async function syncGitHubDownloadStats(options: { force?: boolean } = {})
     const nowInstant = Temporal.Now.instant();
     const todaySnapshotDate = getUtcDayInstant();
 
+    // Prefetch the current state in two queries instead of two lookups per
+    // asset. Writes stay sequential (one asset at a time) so the existing
+    // single-runner lock and the idempotent upserts keep their semantics.
+    const knownAssets = await db.orm.public.GitHubReleaseAsset.all();
+    const knownSnapshots = await db.orm.public.GitHubDownloadSnapshot.where({
+      snapshotDate: todaySnapshotDate,
+    }).all();
+    const assetsByGithubId = new Map(knownAssets.map((row) => [String(row.githubAssetId), row]));
+    const snapshotsByAssetId = new Map(knownSnapshots.map((row) => [row.assetId, row]));
+
     for (const rel of parsed.data) {
       if (rel.draft || !rel.published_at) continue;
       const channel = channelFor(rel.tag_name, rel.prerelease);
@@ -159,7 +169,7 @@ export async function syncGitHubDownloadStats(options: { force?: boolean } = {})
         syncedAssetsCount++;
 
         const githubAssetId = BigInt(asset.id);
-        const existing = await db.orm.public.GitHubReleaseAsset.first({ githubAssetId });
+        const existing = assetsByGithubId.get(String(githubAssetId)) ?? null;
 
         let assetRecordId: string;
         if (existing) {
@@ -197,24 +207,23 @@ export async function syncGitHubDownloadStats(options: { force?: boolean } = {})
             lastSyncedAt: nowInstant,
           });
           assetRecordId = created.id;
+          assetsByGithubId.set(String(githubAssetId), created);
         }
 
-        // Snapshot for today (record/upsert)
-        const existingSnapshot = await db.orm.public.GitHubDownloadSnapshot.first({
-          assetId: assetRecordId,
-          snapshotDate: todaySnapshotDate,
-        });
+        // Snapshot for today (record/upsert), reusing the prefetched row.
+        const existingSnapshot = snapshotsByAssetId.get(assetRecordId) ?? null;
 
         if (existingSnapshot) {
           await db.orm.public.GitHubDownloadSnapshot
             .where({ id: existingSnapshot.id })
             .update({ downloadCount: asset.download_count });
         } else {
-          await db.orm.public.GitHubDownloadSnapshot.create({
+          const createdSnapshot = await db.orm.public.GitHubDownloadSnapshot.create({
             assetId: assetRecordId,
             downloadCount: asset.download_count,
             snapshotDate: todaySnapshotDate,
           });
+          snapshotsByAssetId.set(assetRecordId, createdSnapshot);
         }
       }
     }

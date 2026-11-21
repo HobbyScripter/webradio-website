@@ -229,16 +229,54 @@ describe('runAnalyticsSync', () => {
 
     const traffic = summary.jobs.find((job) => job.job === 'traffic');
     expect(traffic?.skipped).toBe(true);
+    expect(traffic?.errorCode).toBe('LOCKED');
+    expect(summary.ok).toBe(false);
     expect(trafficMock).not.toHaveBeenCalled();
     expect(repoMock).toHaveBeenCalledTimes(1);
   });
 
-  it('still reports success when retention fails', async () => {
+  it('does not run retention when a scheduled job disables it', async () => {
+    const summary = await runAnalyticsSync({
+      jobs: ['traffic'],
+      includeRetention: false,
+      retryDelaysMs: [],
+    });
+
+    expect(summary.ok).toBe(true);
+    expect(summary.retention).toBeNull();
+    expect(retentionMock).not.toHaveBeenCalled();
+  });
+
+  it('reports a lock lookup failure distinctly from lock contention', async () => {
+    const spy = jest
+      .spyOn(dbModule.db.orm.public.AnalyticsSyncRun, 'where')
+      .mockImplementationOnce(() => {
+        throw new Error('db down');
+      });
+
+    const summary = await runAnalyticsSync({ jobs: ['traffic'], retryDelaysMs: [] });
+
+    expect(summary.jobs[0]).toMatchObject({ skipped: true, errorCode: 'LOCK_ERROR' });
+    expect(summary.ok).toBe(false);
+    spy.mockRestore();
+  });
+
+  it('reports a failed retention cleanup as a failed run', async () => {
     retentionMock.mockRejectedValue(new Error('db down'));
 
     const summary = await runAnalyticsSync({ jobs: ['releases'], retryDelaysMs: [] });
 
-    expect(summary.ok).toBe(true);
+    expect(summary.ok).toBe(false);
+    expect(summary.errorCode).toBe('RETENTION_FAILED');
     expect(summary.retention).toBeNull();
+    expect(summary.jobs.every((job) => !job.skipped)).toBe(true);
+  });
+
+  it('clears the retention error code when the cleanup succeeds', async () => {
+    const summary = await runAnalyticsSync({ jobs: ['releases'], retryDelaysMs: [] });
+
+    expect(summary.ok).toBe(true);
+    expect(summary.errorCode).toBeNull();
+    expect(summary.retention).toEqual({ pageViewsDeleted: 2, downloadRequestsDeleted: 1 });
   });
 });

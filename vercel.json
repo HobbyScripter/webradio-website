@@ -2,10 +2,36 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "npm ci",
-  "crons": [
-    {
-      "path": "/api/admin/analytics/sync",
-      "schedule": "15 3 * * *"
+  "functions": {
+    "src/app/api/schedules/analytics/route.ts": {
+      "experimentalTriggers": [{ "type": "schedule/v1beta" }]
     }
-  ]
+  },
+  "schedules": {
+    "analytics-traffic": {
+      "schedule": "15 3 * * *",
+      "timezone": "UTC",
+      "function": "api/schedules/analytics"
+    },
+    "analytics-repo-stats": {
+      "schedule": "45 3 * * *",
+      "timezone": "UTC",
+      "function": "api/schedules/analytics"
+    },
+    "analytics-releases": {
+      "schedule": "15 4 * * *",
+      "timezone": "UTC",
+      "function": "api/schedules/analytics"
+    },
+    "analytics-retention": {
+      "schedule": "45 4 * * *",
+      "timezone": "UTC",
+      "function": "api/schedules/analytics"
+    },
+    "analytics-watchdog": {
+      "schedule": "15 5 * * *",
+      "timezone": "UTC",
+      "function": "api/schedules/analytics"
+    }
+  }
 }

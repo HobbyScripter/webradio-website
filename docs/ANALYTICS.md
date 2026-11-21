@@ -21,8 +21,10 @@ erfolgreichen Downloads.
 
 - Alle Admin-Seiten unter `/admin/analytics` prüfen `ADMIN`/`SYSTEM_ADMIN`;
   Rollen wurden nicht verändert.
-- Der Sync-Endpunkt akzeptiert entweder `Authorization: Bearer $CRON_SECRET`
-  oder eine Admin-Session. Alles andere erhält `401`.
+- Der manuelle Sync-Endpunkt `/api/admin/analytics/sync` erfordert eine
+  Admin-Session. Der frühere `CRON_SECRET`-Bearer-Pfad wurde entfernt, weil
+  keine geplante Instanz diesen Endpunkt mehr aufruft. Alles andere erhält
+  `401`.
 - GitHub-Zugriffe sind ausschließlich lesend und verwenden das bestehende
   Installationstoken der GitHub App.
 
@@ -59,29 +61,80 @@ Eigenschaften:
   Erhebungstag.
 - **Status:** `SUCCESS`, `FAILED`, `PENDING` (202), `EMPTY` (204),
   `UNSUPPORTED` (422). `PENDING` wird im selben Lauf nicht wiederholt.
-- **Retention:** `cleanupAnalyticsRetention()` läuft am Ende jedes Syncs.
+- **Retention:** `cleanupAnalyticsRetention()` läuft im manuellen Sync weiterhin
+  standardmäßig mit (`includeRetention: true`). Die geplanten Analytics-Läufe
+  überspringen sie und der eigene Schedule `analytics-retention` führt sie aus.
+- **Fehlerstatus:** Ein fehlgeschlagener Cleanup meldet `RETENTION_FAILED` und
+  setzt `ok: false` – im manuellen Lauf wie im Retention-Schedule.
 
 ### Endpunkt
 
-```bash
-# Cron / manuell
-curl -X POST https://<host>/api/admin/analytics/sync \
-  -H "Authorization: Bearer $CRON_SECRET"
-```
-
-`GET` und `POST` verhalten sich gleich; Vercel Cron verwendet `GET`.
+`GET` und `POST` verhalten sich gleich und sind ausschließlich mit
+Admin-Session erreichbar. Für geplante Läufe wird dieser Endpunkt nicht mehr
+verwendet.
 
 ### Zeitplan
 
-`vercel.json`:
+`vercel.json` deklariert fünf private Schedules auf einer gemeinsamen Function
+(`api/schedules/analytics` mit `schedule/v1beta`); der frühere `crons`-Eintrag
+ist entfernt:
 
-```json
-"crons": [{ "path": "/api/admin/analytics/sync", "schedule": "15 3 * * *" }]
-```
+| Schedule | Zeit (UTC) | Aufgabe |
+|---|---|---|
+| `analytics-traffic` | 03:15 | Traffic |
+| `analytics-repo-stats` | 03:45 | Repository-Statistiken |
+| `analytics-releases` | 04:15 | Releases/Assets |
+| `analytics-retention` | 04:45 | nur Retention-Cleanup |
+| `analytics-watchdog` | 05:15 | Betriebsprüfung und Alarm-Mail |
 
-Täglich 03:15 UTC. Auf Vercel Hobby ist ein Lauf pro Tag möglich; alle Quellen
-laufen sequenziell. Bei Timeout kann der Lauf in zwei Cron-Einträge
-(Traffic/Stats) geteilt werden.
+Jeder Lauf führt genau eine Aufgabe aus und läuft damit deutlich kürzer als der
+frühere Gesamtlauf. Auf Vercel Hobby gilt ein Jitter von 15 Minuten; die
+30-Minuten-Abstände verhindern Überlappungen.
+
+Ein Unit-Test (`src/lib/__tests__/analytics-schedule-contract.test.ts`) hält
+`vercel.json` und `ANALYTICS_SCHEDULES` zusammen: Schedule-Namen,
+gemeinsames Function-Ziel und der `schedule/v1beta`-Trigger müssen
+übereinstimmen, und jeder Eintrag braucht einen Cron-Ausdruck (fünf Felder)
+und eine Zeitzone. Ein Rename löscht sonst still die Schedule-Historie, ein
+falsches Ziel lässt die Schedules nie laufen.
+
+### Watchdog
+
+`analytics-watchdog` prüft um 05:15 UTC, nachdem alle schreibenden Läufe
+abgeschlossen sind:
+
+| Prüfung | Schwelle | Bedeutung |
+|---|---|---|
+| Quelle ohne Erfolg | > 28 h | ein ganzer Tageslauf fehlt |
+| Lauf in `RUNNING` | > 15 min | Function wurde abgebrochen (Limit 300 s); der Lauf wird als `FAILED`/`ORPHANED` geschlossen |
+| Traffic-Fenster | ≤ 4 verbleibende Tage | Warnung |
+| Traffic-Fenster | ≤ 1 verbleibender Tag | kritisch |
+
+Die verbleibenden Tage ergeben sich aus dem jüngsten Tag in
+`GitHubTrafficDaily`. GitHub liefert nur die letzten 14 Tage; nach einem
+längeren Ausfall sind die fehlenden Tage endgültig verloren. Anders als
+Releases oder Repository-Statistiken lässt sich Traffic nicht rückwirkend
+abrufen – deshalb ist diese Prüfung die einzige Warnung vor einem dauerhaften
+Datenverlust.
+
+Pro Lauf geht höchstens eine Mail an `ANALYTICS_ALERT_EMAIL` über
+`src/lib/email.ts` (Resend/SMTP; Versand nur mit `EMAIL_DELIVERY_ENABLED=true`).
+Sie enthält alle Befunde des Laufs. Gemeldet wird ein Vorfall nur einmal: Der
+Watchdog speichert keinen Alarmzustand – das würde eine Migration erfordern –,
+sondern leitet den Beginn des Vorfalls aus den Daten ab und mailt ihn nur
+innerhalb von 25 Stunden. Ein andauernder Ausfall erzeugt damit genau eine
+Mail, plus eine Eskalationsmail bei 56 h Quellen-Alter bzw. einem verbleibenden
+Traffic-Tag. Verpasst der Watchdog selbst den Tag des Schwellenübertritts,
+entfällt diese eine Mail; der nächste Vorfall meldet sich wieder.
+
+Einzige Ausnahme: Liegt noch gar kein Traffic-Tag vor, gibt es keinen Zeitpunkt,
+an dem der Vorfall begann. Dieser Hinweis wiederholt sich deshalb täglich, bis
+der erste Lauf Daten schreibt.
+
+Kann die Mail nicht zugestellt werden (Empfänger fehlt, Versand pausiert,
+Provider-Fehler), endet der Lauf mit `NOTIFICATION_FAILED` und die
+Vercel-Ausführung wird rot. Konnte der Watchdog die Statuszeilen nicht lesen,
+meldet er `WATCHDOG_FAILED`.
 
 ## 4. Retention
 
@@ -131,16 +184,20 @@ Kurzfassung; Details in [`PRIVACY.md`](./PRIVACY.md).
    `npm run db:verify`. Für Produktion nur nach ausdrücklicher Freigabe.
 3. **Deploy:** Anwendung deployen; die Migration muss vor dem ersten Request
    abgeschlossen sein.
-4. **Cron-Secret:** `CRON_SECRET` in Produktion setzen (wird bereits für den
-   Download-Sync verwendet).
-5. **Manueller Smoke-Test:**
-   `curl -X POST https://<host>/api/admin/analytics/sync -H "Authorization: Bearer $CRON_SECRET"`.
-   Erwartet: `200`, elf Quellenstatus, keine Tokens in der Antwort.
+4. **Secrets:** `CRON_SECRET` bleibt nur für den Download-Sync relevant; die
+   Analytics-Schedules benötigen es nicht. Für den Watchdog zusätzlich
+   `ANALYTICS_ALERT_EMAIL` setzen und den Versand mit
+   `EMAIL_DELIVERY_ENABLED=true` freigeben; ohne beides bleibt der Alarm aus
+   und der Watchdog meldet `NOTIFICATION_FAILED`.
+5. **Manueller Smoke-Test:** als Admin angemeldet
+   `POST /api/admin/analytics/sync`. Erwartet: `200`, elf Quellenstatus, keine
+   Tokens in der Antwort.
 6. **Status prüfen:** `/admin/analytics/sync` und
    `/admin/analytics/traffic`; bei fehlender Traffic-Berechtigung
    `PERMISSION_DENIED` prüfen.
-7. **Cron beobachten:** Nach dem ersten geplanten Lauf prüfen, ob
-   `AnalyticsSyncRun` neue Einträge enthält.
+7. **Schedules beobachten:** Nach dem ersten geplanten Lauf die
+   Vercel-Execution-History (Logzeile `analytics.schedule`) und
+   `AnalyticsSyncRun` prüfen.
 
 **Rollback:** Ein App-Rollback ist unkritisch, weil alle Analytics-Schreibpfade
 additiv sind und keine bestehenden Tabellen verändern. Migrationen werden nicht
@@ -156,11 +213,18 @@ Daten gelöscht.
 | `RATE_LIMITED` | GitHub-Quota erschöpft; nächster Lauf versucht es erneut |
 | `PENDING` bleibt über mehrere Läufe | GitHub berechnet die Statistik noch oder Repository ist zu jung |
 | Admin-Seiten zeigen „–“ | Tabelle fehlt oder DB nicht erreichbar; `db verify` prüfen |
-| Cron läuft nicht | `CRON_SECRET` fehlt, Deployment nicht aktiv oder Hobby-Plan-Limit |
+| Schedule läuft nicht | Schedules-Beta für das Team nicht aktiv, Deployment nicht aktiv oder Hobby-Plan-Limit |
+| `RETENTION_FAILED` | Cleanup-Query fehlgeschlagen; Retention-Schedule und manueller Lauf melden es als Fehler |
+| `NOTIFICATION_FAILED` | Watchdog konnte nicht mailen: `ANALYTICS_ALERT_EMAIL` fehlt, `EMAIL_DELIVERY_ENABLED` ist nicht `true` oder der Provider lehnte ab |
+| `WATCHDOG_FAILED` | Watchdog konnte die Statuszeilen nicht lesen (Datenbank nicht erreichbar) |
+| Watchdog meldet Traffic-Fenster | Traffic-Sync ausgefallen; Lauf anstoßen, bevor die 14 Tage ablaufen – danach sind die Tage verloren |
+| Lauf steht dauerhaft auf `RUNNING` | Function abgebrochen; der Watchdog schließt ihn nach 15 min als `FAILED`/`ORPHANED` |
 
 ## 9. Nicht umgesetzt
 
 - Kein Live-Test gegen GitHub in dieser Umgebung (keine App-Credentials).
 - Kein visueller Browser-Test der Admin-Seiten.
 - Keine automatische Löschung von Referrer-/Pfad-Snapshots und Sync-Läufen.
+- Kein dauerhafter Alarmzustand in der Datenbank: Der Watchdog meldet einen
+  Vorfall über das 25-Stunden-Fenster genau einmal (siehe §3).
 - Keine Produktionsmigration und kein Deployment im Rahmen der Umsetzung.
