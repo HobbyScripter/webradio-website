@@ -4,6 +4,8 @@ import { Temporal as TemporalPolyfill } from 'temporal-polyfill';
 
 // The Prisma 8 contract maps timestamptz to Temporal.Instant. Node 26 provides
 // a global Temporal, but the jsdom test environment does not always expose it.
+// The package ships ESM only, so this import relies on the test scripts' own
+// `--experimental-vm-modules` flag (require(esm) on Node 24.9 and later).
 if (typeof globalThis.Temporal === 'undefined') {
   globalThis.Temporal = TemporalPolyfill;
 }
