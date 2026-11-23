@@ -1,0 +1,2447 @@
+[
+  {
+    "id": "table.AdCampaign",
+    "label": "Create table \"AdCampaign\"",
+    "summary": "Creates table \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AdCampaign\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AdCampaign\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AdCampaign\"",
+        "sql": "CREATE TABLE \"public\".\"AdCampaign\" (\n  \"advertiserId\" text,\n  \"createdAt\" timestamptz NOT NULL,\n  \"description\" text,\n  \"endDate\" timestamptz NOT NULL,\n  \"format\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"internalNotes\" text,\n  \"name\" text NOT NULL,\n  \"partnerId\" text,\n  \"placement\" text NOT NULL,\n  \"startDate\" timestamptz NOT NULL,\n  \"status\" text DEFAULT 'DRAFT' NOT NULL,\n  \"targetUrl\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AdCampaign_format_check_8fcb7643\" CHECK (\"format\" IN ('BANNER', 'SPONSOR_CARD', 'LOGO_LINK', 'CUSTOM')),\n  CONSTRAINT \"AdCampaign_placement_check_0ea85d86\" CHECK (\"placement\" IN ('HOMEPAGE', 'DOWNLOAD_PAGE', 'PUBLIC_PAGES')),\n  CONSTRAINT \"AdCampaign_status_check_2517fecd\" CHECK (\"status\" IN ('DRAFT', 'PENDING_REVIEW', 'SCHEDULED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'REJECTED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AdCampaign\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AdCampaign\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.AdClick",
+    "label": "Create table \"AdClick\"",
+    "summary": "Creates table \"AdClick\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AdClick"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AdClick\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AdClick\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AdClick\"",
+        "sql": "CREATE TABLE \"public\".\"AdClick\" (\n  \"campaignId\" text NOT NULL,\n  \"count\" int4 DEFAULT 1 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"day\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"placement\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AdClick_placement_check_0ea85d86\" CHECK (\"placement\" IN ('HOMEPAGE', 'DOWNLOAD_PAGE', 'PUBLIC_PAGES'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AdClick\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AdClick\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.AdCreative",
+    "label": "Create table \"AdCreative\"",
+    "summary": "Creates table \"AdCreative\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AdCreative"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AdCreative\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCreative\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AdCreative\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AdCreative\"",
+        "sql": "CREATE TABLE \"public\".\"AdCreative\" (\n  \"altText\" text,\n  \"campaignId\" text NOT NULL,\n  \"contentType\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"fileSize\" int4 NOT NULL,\n  \"height\" int4 NOT NULL,\n  \"id\" text NOT NULL,\n  \"imageUrl\" text NOT NULL,\n  \"width\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AdCreative\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCreative\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AdCreative\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.AdImpression",
+    "label": "Create table \"AdImpression\"",
+    "summary": "Creates table \"AdImpression\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AdImpression"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AdImpression\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AdImpression\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AdImpression\"",
+        "sql": "CREATE TABLE \"public\".\"AdImpression\" (\n  \"campaignId\" text NOT NULL,\n  \"count\" int4 DEFAULT 1 NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"day\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"placement\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AdImpression_placement_check_0ea85d86\" CHECK (\"placement\" IN ('HOMEPAGE', 'DOWNLOAD_PAGE', 'PUBLIC_PAGES'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AdImpression\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AdImpression\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.Advertiser",
+    "label": "Create table \"Advertiser\"",
+    "summary": "Creates table \"Advertiser\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Advertiser"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Advertiser\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Advertiser\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Advertiser\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Advertiser\"",
+        "sql": "CREATE TABLE \"public\".\"Advertiser\" (\n  \"companyName\" text NOT NULL,\n  \"contactName\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"description\" text,\n  \"email\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"logoUrl\" text,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"websiteUrl\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Advertiser_status_check_2d304ab8\" CHECK (\"status\" IN ('ACTIVE', 'INACTIVE', 'SUSPENDED', 'ARCHIVED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Advertiser\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"Advertiser\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Advertiser\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.AdvertisingApplication",
+    "label": "Create table \"AdvertisingApplication\"",
+    "summary": "Creates table \"AdvertisingApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AdvertisingApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AdvertisingApplication\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AdvertisingApplication\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AdvertisingApplication\"",
+        "sql": "CREATE TABLE \"public\".\"AdvertisingApplication\" (\n  \"adFormat\" text NOT NULL,\n  \"companyName\" text NOT NULL,\n  \"contactName\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"customMessage\" text,\n  \"description\" text NOT NULL,\n  \"desiredBudget\" text,\n  \"desiredEndDate\" timestamptz,\n  \"desiredStartDate\" timestamptz,\n  \"email\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"internalNotes\" text,\n  \"phone\" text,\n  \"placement\" text NOT NULL,\n  \"rejectionReason\" text,\n  \"reviewedAt\" timestamptz,\n  \"reviewedById\" text,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"websiteUrl\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AdvertisingApplication_adFormat_check_04e8acab\" CHECK (\"adFormat\" IN ('BANNER', 'SPONSOR_CARD', 'LOGO_LINK', 'CUSTOM')),\n  CONSTRAINT \"AdvertisingApplication_placement_check_0ea85d86\" CHECK (\"placement\" IN ('HOMEPAGE', 'DOWNLOAD_PAGE', 'PUBLIC_PAGES')),\n  CONSTRAINT \"AdvertisingApplication_status_check_5ccde6d9\" CHECK (\"status\" IN ('PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'WITHDRAWN'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AdvertisingApplication\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AdvertisingApplication\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.Partner",
+    "label": "Create table \"Partner\"",
+    "summary": "Creates table \"Partner\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Partner"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Partner\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Partner\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Partner\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Partner\"",
+        "sql": "CREATE TABLE \"public\".\"Partner\" (\n  \"companyName\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"description\" text,\n  \"id\" text NOT NULL,\n  \"isFeatured\" bool DEFAULT false NOT NULL,\n  \"logoUrl\" text,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"websiteUrl\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Partner_status_check_6a6f42a1\" CHECK (\"status\" IN ('ACTIVE', 'INACTIVE', 'ARCHIVED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Partner\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"Partner\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Partner\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.PartnerHistory",
+    "label": "Create table \"PartnerHistory\"",
+    "summary": "Creates table \"PartnerHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "PartnerHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"PartnerHistory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"PartnerHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"PartnerHistory\"",
+        "sql": "CREATE TABLE \"public\".\"PartnerHistory\" (\n  \"action\" text NOT NULL,\n  \"createdAt\" timestamptz NOT NULL,\n  \"details\" text,\n  \"id\" text NOT NULL,\n  \"partnerId\" text NOT NULL,\n  \"performedBy\" text,\n  \"relationshipId\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"PartnerHistory\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"PartnerHistory\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.PartnerRelationship",
+    "label": "Create table \"PartnerRelationship\"",
+    "summary": "Creates table \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"PartnerRelationship\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"PartnerRelationship\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"PartnerRelationship\"",
+        "sql": "CREATE TABLE \"public\".\"PartnerRelationship\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"endDate\" timestamptz,\n  \"id\" text NOT NULL,\n  \"isPublic\" bool DEFAULT false NOT NULL,\n  \"partnerId\" text NOT NULL,\n  \"startDate\" timestamptz NOT NULL,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"PartnerRelationship_status_check_62955aa4\" CHECK (\"status\" IN ('ACTIVE', 'ENDED', 'PAUSED')),\n  CONSTRAINT \"PartnerRelationship_type_check_c2f24250\" CHECK (\"type\" IN ('OFFICIAL_PARTNER', 'TECHNICAL_PARTNER', 'SPONSOR', 'MEDIA_PARTNER', 'STRATEGIC_PARTNER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"PartnerRelationship\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"PartnerRelationship\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.AdClick.AdClick_campaignId_placement_day_key",
+    "label": "Add unique constraint on \"AdClick\" (campaignId, placement, day)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "AdClick_campaignId_placement_day_key",
+        "table": "AdClick"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"AdClick_campaignId_placement_day_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdClick_campaignId_placement_day_key",
+          "public",
+          "\"public\".\"AdClick\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"AdClick_campaignId_placement_day_key\" on \"AdClick\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"AdClick_campaignId_placement_day_key\"",
+        "sql": "ALTER TABLE \"public\".\"AdClick\" ADD CONSTRAINT \"AdClick_campaignId_placement_day_key\" UNIQUE (\"campaignId\", \"placement\", \"day\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"AdClick_campaignId_placement_day_key\" exists on (campaignId, placement, day)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "AdClick_campaignId_placement_day_key",
+          "public",
+          "\"public\".\"AdClick\"",
+          "u",
+          "[\"campaignId\",\"placement\",\"day\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.AdImpression.AdImpression_campaignId_placement_day_key",
+    "label": "Add unique constraint on \"AdImpression\" (campaignId, placement, day)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "AdImpression_campaignId_placement_day_key",
+        "table": "AdImpression"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"AdImpression_campaignId_placement_day_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdImpression_campaignId_placement_day_key",
+          "public",
+          "\"public\".\"AdImpression\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"AdImpression_campaignId_placement_day_key\" on \"AdImpression\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"AdImpression_campaignId_placement_day_key\"",
+        "sql": "ALTER TABLE \"public\".\"AdImpression\" ADD CONSTRAINT \"AdImpression_campaignId_placement_day_key\" UNIQUE (\"campaignId\", \"placement\", \"day\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"AdImpression_campaignId_placement_day_key\" exists on (campaignId, placement, day)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "AdImpression_campaignId_placement_day_key",
+          "public",
+          "\"public\".\"AdImpression\"",
+          "u",
+          "[\"campaignId\",\"placement\",\"day\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdCampaign.AdCampaign_advertiserId_idx_d211eb82",
+    "label": "Create index \"AdCampaign_advertiserId_idx_d211eb82\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdCampaign_advertiserId_idx_d211eb82",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdCampaign_advertiserId_idx_d211eb82\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_advertiserId_idx_d211eb82\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdCampaign_advertiserId_idx_d211eb82\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdCampaign_advertiserId_idx_d211eb82\"",
+        "sql": "CREATE INDEX \"AdCampaign_advertiserId_idx_d211eb82\" ON \"public\".\"AdCampaign\" (\"advertiserId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdCampaign_advertiserId_idx_d211eb82\" exists on \"AdCampaign\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_advertiserId_idx_d211eb82\"",
+          "i",
+          "I",
+          "\"public\".\"AdCampaign\"",
+          "btree",
+          "[\"advertiserId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdCampaign.AdCampaign_endDate_idx_4a9a40fb",
+    "label": "Create index \"AdCampaign_endDate_idx_4a9a40fb\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdCampaign_endDate_idx_4a9a40fb",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdCampaign_endDate_idx_4a9a40fb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_endDate_idx_4a9a40fb\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdCampaign_endDate_idx_4a9a40fb\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdCampaign_endDate_idx_4a9a40fb\"",
+        "sql": "CREATE INDEX \"AdCampaign_endDate_idx_4a9a40fb\" ON \"public\".\"AdCampaign\" (\"endDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdCampaign_endDate_idx_4a9a40fb\" exists on \"AdCampaign\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_endDate_idx_4a9a40fb\"",
+          "i",
+          "I",
+          "\"public\".\"AdCampaign\"",
+          "btree",
+          "[\"endDate\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdCampaign.AdCampaign_partnerId_idx_bf5b312c",
+    "label": "Create index \"AdCampaign_partnerId_idx_bf5b312c\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdCampaign_partnerId_idx_bf5b312c",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdCampaign_partnerId_idx_bf5b312c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_partnerId_idx_bf5b312c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdCampaign_partnerId_idx_bf5b312c\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdCampaign_partnerId_idx_bf5b312c\"",
+        "sql": "CREATE INDEX \"AdCampaign_partnerId_idx_bf5b312c\" ON \"public\".\"AdCampaign\" (\"partnerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdCampaign_partnerId_idx_bf5b312c\" exists on \"AdCampaign\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_partnerId_idx_bf5b312c\"",
+          "i",
+          "I",
+          "\"public\".\"AdCampaign\"",
+          "btree",
+          "[\"partnerId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdCampaign.AdCampaign_placement_idx_29de1d43",
+    "label": "Create index \"AdCampaign_placement_idx_29de1d43\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdCampaign_placement_idx_29de1d43",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdCampaign_placement_idx_29de1d43\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_placement_idx_29de1d43\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdCampaign_placement_idx_29de1d43\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdCampaign_placement_idx_29de1d43\"",
+        "sql": "CREATE INDEX \"AdCampaign_placement_idx_29de1d43\" ON \"public\".\"AdCampaign\" (\"placement\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdCampaign_placement_idx_29de1d43\" exists on \"AdCampaign\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_placement_idx_29de1d43\"",
+          "i",
+          "I",
+          "\"public\".\"AdCampaign\"",
+          "btree",
+          "[\"placement\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdCampaign.AdCampaign_startDate_idx_9ce08316",
+    "label": "Create index \"AdCampaign_startDate_idx_9ce08316\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdCampaign_startDate_idx_9ce08316",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdCampaign_startDate_idx_9ce08316\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_startDate_idx_9ce08316\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdCampaign_startDate_idx_9ce08316\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdCampaign_startDate_idx_9ce08316\"",
+        "sql": "CREATE INDEX \"AdCampaign_startDate_idx_9ce08316\" ON \"public\".\"AdCampaign\" (\"startDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdCampaign_startDate_idx_9ce08316\" exists on \"AdCampaign\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_startDate_idx_9ce08316\"",
+          "i",
+          "I",
+          "\"public\".\"AdCampaign\"",
+          "btree",
+          "[\"startDate\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdCampaign.AdCampaign_status_idx_e98638ab",
+    "label": "Create index \"AdCampaign_status_idx_e98638ab\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdCampaign_status_idx_e98638ab",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdCampaign_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdCampaign_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdCampaign_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"AdCampaign_status_idx_e98638ab\" ON \"public\".\"AdCampaign\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdCampaign_status_idx_e98638ab\" exists on \"AdCampaign\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCampaign_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"AdCampaign\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdClick.AdClick_campaignId_idx_3aacd648",
+    "label": "Create index \"AdClick_campaignId_idx_3aacd648\" on \"AdClick\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdClick_campaignId_idx_3aacd648",
+        "table": "AdClick"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdClick_campaignId_idx_3aacd648\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick_campaignId_idx_3aacd648\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdClick_campaignId_idx_3aacd648\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdClick_campaignId_idx_3aacd648\"",
+        "sql": "CREATE INDEX \"AdClick_campaignId_idx_3aacd648\" ON \"public\".\"AdClick\" (\"campaignId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdClick_campaignId_idx_3aacd648\" exists on \"AdClick\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick_campaignId_idx_3aacd648\"",
+          "i",
+          "I",
+          "\"public\".\"AdClick\"",
+          "btree",
+          "[\"campaignId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdClick.AdClick_day_idx_930fcf9b",
+    "label": "Create index \"AdClick_day_idx_930fcf9b\" on \"AdClick\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdClick_day_idx_930fcf9b",
+        "table": "AdClick"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdClick_day_idx_930fcf9b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick_day_idx_930fcf9b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdClick_day_idx_930fcf9b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdClick_day_idx_930fcf9b\"",
+        "sql": "CREATE INDEX \"AdClick_day_idx_930fcf9b\" ON \"public\".\"AdClick\" (\"day\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdClick_day_idx_930fcf9b\" exists on \"AdClick\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick_day_idx_930fcf9b\"",
+          "i",
+          "I",
+          "\"public\".\"AdClick\"",
+          "btree",
+          "[\"day\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdClick.AdClick_placement_idx_29de1d43",
+    "label": "Create index \"AdClick_placement_idx_29de1d43\" on \"AdClick\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdClick_placement_idx_29de1d43",
+        "table": "AdClick"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdClick_placement_idx_29de1d43\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick_placement_idx_29de1d43\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdClick_placement_idx_29de1d43\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdClick_placement_idx_29de1d43\"",
+        "sql": "CREATE INDEX \"AdClick_placement_idx_29de1d43\" ON \"public\".\"AdClick\" (\"placement\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdClick_placement_idx_29de1d43\" exists on \"AdClick\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdClick_placement_idx_29de1d43\"",
+          "i",
+          "I",
+          "\"public\".\"AdClick\"",
+          "btree",
+          "[\"placement\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdCreative.AdCreative_campaignId_idx_3aacd648",
+    "label": "Create index \"AdCreative_campaignId_idx_3aacd648\" on \"AdCreative\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdCreative_campaignId_idx_3aacd648",
+        "table": "AdCreative"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdCreative_campaignId_idx_3aacd648\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdCreative_campaignId_idx_3aacd648\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdCreative_campaignId_idx_3aacd648\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdCreative_campaignId_idx_3aacd648\"",
+        "sql": "CREATE INDEX \"AdCreative_campaignId_idx_3aacd648\" ON \"public\".\"AdCreative\" (\"campaignId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdCreative_campaignId_idx_3aacd648\" exists on \"AdCreative\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdCreative_campaignId_idx_3aacd648\"",
+          "i",
+          "I",
+          "\"public\".\"AdCreative\"",
+          "btree",
+          "[\"campaignId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdImpression.AdImpression_campaignId_idx_3aacd648",
+    "label": "Create index \"AdImpression_campaignId_idx_3aacd648\" on \"AdImpression\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdImpression_campaignId_idx_3aacd648",
+        "table": "AdImpression"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdImpression_campaignId_idx_3aacd648\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression_campaignId_idx_3aacd648\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdImpression_campaignId_idx_3aacd648\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdImpression_campaignId_idx_3aacd648\"",
+        "sql": "CREATE INDEX \"AdImpression_campaignId_idx_3aacd648\" ON \"public\".\"AdImpression\" (\"campaignId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdImpression_campaignId_idx_3aacd648\" exists on \"AdImpression\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression_campaignId_idx_3aacd648\"",
+          "i",
+          "I",
+          "\"public\".\"AdImpression\"",
+          "btree",
+          "[\"campaignId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdImpression.AdImpression_day_idx_930fcf9b",
+    "label": "Create index \"AdImpression_day_idx_930fcf9b\" on \"AdImpression\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdImpression_day_idx_930fcf9b",
+        "table": "AdImpression"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdImpression_day_idx_930fcf9b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression_day_idx_930fcf9b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdImpression_day_idx_930fcf9b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdImpression_day_idx_930fcf9b\"",
+        "sql": "CREATE INDEX \"AdImpression_day_idx_930fcf9b\" ON \"public\".\"AdImpression\" (\"day\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdImpression_day_idx_930fcf9b\" exists on \"AdImpression\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression_day_idx_930fcf9b\"",
+          "i",
+          "I",
+          "\"public\".\"AdImpression\"",
+          "btree",
+          "[\"day\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdImpression.AdImpression_placement_idx_29de1d43",
+    "label": "Create index \"AdImpression_placement_idx_29de1d43\" on \"AdImpression\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdImpression_placement_idx_29de1d43",
+        "table": "AdImpression"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdImpression_placement_idx_29de1d43\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression_placement_idx_29de1d43\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdImpression_placement_idx_29de1d43\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdImpression_placement_idx_29de1d43\"",
+        "sql": "CREATE INDEX \"AdImpression_placement_idx_29de1d43\" ON \"public\".\"AdImpression\" (\"placement\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdImpression_placement_idx_29de1d43\" exists on \"AdImpression\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdImpression_placement_idx_29de1d43\"",
+          "i",
+          "I",
+          "\"public\".\"AdImpression\"",
+          "btree",
+          "[\"placement\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Advertiser.Advertiser_email_idx_46df9cad",
+    "label": "Create index \"Advertiser_email_idx_46df9cad\" on \"Advertiser\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Advertiser_email_idx_46df9cad",
+        "table": "Advertiser"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Advertiser_email_idx_46df9cad\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Advertiser_email_idx_46df9cad\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Advertiser_email_idx_46df9cad\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Advertiser_email_idx_46df9cad\"",
+        "sql": "CREATE INDEX \"Advertiser_email_idx_46df9cad\" ON \"public\".\"Advertiser\" (\"email\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Advertiser_email_idx_46df9cad\" exists on \"Advertiser\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Advertiser_email_idx_46df9cad\"",
+          "i",
+          "I",
+          "\"public\".\"Advertiser\"",
+          "btree",
+          "[\"email\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Advertiser.Advertiser_status_idx_e98638ab",
+    "label": "Create index \"Advertiser_status_idx_e98638ab\" on \"Advertiser\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Advertiser_status_idx_e98638ab",
+        "table": "Advertiser"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Advertiser_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Advertiser_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Advertiser_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Advertiser_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"Advertiser_status_idx_e98638ab\" ON \"public\".\"Advertiser\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Advertiser_status_idx_e98638ab\" exists on \"Advertiser\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Advertiser_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"Advertiser\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdvertisingApplication.AdvertisingApplication_createdAt_idx_9575dbd7",
+    "label": "Create index \"AdvertisingApplication_createdAt_idx_9575dbd7\" on \"AdvertisingApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdvertisingApplication_createdAt_idx_9575dbd7",
+        "table": "AdvertisingApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdvertisingApplication_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdvertisingApplication_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdvertisingApplication_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"AdvertisingApplication_createdAt_idx_9575dbd7\" ON \"public\".\"AdvertisingApplication\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdvertisingApplication_createdAt_idx_9575dbd7\" exists on \"AdvertisingApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"AdvertisingApplication\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdvertisingApplication.AdvertisingApplication_email_idx_46df9cad",
+    "label": "Create index \"AdvertisingApplication_email_idx_46df9cad\" on \"AdvertisingApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdvertisingApplication_email_idx_46df9cad",
+        "table": "AdvertisingApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdvertisingApplication_email_idx_46df9cad\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_email_idx_46df9cad\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdvertisingApplication_email_idx_46df9cad\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdvertisingApplication_email_idx_46df9cad\"",
+        "sql": "CREATE INDEX \"AdvertisingApplication_email_idx_46df9cad\" ON \"public\".\"AdvertisingApplication\" (\"email\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdvertisingApplication_email_idx_46df9cad\" exists on \"AdvertisingApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_email_idx_46df9cad\"",
+          "i",
+          "I",
+          "\"public\".\"AdvertisingApplication\"",
+          "btree",
+          "[\"email\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdvertisingApplication.AdvertisingApplication_reviewedById_idx_e2835478",
+    "label": "Create index \"AdvertisingApplication_reviewedById_idx_e2835478\" on \"AdvertisingApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdvertisingApplication_reviewedById_idx_e2835478",
+        "table": "AdvertisingApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdvertisingApplication_reviewedById_idx_e2835478\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_reviewedById_idx_e2835478\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdvertisingApplication_reviewedById_idx_e2835478\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdvertisingApplication_reviewedById_idx_e2835478\"",
+        "sql": "CREATE INDEX \"AdvertisingApplication_reviewedById_idx_e2835478\" ON \"public\".\"AdvertisingApplication\" (\"reviewedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdvertisingApplication_reviewedById_idx_e2835478\" exists on \"AdvertisingApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_reviewedById_idx_e2835478\"",
+          "i",
+          "I",
+          "\"public\".\"AdvertisingApplication\"",
+          "btree",
+          "[\"reviewedById\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdvertisingApplication.AdvertisingApplication_status_idx_e98638ab",
+    "label": "Create index \"AdvertisingApplication_status_idx_e98638ab\" on \"AdvertisingApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdvertisingApplication_status_idx_e98638ab",
+        "table": "AdvertisingApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdvertisingApplication_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdvertisingApplication_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdvertisingApplication_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"AdvertisingApplication_status_idx_e98638ab\" ON \"public\".\"AdvertisingApplication\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdvertisingApplication_status_idx_e98638ab\" exists on \"AdvertisingApplication\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdvertisingApplication_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"AdvertisingApplication\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Partner.Partner_isFeatured_idx_4ec5a125",
+    "label": "Create index \"Partner_isFeatured_idx_4ec5a125\" on \"Partner\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Partner_isFeatured_idx_4ec5a125",
+        "table": "Partner"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Partner_isFeatured_idx_4ec5a125\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Partner_isFeatured_idx_4ec5a125\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Partner_isFeatured_idx_4ec5a125\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Partner_isFeatured_idx_4ec5a125\"",
+        "sql": "CREATE INDEX \"Partner_isFeatured_idx_4ec5a125\" ON \"public\".\"Partner\" (\"isFeatured\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Partner_isFeatured_idx_4ec5a125\" exists on \"Partner\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Partner_isFeatured_idx_4ec5a125\"",
+          "i",
+          "I",
+          "\"public\".\"Partner\"",
+          "btree",
+          "[\"isFeatured\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Partner.Partner_status_idx_e98638ab",
+    "label": "Create index \"Partner_status_idx_e98638ab\" on \"Partner\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Partner_status_idx_e98638ab",
+        "table": "Partner"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Partner_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Partner_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Partner_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Partner_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"Partner_status_idx_e98638ab\" ON \"public\".\"Partner\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Partner_status_idx_e98638ab\" exists on \"Partner\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Partner_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"Partner\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerHistory.PartnerHistory_createdAt_idx_9575dbd7",
+    "label": "Create index \"PartnerHistory_createdAt_idx_9575dbd7\" on \"PartnerHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerHistory_createdAt_idx_9575dbd7",
+        "table": "PartnerHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerHistory_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerHistory_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerHistory_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"PartnerHistory_createdAt_idx_9575dbd7\" ON \"public\".\"PartnerHistory\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerHistory_createdAt_idx_9575dbd7\" exists on \"PartnerHistory\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerHistory\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerHistory.PartnerHistory_partnerId_idx_bf5b312c",
+    "label": "Create index \"PartnerHistory_partnerId_idx_bf5b312c\" on \"PartnerHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerHistory_partnerId_idx_bf5b312c",
+        "table": "PartnerHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerHistory_partnerId_idx_bf5b312c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory_partnerId_idx_bf5b312c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerHistory_partnerId_idx_bf5b312c\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerHistory_partnerId_idx_bf5b312c\"",
+        "sql": "CREATE INDEX \"PartnerHistory_partnerId_idx_bf5b312c\" ON \"public\".\"PartnerHistory\" (\"partnerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerHistory_partnerId_idx_bf5b312c\" exists on \"PartnerHistory\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory_partnerId_idx_bf5b312c\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerHistory\"",
+          "btree",
+          "[\"partnerId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerHistory.PartnerHistory_relationshipId_idx_51f7e2f7",
+    "label": "Create index \"PartnerHistory_relationshipId_idx_51f7e2f7\" on \"PartnerHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerHistory_relationshipId_idx_51f7e2f7",
+        "table": "PartnerHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerHistory_relationshipId_idx_51f7e2f7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory_relationshipId_idx_51f7e2f7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerHistory_relationshipId_idx_51f7e2f7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerHistory_relationshipId_idx_51f7e2f7\"",
+        "sql": "CREATE INDEX \"PartnerHistory_relationshipId_idx_51f7e2f7\" ON \"public\".\"PartnerHistory\" (\"relationshipId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerHistory_relationshipId_idx_51f7e2f7\" exists on \"PartnerHistory\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerHistory_relationshipId_idx_51f7e2f7\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerHistory\"",
+          "btree",
+          "[\"relationshipId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerRelationship.PartnerRelationship_endDate_idx_4a9a40fb",
+    "label": "Create index \"PartnerRelationship_endDate_idx_4a9a40fb\" on \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerRelationship_endDate_idx_4a9a40fb",
+        "table": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerRelationship_endDate_idx_4a9a40fb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_endDate_idx_4a9a40fb\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerRelationship_endDate_idx_4a9a40fb\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerRelationship_endDate_idx_4a9a40fb\"",
+        "sql": "CREATE INDEX \"PartnerRelationship_endDate_idx_4a9a40fb\" ON \"public\".\"PartnerRelationship\" (\"endDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerRelationship_endDate_idx_4a9a40fb\" exists on \"PartnerRelationship\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_endDate_idx_4a9a40fb\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerRelationship\"",
+          "btree",
+          "[\"endDate\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerRelationship.PartnerRelationship_isPublic_idx_ceb5dcf6",
+    "label": "Create index \"PartnerRelationship_isPublic_idx_ceb5dcf6\" on \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerRelationship_isPublic_idx_ceb5dcf6",
+        "table": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerRelationship_isPublic_idx_ceb5dcf6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_isPublic_idx_ceb5dcf6\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerRelationship_isPublic_idx_ceb5dcf6\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerRelationship_isPublic_idx_ceb5dcf6\"",
+        "sql": "CREATE INDEX \"PartnerRelationship_isPublic_idx_ceb5dcf6\" ON \"public\".\"PartnerRelationship\" (\"isPublic\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerRelationship_isPublic_idx_ceb5dcf6\" exists on \"PartnerRelationship\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_isPublic_idx_ceb5dcf6\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerRelationship\"",
+          "btree",
+          "[\"isPublic\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerRelationship.PartnerRelationship_partnerId_idx_bf5b312c",
+    "label": "Create index \"PartnerRelationship_partnerId_idx_bf5b312c\" on \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerRelationship_partnerId_idx_bf5b312c",
+        "table": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerRelationship_partnerId_idx_bf5b312c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_partnerId_idx_bf5b312c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerRelationship_partnerId_idx_bf5b312c\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerRelationship_partnerId_idx_bf5b312c\"",
+        "sql": "CREATE INDEX \"PartnerRelationship_partnerId_idx_bf5b312c\" ON \"public\".\"PartnerRelationship\" (\"partnerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerRelationship_partnerId_idx_bf5b312c\" exists on \"PartnerRelationship\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_partnerId_idx_bf5b312c\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerRelationship\"",
+          "btree",
+          "[\"partnerId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerRelationship.PartnerRelationship_startDate_idx_9ce08316",
+    "label": "Create index \"PartnerRelationship_startDate_idx_9ce08316\" on \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerRelationship_startDate_idx_9ce08316",
+        "table": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerRelationship_startDate_idx_9ce08316\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_startDate_idx_9ce08316\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerRelationship_startDate_idx_9ce08316\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerRelationship_startDate_idx_9ce08316\"",
+        "sql": "CREATE INDEX \"PartnerRelationship_startDate_idx_9ce08316\" ON \"public\".\"PartnerRelationship\" (\"startDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerRelationship_startDate_idx_9ce08316\" exists on \"PartnerRelationship\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_startDate_idx_9ce08316\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerRelationship\"",
+          "btree",
+          "[\"startDate\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerRelationship.PartnerRelationship_status_idx_e98638ab",
+    "label": "Create index \"PartnerRelationship_status_idx_e98638ab\" on \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerRelationship_status_idx_e98638ab",
+        "table": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerRelationship_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerRelationship_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerRelationship_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"PartnerRelationship_status_idx_e98638ab\" ON \"public\".\"PartnerRelationship\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerRelationship_status_idx_e98638ab\" exists on \"PartnerRelationship\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerRelationship\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.PartnerRelationship.PartnerRelationship_type_idx_b6b604ea",
+    "label": "Create index \"PartnerRelationship_type_idx_b6b604ea\" on \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "PartnerRelationship_type_idx_b6b604ea",
+        "table": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"PartnerRelationship_type_idx_b6b604ea\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_type_idx_b6b604ea\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"PartnerRelationship_type_idx_b6b604ea\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"PartnerRelationship_type_idx_b6b604ea\"",
+        "sql": "CREATE INDEX \"PartnerRelationship_type_idx_b6b604ea\" ON \"public\".\"PartnerRelationship\" (\"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"PartnerRelationship_type_idx_b6b604ea\" exists on \"PartnerRelationship\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"PartnerRelationship_type_idx_b6b604ea\"",
+          "i",
+          "I",
+          "\"public\".\"PartnerRelationship\"",
+          "btree",
+          "[\"type\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AdCampaign.AdCampaign_partnerId_fkey",
+    "label": "Add foreign key \"AdCampaign_partnerId_fkey\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AdCampaign_partnerId_fkey",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AdCampaign_partnerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdCampaign_partnerId_fkey",
+          "public",
+          "\"public\".\"AdCampaign\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AdCampaign_partnerId_fkey\" on \"AdCampaign\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AdCampaign_partnerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AdCampaign\"\nADD CONSTRAINT \"AdCampaign_partnerId_fkey\"\nFOREIGN KEY (\"partnerId\")\nREFERENCES \"public\".\"Partner\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AdCampaign_partnerId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AdCampaign_partnerId_fkey",
+          "public",
+          "\"public\".\"AdCampaign\"",
+          "f",
+          "[\"partnerId\"]",
+          "\"public\".\"Partner\"",
+          "[\"id\"]",
+          "n",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AdCampaign.AdCampaign_advertiserId_fkey",
+    "label": "Add foreign key \"AdCampaign_advertiserId_fkey\" on \"AdCampaign\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AdCampaign_advertiserId_fkey",
+        "table": "AdCampaign"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AdCampaign_advertiserId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdCampaign_advertiserId_fkey",
+          "public",
+          "\"public\".\"AdCampaign\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AdCampaign_advertiserId_fkey\" on \"AdCampaign\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AdCampaign_advertiserId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AdCampaign\"\nADD CONSTRAINT \"AdCampaign_advertiserId_fkey\"\nFOREIGN KEY (\"advertiserId\")\nREFERENCES \"public\".\"Advertiser\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AdCampaign_advertiserId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AdCampaign_advertiserId_fkey",
+          "public",
+          "\"public\".\"AdCampaign\"",
+          "f",
+          "[\"advertiserId\"]",
+          "\"public\".\"Advertiser\"",
+          "[\"id\"]",
+          "n",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AdClick.AdClick_campaignId_fkey",
+    "label": "Add foreign key \"AdClick_campaignId_fkey\" on \"AdClick\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AdClick_campaignId_fkey",
+        "table": "AdClick"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AdClick_campaignId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdClick_campaignId_fkey",
+          "public",
+          "\"public\".\"AdClick\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AdClick_campaignId_fkey\" on \"AdClick\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AdClick_campaignId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AdClick\"\nADD CONSTRAINT \"AdClick_campaignId_fkey\"\nFOREIGN KEY (\"campaignId\")\nREFERENCES \"public\".\"AdCampaign\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AdClick_campaignId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AdClick_campaignId_fkey",
+          "public",
+          "\"public\".\"AdClick\"",
+          "f",
+          "[\"campaignId\"]",
+          "\"public\".\"AdCampaign\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AdCreative.AdCreative_campaignId_fkey",
+    "label": "Add foreign key \"AdCreative_campaignId_fkey\" on \"AdCreative\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AdCreative_campaignId_fkey",
+        "table": "AdCreative"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AdCreative_campaignId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdCreative_campaignId_fkey",
+          "public",
+          "\"public\".\"AdCreative\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AdCreative_campaignId_fkey\" on \"AdCreative\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AdCreative_campaignId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AdCreative\"\nADD CONSTRAINT \"AdCreative_campaignId_fkey\"\nFOREIGN KEY (\"campaignId\")\nREFERENCES \"public\".\"AdCampaign\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AdCreative_campaignId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AdCreative_campaignId_fkey",
+          "public",
+          "\"public\".\"AdCreative\"",
+          "f",
+          "[\"campaignId\"]",
+          "\"public\".\"AdCampaign\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AdImpression.AdImpression_campaignId_fkey",
+    "label": "Add foreign key \"AdImpression_campaignId_fkey\" on \"AdImpression\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AdImpression_campaignId_fkey",
+        "table": "AdImpression"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AdImpression_campaignId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdImpression_campaignId_fkey",
+          "public",
+          "\"public\".\"AdImpression\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AdImpression_campaignId_fkey\" on \"AdImpression\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AdImpression_campaignId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AdImpression\"\nADD CONSTRAINT \"AdImpression_campaignId_fkey\"\nFOREIGN KEY (\"campaignId\")\nREFERENCES \"public\".\"AdCampaign\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AdImpression_campaignId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AdImpression_campaignId_fkey",
+          "public",
+          "\"public\".\"AdImpression\"",
+          "f",
+          "[\"campaignId\"]",
+          "\"public\".\"AdCampaign\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AdvertisingApplication.AdvertisingApplication_reviewedById_fkey",
+    "label": "Add foreign key \"AdvertisingApplication_reviewedById_fkey\" on \"AdvertisingApplication\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AdvertisingApplication_reviewedById_fkey",
+        "table": "AdvertisingApplication"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AdvertisingApplication_reviewedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdvertisingApplication_reviewedById_fkey",
+          "public",
+          "\"public\".\"AdvertisingApplication\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AdvertisingApplication_reviewedById_fkey\" on \"AdvertisingApplication\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AdvertisingApplication_reviewedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AdvertisingApplication\"\nADD CONSTRAINT \"AdvertisingApplication_reviewedById_fkey\"\nFOREIGN KEY (\"reviewedById\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AdvertisingApplication_reviewedById_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AdvertisingApplication_reviewedById_fkey",
+          "public",
+          "\"public\".\"AdvertisingApplication\"",
+          "f",
+          "[\"reviewedById\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "n",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.PartnerHistory.PartnerHistory_partnerId_fkey",
+    "label": "Add foreign key \"PartnerHistory_partnerId_fkey\" on \"PartnerHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "PartnerHistory_partnerId_fkey",
+        "table": "PartnerHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"PartnerHistory_partnerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "PartnerHistory_partnerId_fkey",
+          "public",
+          "\"public\".\"PartnerHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"PartnerHistory_partnerId_fkey\" on \"PartnerHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"PartnerHistory_partnerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"PartnerHistory\"\nADD CONSTRAINT \"PartnerHistory_partnerId_fkey\"\nFOREIGN KEY (\"partnerId\")\nREFERENCES \"public\".\"Partner\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"PartnerHistory_partnerId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "PartnerHistory_partnerId_fkey",
+          "public",
+          "\"public\".\"PartnerHistory\"",
+          "f",
+          "[\"partnerId\"]",
+          "\"public\".\"Partner\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.PartnerHistory.PartnerHistory_relationshipId_fkey",
+    "label": "Add foreign key \"PartnerHistory_relationshipId_fkey\" on \"PartnerHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "PartnerHistory_relationshipId_fkey",
+        "table": "PartnerHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"PartnerHistory_relationshipId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "PartnerHistory_relationshipId_fkey",
+          "public",
+          "\"public\".\"PartnerHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"PartnerHistory_relationshipId_fkey\" on \"PartnerHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"PartnerHistory_relationshipId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"PartnerHistory\"\nADD CONSTRAINT \"PartnerHistory_relationshipId_fkey\"\nFOREIGN KEY (\"relationshipId\")\nREFERENCES \"public\".\"PartnerRelationship\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"PartnerHistory_relationshipId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "PartnerHistory_relationshipId_fkey",
+          "public",
+          "\"public\".\"PartnerHistory\"",
+          "f",
+          "[\"relationshipId\"]",
+          "\"public\".\"PartnerRelationship\"",
+          "[\"id\"]",
+          "n",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.PartnerRelationship.PartnerRelationship_partnerId_fkey",
+    "label": "Add foreign key \"PartnerRelationship_partnerId_fkey\" on \"PartnerRelationship\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "PartnerRelationship_partnerId_fkey",
+        "table": "PartnerRelationship"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"PartnerRelationship_partnerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "PartnerRelationship_partnerId_fkey",
+          "public",
+          "\"public\".\"PartnerRelationship\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"PartnerRelationship_partnerId_fkey\" on \"PartnerRelationship\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"PartnerRelationship_partnerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"PartnerRelationship\"\nADD CONSTRAINT \"PartnerRelationship_partnerId_fkey\"\nFOREIGN KEY (\"partnerId\")\nREFERENCES \"public\".\"Partner\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"PartnerRelationship_partnerId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "PartnerRelationship_partnerId_fkey",
+          "public",
+          "\"public\".\"PartnerRelationship\"",
+          "f",
+          "[\"partnerId\"]",
+          "\"public\".\"Partner\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

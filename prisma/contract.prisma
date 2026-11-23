@@ -921,3 +921,258 @@ model DownloadSyncLog {
   @@index([status])
 }
 
+// ---------------------------------------------------------------------------
+// Advertising & Sponsoring System
+// ---------------------------------------------------------------------------
+
+enum AdvertiserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum ApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum AdCampaignStatus {
+  DRAFT
+  PENDING_REVIEW
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+enum AdPlacementType {
+  HOMEPAGE
+  DOWNLOAD_PAGE
+  PUBLIC_PAGES
+}
+
+enum AdFormat {
+  BANNER
+  SPONSOR_CARD
+  LOGO_LINK
+  CUSTOM
+}
+
+// Advertiser (Werbepartner - veraltet, durch Partner ersetzt)
+model Advertiser {
+  id          String           @id @onCreate(uuid(7))
+  companyName String
+  contactName String
+  email       String
+  websiteUrl  String?
+  description String?
+  logoUrl     String?
+  status      AdvertiserStatus @default(ACTIVE)
+  createdAt   DateTime         @onCreate(now())
+  updatedAt   DateTime         @onCreate(now()) @onUpdate(now())
+
+  @@index([status])
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// Partner & Sponsoren Portal
+// ---------------------------------------------------------------------------
+
+enum PartnerStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum PartnerRelationshipType {
+  OFFICIAL_PARTNER
+  TECHNICAL_PARTNER
+  SPONSOR
+  MEDIA_PARTNER
+  STRATEGIC_PARTNER
+}
+
+enum PartnerRelationshipStatus {
+  ACTIVE
+  ENDED
+  PAUSED
+}
+
+// Partner (Unternehmen)
+model Partner {
+  id          String     @id @onCreate(uuid(7))
+  companyName String
+  description String?
+  websiteUrl  String?
+  logoUrl     String?
+  isFeatured Boolean    @default(false)
+  status      PartnerStatus @default(ACTIVE)
+  createdAt   DateTime   @onCreate(now())
+  updatedAt   DateTime   @onCreate(now()) @onUpdate(now())
+
+  relationships PartnerRelationship[]
+  history       PartnerHistory[]
+
+  @@index([status])
+  @@index([isFeatured])
+}
+
+// PartnerRelationship (Partnerschaftsverhältnis)
+model PartnerRelationship {
+  id         String                  @id @onCreate(uuid(7))
+  partnerId  String
+  type       PartnerRelationshipType
+  startDate  DateTime
+  endDate    DateTime?
+  status     PartnerRelationshipStatus @default(ACTIVE)
+  isPublic   Boolean                 @default(false)
+  createdAt  DateTime                @onCreate(now())
+  updatedAt  DateTime                @onCreate(now()) @onUpdate(now())
+
+  partner    Partner                 @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  history    PartnerHistory[]
+
+  @@index([partnerId])
+  @@index([type])
+  @@index([status])
+  @@index([isPublic])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+// PartnerHistory (Historie der Änderungen)
+model PartnerHistory {
+  id          String   @id @onCreate(uuid(7))
+  partnerId   String
+  relationshipId String?
+  action      String
+  details     String?
+  performedBy String?
+  createdAt   DateTime @onCreate(now())
+
+  partner       Partner               @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  relationship PartnerRelationship?   @relation(fields: [relationshipId], references: [id], onDelete: SetNull)
+
+  @@index([partnerId])
+  @@index([relationshipId])
+  @@index([createdAt])
+}
+
+// Advertising Application (Bewerbungen)
+model AdvertisingApplication {
+  id                 String           @id @onCreate(uuid(7))
+  companyName        String
+  contactName        String
+  email              String
+  websiteUrl         String?
+  phone              String?
+  adFormat           AdFormat
+  placement          AdPlacementType
+  desiredStartDate   DateTime?
+  desiredEndDate     DateTime?
+  description        String
+  desiredBudget      String?
+  customMessage      String?
+  status             ApplicationStatus @default(PENDING)
+  rejectionReason    String?
+  internalNotes      String?
+  reviewedById       String?
+  reviewedAt         DateTime?
+  createdAt          DateTime         @onCreate(now())
+  updatedAt          DateTime         @onCreate(now()) @onUpdate(now())
+
+  reviewedBy          User?            @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+// Ad Campaign (Kampagnen)
+model AdCampaign {
+  id            String          @id @onCreate(uuid(7))
+  partnerId     String?
+  advertiserId  String?
+  name          String
+  description   String?
+  placement     AdPlacementType
+  format        AdFormat
+  startDate     DateTime
+  endDate       DateTime
+  targetUrl     String
+  status        AdCampaignStatus @default(DRAFT)
+  internalNotes String?
+  createdAt     DateTime        @onCreate(now())
+  updatedAt     DateTime        @onCreate(now()) @onUpdate(now())
+
+  partner       Partner?         @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  advertiser    Advertiser?     @relation(fields: [advertiserId], references: [id], onDelete: SetNull)
+  creatives     AdCreative[]
+  impressions   AdImpression[]
+  clicks        AdClick[]
+
+  @@index([partnerId])
+  @@index([advertiserId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([placement])
+}
+
+// Ad Creative (Werbemittel)
+model AdCreative {
+  id          String   @id @onCreate(uuid(7))
+  campaignId  String
+  imageUrl    String
+  altText     String?
+  width       Int
+  height      Int
+  fileSize    Int
+  contentType String
+  createdAt   DateTime @onCreate(now())
+
+  campaign    AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+// Ad Impression (Impressionen)
+model AdImpression {
+  id          String   @id @onCreate(uuid(7))
+  campaignId  String
+  placement   AdPlacementType
+  day         DateTime
+  count       Int      @default(1)
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+  campaign    AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, placement, day])
+  @@index([day])
+  @@index([placement])
+}
+
+// Ad Click (Klicks)
+model AdClick {
+  id          String   @id @onCreate(uuid(7))
+  campaignId  String
+  placement   AdPlacementType
+  day         DateTime
+  count       Int      @default(1)
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+  campaign    AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, placement, day])
+  @@index([day])
+  @@index([placement])
+}
+

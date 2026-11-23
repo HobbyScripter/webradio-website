@@ -4,6 +4,9 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Konto',
   robots: { index: false, follow: false },
+  // Password-reset and verification links carry a one-time token in the URL.
+  // The browser must not send that URL to any other origin as a Referer.
+  referrer: 'no-referrer',
 };
 
 export default function AuthLayout({

@@ -7,7 +7,9 @@
  * logged.
  */
 import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 import { logServerError, toPublicError } from './auth-service';
+import { RuleError } from './rule-error';
 
 type JsonObjectResult =
   | { ok: true; body: Record<string, unknown> }
@@ -42,6 +44,33 @@ export async function readJsonObject(request: Request): Promise<JsonObjectResult
 }
 
 export function errorResponse(scope: string, error: unknown): NextResponse {
+  // A schema rejection is a client error, not an internal one. The issues are
+  // safe to return; they name fields and messages, never values.
+  if (error instanceof ZodError) {
+    logServerError(scope, error);
+    return NextResponse.json(
+      {
+        error: 'VALIDATION_ERROR',
+        message: 'Bitte prüfe die Angaben.',
+        issues: error.issues.map((issue) => ({
+          path: issue.path.map(String).join('.'),
+          message: issue.message,
+        })),
+      },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+
+  // A refused status transition or date order is the client's mistake, not a
+  // server failure; its message is written for the operator and safe to show.
+  if (error instanceof RuleError) {
+    logServerError(scope, error);
+    return NextResponse.json(
+      { error: 'RULE_VIOLATION', message: error.message },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+
   logServerError(scope, error);
 
   const { status, body } = toPublicError(error);

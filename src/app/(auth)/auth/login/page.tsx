@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { getSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useIsHydrated } from '@/lib/use-hydrated';
 
 function safeCallbackUrl(raw: string | null): string | null {
   if (!raw) {
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const hydrated = useIsHydrated();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +92,7 @@ export default function LoginPage() {
         </div>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form method="post" action="/auth/login" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="login-email"
@@ -141,7 +143,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !hydrated}
           className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-violet-950/40 transition-colors hover:bg-violet-500 disabled:opacity-50"
         >
           {loading ? 'Wird angemeldet …' : 'Anmelden'}

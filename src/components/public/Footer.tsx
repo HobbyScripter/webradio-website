@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import Brand from './Brand';
+import FooterNav from './FooterNav';
 import { Container } from '@/components/ui/layout';
 import { TERMS_LABEL, LEGAL_PAGE_PATHS } from '@/lib/legal-labels';
 import {
@@ -48,6 +48,13 @@ const LINK_GROUPS = [
     ],
   },
   {
+    title: 'Partner & Unternehmen',
+    links: [
+      { label: 'Unsere Partner', href: '/partners' },
+      { label: 'Werbung & Sponsoring', href: '/advertising' },
+    ],
+  },
+  {
     title: 'Rechtliches',
     links: [
       { label: 'Impressum', href: LEGAL_PAGE_PATHS.IMPRESSUM },
@@ -57,16 +64,13 @@ const LINK_GROUPS = [
   },
 ] as const;
 
-const linkClass =
-  'text-sm text-zinc-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#07070a] rounded';
-
 export default function Footer() {
   // The legal pages are permanent parts of the site, so their links are always
   // rendered — independent of environment variables, roles or account state.
   return (
     <footer className="border-t border-white/[0.07] bg-[#050507]">
       <Container className="py-14 sm:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1.5fr_repeat(5,minmax(0,1fr))]">
           <div>
             <Brand />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-zinc-400">
@@ -101,35 +105,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {LINK_GROUPS.map((group) => (
-            <nav key={group.title} aria-label={group.title}>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                {group.title}
-              </h2>
-              <ul className="mt-4 space-y-2.5">
-                {group.links.map((link) =>
-                  'external' in link && link.external ? (
-                    <li key={link.href}>
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={linkClass}
-                      >
-                        {link.label}
-                      </a>
-                    </li>
-                  ) : (
-                    <li key={link.href}>
-                      <Link href={link.href} className={linkClass}>
-                        {link.label}
-                      </Link>
-                    </li>
-                  ),
-                )}
-              </ul>
-            </nav>
-          ))}
+          <FooterNav groups={LINK_GROUPS} />
         </div>
 
         <div className="mt-10 space-y-3 border-t border-white/[0.07] pt-6 text-xs leading-relaxed text-zinc-500">
