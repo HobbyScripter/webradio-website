@@ -69,6 +69,8 @@ export const RATE_LIMITS = {
   // Anonymous page-view beacon: generous enough for real navigation, but stops
   // a script from filling the daily aggregates.
   pageViewIp: { limit: 120, windowSeconds: 60 },
+  // Public advertising application form: five submissions per minute per IP.
+  advertisingApplicationIp: { limit: 5, windowSeconds: 60 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 export type RateLimitScope = keyof typeof RATE_LIMITS;

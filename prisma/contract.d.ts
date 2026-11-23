@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'80e32e10d066867f39c44f1dd61537a5d28a2b6e1076b8a375c34cba034c89df'>;
+  StorageHashBase<'e54862c5d731bb20d89d75e46c4c0d41ab25a388639be96f2f02bcb0785ae1a6'>;
 export type ExecutionHash =
-  ExecutionHashBase<'563d38fe608cafa6b98fa77be72923b9411bd69e2ef355f5f4d69782173b13b4'>;
+  ExecutionHashBase<'d44909624484e1e9a67fde066f7431c79b8ba4075055d4d4b00657ce6203f85e'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -241,6 +241,66 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly AdCampaign: {
+        readonly format: {
+          readonly output: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+          readonly input: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+        };
+        readonly placement: {
+          readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+          readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        };
+        readonly status: {
+          readonly output:
+            | 'DRAFT'
+            | 'PENDING_REVIEW'
+            | 'SCHEDULED'
+            | 'ACTIVE'
+            | 'PAUSED'
+            | 'COMPLETED'
+            | 'REJECTED';
+          readonly input:
+            | 'DRAFT'
+            | 'PENDING_REVIEW'
+            | 'SCHEDULED'
+            | 'ACTIVE'
+            | 'PAUSED'
+            | 'COMPLETED'
+            | 'REJECTED';
+        };
+      };
+      readonly AdClick: {
+        readonly placement: {
+          readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+          readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        };
+      };
+      readonly AdImpression: {
+        readonly placement: {
+          readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+          readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        };
+      };
+      readonly Advertiser: {
+        readonly status: {
+          readonly output: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'ARCHIVED';
+          readonly input: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'ARCHIVED';
+        };
+      };
+      readonly AdvertisingApplication: {
+        readonly adFormat: {
+          readonly output: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+          readonly input: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+        };
+        readonly placement: {
+          readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+          readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        };
+        readonly status: {
+          readonly output: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+          readonly input: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+        };
+      };
       readonly AnalyticsSourceStatus: {
         readonly source: {
           readonly output:
@@ -365,6 +425,32 @@ type FieldTypeOverrides = {
           readonly input: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
         };
       };
+      readonly Partner: {
+        readonly status: {
+          readonly output: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+          readonly input: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+        };
+      };
+      readonly PartnerRelationship: {
+        readonly status: {
+          readonly output: 'ACTIVE' | 'ENDED' | 'PAUSED';
+          readonly input: 'ACTIVE' | 'ENDED' | 'PAUSED';
+        };
+        readonly type: {
+          readonly output:
+            | 'OFFICIAL_PARTNER'
+            | 'TECHNICAL_PARTNER'
+            | 'SPONSOR'
+            | 'MEDIA_PARTNER'
+            | 'STRATEGIC_PARTNER';
+          readonly input:
+            | 'OFFICIAL_PARTNER'
+            | 'TECHNICAL_PARTNER'
+            | 'SPONSOR'
+            | 'MEDIA_PARTNER'
+            | 'STRATEGIC_PARTNER';
+        };
+      };
       readonly Plugin: {
         readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
         readonly status: {
@@ -455,6 +541,54 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly AdCampaign: {
+      readonly format: {
+        readonly output: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+        readonly input: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+      };
+      readonly placement: {
+        readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+      };
+      readonly status: {
+        readonly output:
+          'DRAFT' | 'PENDING_REVIEW' | 'SCHEDULED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'REJECTED';
+        readonly input:
+          'DRAFT' | 'PENDING_REVIEW' | 'SCHEDULED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'REJECTED';
+      };
+    };
+    readonly AdClick: {
+      readonly placement: {
+        readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+      };
+    };
+    readonly AdImpression: {
+      readonly placement: {
+        readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+      };
+    };
+    readonly Advertiser: {
+      readonly status: {
+        readonly output: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'ARCHIVED';
+        readonly input: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'ARCHIVED';
+      };
+    };
+    readonly AdvertisingApplication: {
+      readonly adFormat: {
+        readonly output: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+        readonly input: 'BANNER' | 'SPONSOR_CARD' | 'LOGO_LINK' | 'CUSTOM';
+      };
+      readonly placement: {
+        readonly output: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+        readonly input: 'HOMEPAGE' | 'DOWNLOAD_PAGE' | 'PUBLIC_PAGES';
+      };
+      readonly status: {
+        readonly output: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+        readonly input: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+      };
+    };
     readonly AnalyticsSourceStatus: {
       readonly source: {
         readonly output:
@@ -579,6 +713,32 @@ type ColumnTypeOverrides = {
         readonly input: 'IMPRESSUM' | 'DATENSCHUTZ' | 'NUTZUNGSBEDINGUNGEN';
       };
     };
+    readonly Partner: {
+      readonly status: {
+        readonly output: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+        readonly input: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+      };
+    };
+    readonly PartnerRelationship: {
+      readonly status: {
+        readonly output: 'ACTIVE' | 'ENDED' | 'PAUSED';
+        readonly input: 'ACTIVE' | 'ENDED' | 'PAUSED';
+      };
+      readonly type: {
+        readonly output:
+          | 'OFFICIAL_PARTNER'
+          | 'TECHNICAL_PARTNER'
+          | 'SPONSOR'
+          | 'MEDIA_PARTNER'
+          | 'STRATEGIC_PARTNER';
+        readonly input:
+          | 'OFFICIAL_PARTNER'
+          | 'TECHNICAL_PARTNER'
+          | 'SPONSOR'
+          | 'MEDIA_PARTNER'
+          | 'STRATEGIC_PARTNER';
+      };
+    };
     readonly Plugin: {
       readonly product: { readonly output: 'WEBRADIO'; readonly input: 'WEBRADIO' };
       readonly status: {
@@ -668,6 +828,100 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 >;
 
 export namespace Models {
+  export type public_AdCampaign = {
+    advertiserId: FieldOutputTypes['public']['AdCampaign']['advertiserId'];
+    createdAt: FieldOutputTypes['public']['AdCampaign']['createdAt'];
+    description: FieldOutputTypes['public']['AdCampaign']['description'];
+    endDate: FieldOutputTypes['public']['AdCampaign']['endDate'];
+    format: FieldOutputTypes['public']['AdCampaign']['format'];
+    id: FieldOutputTypes['public']['AdCampaign']['id'];
+    internalNotes: FieldOutputTypes['public']['AdCampaign']['internalNotes'];
+    name: FieldOutputTypes['public']['AdCampaign']['name'];
+    partnerId: FieldOutputTypes['public']['AdCampaign']['partnerId'];
+    placement: FieldOutputTypes['public']['AdCampaign']['placement'];
+    startDate: FieldOutputTypes['public']['AdCampaign']['startDate'];
+    status: FieldOutputTypes['public']['AdCampaign']['status'];
+    targetUrl: FieldOutputTypes['public']['AdCampaign']['targetUrl'];
+    updatedAt: FieldOutputTypes['public']['AdCampaign']['updatedAt'];
+    advertiser: public_Advertiser | null;
+    clicks: public_AdClick[];
+    creatives: public_AdCreative[];
+    impressions: public_AdImpression[];
+    partner: public_Partner | null;
+    readonly [RelationKeys]?: 'advertiser' | 'clicks' | 'creatives' | 'impressions' | 'partner';
+  };
+  export type public_AdClick = {
+    campaignId: FieldOutputTypes['public']['AdClick']['campaignId'];
+    count: FieldOutputTypes['public']['AdClick']['count'];
+    createdAt: FieldOutputTypes['public']['AdClick']['createdAt'];
+    day: FieldOutputTypes['public']['AdClick']['day'];
+    id: FieldOutputTypes['public']['AdClick']['id'];
+    placement: FieldOutputTypes['public']['AdClick']['placement'];
+    updatedAt: FieldOutputTypes['public']['AdClick']['updatedAt'];
+    campaign: public_AdCampaign;
+    readonly [RelationKeys]?: 'campaign';
+  };
+  export type public_AdCreative = {
+    altText: FieldOutputTypes['public']['AdCreative']['altText'];
+    campaignId: FieldOutputTypes['public']['AdCreative']['campaignId'];
+    contentType: FieldOutputTypes['public']['AdCreative']['contentType'];
+    createdAt: FieldOutputTypes['public']['AdCreative']['createdAt'];
+    fileSize: FieldOutputTypes['public']['AdCreative']['fileSize'];
+    height: FieldOutputTypes['public']['AdCreative']['height'];
+    id: FieldOutputTypes['public']['AdCreative']['id'];
+    imageUrl: FieldOutputTypes['public']['AdCreative']['imageUrl'];
+    width: FieldOutputTypes['public']['AdCreative']['width'];
+    campaign: public_AdCampaign;
+    readonly [RelationKeys]?: 'campaign';
+  };
+  export type public_AdImpression = {
+    campaignId: FieldOutputTypes['public']['AdImpression']['campaignId'];
+    count: FieldOutputTypes['public']['AdImpression']['count'];
+    createdAt: FieldOutputTypes['public']['AdImpression']['createdAt'];
+    day: FieldOutputTypes['public']['AdImpression']['day'];
+    id: FieldOutputTypes['public']['AdImpression']['id'];
+    placement: FieldOutputTypes['public']['AdImpression']['placement'];
+    updatedAt: FieldOutputTypes['public']['AdImpression']['updatedAt'];
+    campaign: public_AdCampaign;
+    readonly [RelationKeys]?: 'campaign';
+  };
+  export type public_Advertiser = {
+    companyName: FieldOutputTypes['public']['Advertiser']['companyName'];
+    contactName: FieldOutputTypes['public']['Advertiser']['contactName'];
+    createdAt: FieldOutputTypes['public']['Advertiser']['createdAt'];
+    description: FieldOutputTypes['public']['Advertiser']['description'];
+    email: FieldOutputTypes['public']['Advertiser']['email'];
+    id: FieldOutputTypes['public']['Advertiser']['id'];
+    logoUrl: FieldOutputTypes['public']['Advertiser']['logoUrl'];
+    status: FieldOutputTypes['public']['Advertiser']['status'];
+    updatedAt: FieldOutputTypes['public']['Advertiser']['updatedAt'];
+    websiteUrl: FieldOutputTypes['public']['Advertiser']['websiteUrl'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_AdvertisingApplication = {
+    adFormat: FieldOutputTypes['public']['AdvertisingApplication']['adFormat'];
+    companyName: FieldOutputTypes['public']['AdvertisingApplication']['companyName'];
+    contactName: FieldOutputTypes['public']['AdvertisingApplication']['contactName'];
+    createdAt: FieldOutputTypes['public']['AdvertisingApplication']['createdAt'];
+    customMessage: FieldOutputTypes['public']['AdvertisingApplication']['customMessage'];
+    description: FieldOutputTypes['public']['AdvertisingApplication']['description'];
+    desiredBudget: FieldOutputTypes['public']['AdvertisingApplication']['desiredBudget'];
+    desiredEndDate: FieldOutputTypes['public']['AdvertisingApplication']['desiredEndDate'];
+    desiredStartDate: FieldOutputTypes['public']['AdvertisingApplication']['desiredStartDate'];
+    email: FieldOutputTypes['public']['AdvertisingApplication']['email'];
+    id: FieldOutputTypes['public']['AdvertisingApplication']['id'];
+    internalNotes: FieldOutputTypes['public']['AdvertisingApplication']['internalNotes'];
+    phone: FieldOutputTypes['public']['AdvertisingApplication']['phone'];
+    placement: FieldOutputTypes['public']['AdvertisingApplication']['placement'];
+    rejectionReason: FieldOutputTypes['public']['AdvertisingApplication']['rejectionReason'];
+    reviewedAt: FieldOutputTypes['public']['AdvertisingApplication']['reviewedAt'];
+    reviewedById: FieldOutputTypes['public']['AdvertisingApplication']['reviewedById'];
+    status: FieldOutputTypes['public']['AdvertisingApplication']['status'];
+    updatedAt: FieldOutputTypes['public']['AdvertisingApplication']['updatedAt'];
+    websiteUrl: FieldOutputTypes['public']['AdvertisingApplication']['websiteUrl'];
+    reviewedBy: public_User | null;
+    readonly [RelationKeys]?: 'reviewedBy';
+  };
   export type public_AnalyticsSourceStatus = {
     id: FieldOutputTypes['public']['AnalyticsSourceStatus']['id'];
     lastErrorCode: FieldOutputTypes['public']['AnalyticsSourceStatus']['lastErrorCode'];
@@ -968,6 +1222,46 @@ export namespace Models {
     updatedAt: FieldOutputTypes['public']['News']['updatedAt'];
     readonly [RelationKeys]?: never;
   };
+  export type public_Partner = {
+    companyName: FieldOutputTypes['public']['Partner']['companyName'];
+    createdAt: FieldOutputTypes['public']['Partner']['createdAt'];
+    description: FieldOutputTypes['public']['Partner']['description'];
+    id: FieldOutputTypes['public']['Partner']['id'];
+    isFeatured: FieldOutputTypes['public']['Partner']['isFeatured'];
+    logoUrl: FieldOutputTypes['public']['Partner']['logoUrl'];
+    status: FieldOutputTypes['public']['Partner']['status'];
+    updatedAt: FieldOutputTypes['public']['Partner']['updatedAt'];
+    websiteUrl: FieldOutputTypes['public']['Partner']['websiteUrl'];
+    history: public_PartnerHistory[];
+    relationships: public_PartnerRelationship[];
+    readonly [RelationKeys]?: 'history' | 'relationships';
+  };
+  export type public_PartnerHistory = {
+    action: FieldOutputTypes['public']['PartnerHistory']['action'];
+    createdAt: FieldOutputTypes['public']['PartnerHistory']['createdAt'];
+    details: FieldOutputTypes['public']['PartnerHistory']['details'];
+    id: FieldOutputTypes['public']['PartnerHistory']['id'];
+    partnerId: FieldOutputTypes['public']['PartnerHistory']['partnerId'];
+    performedBy: FieldOutputTypes['public']['PartnerHistory']['performedBy'];
+    relationshipId: FieldOutputTypes['public']['PartnerHistory']['relationshipId'];
+    partner: public_Partner;
+    relationship: public_PartnerRelationship | null;
+    readonly [RelationKeys]?: 'partner' | 'relationship';
+  };
+  export type public_PartnerRelationship = {
+    createdAt: FieldOutputTypes['public']['PartnerRelationship']['createdAt'];
+    endDate: FieldOutputTypes['public']['PartnerRelationship']['endDate'];
+    id: FieldOutputTypes['public']['PartnerRelationship']['id'];
+    isPublic: FieldOutputTypes['public']['PartnerRelationship']['isPublic'];
+    partnerId: FieldOutputTypes['public']['PartnerRelationship']['partnerId'];
+    startDate: FieldOutputTypes['public']['PartnerRelationship']['startDate'];
+    status: FieldOutputTypes['public']['PartnerRelationship']['status'];
+    type: FieldOutputTypes['public']['PartnerRelationship']['type'];
+    updatedAt: FieldOutputTypes['public']['PartnerRelationship']['updatedAt'];
+    history: public_PartnerHistory[];
+    partner: public_Partner;
+    readonly [RelationKeys]?: 'history' | 'partner';
+  };
   export type public_Plugin = {
     createdAt: FieldOutputTypes['public']['Plugin']['createdAt'];
     description: FieldOutputTypes['public']['Plugin']['description'];
@@ -1215,6 +1509,12 @@ export namespace Models {
 
 export declare const models: {
   public: {
+    AdCampaign: Models.public_AdCampaign;
+    AdClick: Models.public_AdClick;
+    AdCreative: Models.public_AdCreative;
+    AdImpression: Models.public_AdImpression;
+    Advertiser: Models.public_Advertiser;
+    AdvertisingApplication: Models.public_AdvertisingApplication;
     AnalyticsSourceStatus: Models.public_AnalyticsSourceStatus;
     AnalyticsSyncRun: Models.public_AnalyticsSyncRun;
     AuditLog: Models.public_AuditLog;
@@ -1241,6 +1541,9 @@ export declare const models: {
     LegalConsent: Models.public_LegalConsent;
     LegalDocument: Models.public_LegalDocument;
     News: Models.public_News;
+    Partner: Models.public_Partner;
+    PartnerHistory: Models.public_PartnerHistory;
+    PartnerRelationship: Models.public_PartnerRelationship;
     Plugin: Models.public_Plugin;
     PluginScreenshot: Models.public_PluginScreenshot;
     PluginTag: Models.public_PluginTag;
@@ -1280,6 +1583,673 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly AdCampaign: {
+              columns: {
+                readonly advertiserId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly description: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly endDate: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly format: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly internalNotes: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly name: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly partnerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly placement: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly startDate: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'DRAFT'>;
+                  };
+                  readonly many: false;
+                };
+                readonly targetUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'AdCampaign_advertiserId_idx_d211eb82';
+                  readonly prefix: 'AdCampaign_advertiserId_idx';
+                  readonly columns: readonly ['advertiserId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdCampaign_endDate_idx_4a9a40fb';
+                  readonly prefix: 'AdCampaign_endDate_idx';
+                  readonly columns: readonly ['endDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdCampaign_partnerId_idx_bf5b312c';
+                  readonly prefix: 'AdCampaign_partnerId_idx';
+                  readonly columns: readonly ['partnerId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdCampaign_placement_idx_29de1d43';
+                  readonly prefix: 'AdCampaign_placement_idx';
+                  readonly columns: readonly ['placement'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdCampaign_startDate_idx_9ce08316';
+                  readonly prefix: 'AdCampaign_startDate_idx';
+                  readonly columns: readonly ['startDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdCampaign_status_idx_e98638ab';
+                  readonly prefix: 'AdCampaign_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdCampaign';
+                    readonly columns: readonly ['partnerId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Partner';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdCampaign';
+                    readonly columns: readonly ['advertiserId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Advertiser';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly AdClick: {
+              columns: {
+                readonly campaignId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly day: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly placement: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['campaignId', 'placement', 'day'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'AdClick_campaignId_idx_3aacd648';
+                  readonly prefix: 'AdClick_campaignId_idx';
+                  readonly columns: readonly ['campaignId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdClick_day_idx_930fcf9b';
+                  readonly prefix: 'AdClick_day_idx';
+                  readonly columns: readonly ['day'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdClick_placement_idx_29de1d43';
+                  readonly prefix: 'AdClick_placement_idx';
+                  readonly columns: readonly ['placement'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdClick';
+                    readonly columns: readonly ['campaignId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdCampaign';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly AdCreative: {
+              columns: {
+                readonly altText: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly campaignId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly contentType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly fileSize: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly height: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly imageUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly width: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'AdCreative_campaignId_idx_3aacd648';
+                  readonly prefix: 'AdCreative_campaignId_idx';
+                  readonly columns: readonly ['campaignId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdCreative';
+                    readonly columns: readonly ['campaignId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdCampaign';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly AdImpression: {
+              columns: {
+                readonly campaignId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly count: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly day: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly placement: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['campaignId', 'placement', 'day'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'AdImpression_campaignId_idx_3aacd648';
+                  readonly prefix: 'AdImpression_campaignId_idx';
+                  readonly columns: readonly ['campaignId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdImpression_day_idx_930fcf9b';
+                  readonly prefix: 'AdImpression_day_idx';
+                  readonly columns: readonly ['day'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdImpression_placement_idx_29de1d43';
+                  readonly prefix: 'AdImpression_placement_idx';
+                  readonly columns: readonly ['placement'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdImpression';
+                    readonly columns: readonly ['campaignId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdCampaign';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly Advertiser: {
+              columns: {
+                readonly companyName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly contactName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly description: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly email: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly logoUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly websiteUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Advertiser_email_idx_46df9cad';
+                  readonly prefix: 'Advertiser_email_idx';
+                  readonly columns: readonly ['email'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Advertiser_status_idx_e98638ab';
+                  readonly prefix: 'Advertiser_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly AdvertisingApplication: {
+              columns: {
+                readonly adFormat: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly companyName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly contactName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly customMessage: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly description: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly desiredBudget: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly desiredEndDate: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly desiredStartDate: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly email: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly internalNotes: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly phone: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly placement: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly rejectionReason: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly reviewedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly reviewedById: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'PENDING'>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly websiteUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'AdvertisingApplication_createdAt_idx_9575dbd7';
+                  readonly prefix: 'AdvertisingApplication_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdvertisingApplication_email_idx_46df9cad';
+                  readonly prefix: 'AdvertisingApplication_email_idx';
+                  readonly columns: readonly ['email'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdvertisingApplication_reviewedById_idx_e2835478';
+                  readonly prefix: 'AdvertisingApplication_reviewedById_idx';
+                  readonly columns: readonly ['reviewedById'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AdvertisingApplication_status_idx_e98638ab';
+                  readonly prefix: 'AdvertisingApplication_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AdvertisingApplication';
+                    readonly columns: readonly ['reviewedById'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly AnalyticsSourceStatus: {
               columns: {
                 readonly id: {
@@ -3203,6 +4173,303 @@ type ContractBase = Omit<
               ];
               foreignKeys: readonly [];
             };
+            readonly Partner: {
+              columns: {
+                readonly companyName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly description: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly isFeatured: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
+                readonly logoUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly websiteUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Partner_isFeatured_idx_4ec5a125';
+                  readonly prefix: 'Partner_isFeatured_idx';
+                  readonly columns: readonly ['isFeatured'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Partner_status_idx_e98638ab';
+                  readonly prefix: 'Partner_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly PartnerHistory: {
+              columns: {
+                readonly action: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly details: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly partnerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly performedBy: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly relationshipId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'PartnerHistory_createdAt_idx_9575dbd7';
+                  readonly prefix: 'PartnerHistory_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PartnerHistory_partnerId_idx_bf5b312c';
+                  readonly prefix: 'PartnerHistory_partnerId_idx';
+                  readonly columns: readonly ['partnerId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PartnerHistory_relationshipId_idx_51f7e2f7';
+                  readonly prefix: 'PartnerHistory_relationshipId_idx';
+                  readonly columns: readonly ['relationshipId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'PartnerHistory';
+                    readonly columns: readonly ['partnerId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Partner';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'PartnerHistory';
+                    readonly columns: readonly ['relationshipId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'PartnerRelationship';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly PartnerRelationship: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly endDate: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly isPublic: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
+                readonly partnerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly startDate: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'PartnerRelationship_endDate_idx_4a9a40fb';
+                  readonly prefix: 'PartnerRelationship_endDate_idx';
+                  readonly columns: readonly ['endDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PartnerRelationship_isPublic_idx_ceb5dcf6';
+                  readonly prefix: 'PartnerRelationship_isPublic_idx';
+                  readonly columns: readonly ['isPublic'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PartnerRelationship_partnerId_idx_bf5b312c';
+                  readonly prefix: 'PartnerRelationship_partnerId_idx';
+                  readonly columns: readonly ['partnerId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PartnerRelationship_startDate_idx_9ce08316';
+                  readonly prefix: 'PartnerRelationship_startDate_idx';
+                  readonly columns: readonly ['startDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PartnerRelationship_status_idx_e98638ab';
+                  readonly prefix: 'PartnerRelationship_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'PartnerRelationship_type_idx_b6b604ea';
+                  readonly prefix: 'PartnerRelationship_type_idx';
+                  readonly columns: readonly ['type'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'PartnerRelationship';
+                    readonly columns: readonly ['partnerId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Partner';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly Plugin: {
               columns: {
                 readonly createdAt: {
@@ -4805,6 +6072,30 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly AdCampaignStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'DRAFT',
+                'PENDING_REVIEW',
+                'SCHEDULED',
+                'ACTIVE',
+                'PAUSED',
+                'COMPLETED',
+                'REJECTED',
+              ];
+            };
+            readonly AdFormat: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['BANNER', 'SPONSOR_CARD', 'LOGO_LINK', 'CUSTOM'];
+            };
+            readonly AdPlacementType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['HOMEPAGE', 'DOWNLOAD_PAGE', 'PUBLIC_PAGES'];
+            };
+            readonly AdvertiserStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'ARCHIVED'];
+            };
             readonly AnalyticsSource: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -4831,6 +6122,16 @@ type ContractBase = Omit<
                 'PENDING',
                 'EMPTY',
                 'UNSUPPORTED',
+              ];
+            };
+            readonly ApplicationStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'PENDING',
+                'UNDER_REVIEW',
+                'APPROVED',
+                'REJECTED',
+                'WITHDRAWN',
               ];
             };
             readonly AuthTokenType: {
@@ -4866,6 +6167,24 @@ type ContractBase = Omit<
             readonly LegalDocumentType: {
               readonly kind: 'valueSet';
               readonly values: readonly ['IMPRESSUM', 'DATENSCHUTZ', 'NUTZUNGSBEDINGUNGEN'];
+            };
+            readonly PartnerRelationshipStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVE', 'ENDED', 'PAUSED'];
+            };
+            readonly PartnerRelationshipType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'OFFICIAL_PARTNER',
+                'TECHNICAL_PARTNER',
+                'SPONSOR',
+                'MEDIA_PARTNER',
+                'STRATEGIC_PARTNER',
+              ];
+            };
+            readonly PartnerStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVE', 'INACTIVE', 'ARCHIVED'];
             };
             readonly PluginStatus: {
               readonly kind: 'valueSet';
@@ -4938,6 +6257,27 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly AdCampaign: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AdCampaign';
+    };
+    readonly AdClick: { readonly namespace: 'public' & NamespaceId; readonly model: 'AdClick' };
+    readonly AdCreative: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AdCreative';
+    };
+    readonly AdImpression: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AdImpression';
+    };
+    readonly Advertiser: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'Advertiser';
+    };
+    readonly AdvertisingApplication: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AdvertisingApplication';
+    };
     readonly AnalyticsSourceStatus: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'AnalyticsSourceStatus';
@@ -5030,6 +6370,15 @@ type ContractBase = Omit<
       readonly model: 'LegalDocument';
     };
     readonly News: { readonly namespace: 'public' & NamespaceId; readonly model: 'News' };
+    readonly Partner: { readonly namespace: 'public' & NamespaceId; readonly model: 'Partner' };
+    readonly PartnerHistory: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'PartnerHistory';
+    };
+    readonly PartnerRelationship: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'PartnerRelationship';
+    };
     readonly Plugin: { readonly namespace: 'public' & NamespaceId; readonly model: 'Plugin' };
     readonly PluginScreenshot: {
       readonly namespace: 'public' & NamespaceId;
@@ -5086,6 +6435,568 @@ type ContractBase = Omit<
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly AdCampaign: {
+            readonly fields: {
+              readonly advertiserId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly description: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly endDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly format: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly internalNotes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly name: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly partnerId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly placement: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly targetUrl: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly advertiser: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Advertiser';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['advertiserId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly clicks: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AdClick';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['campaignId'];
+                };
+              };
+              readonly creatives: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AdCreative';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['campaignId'];
+                };
+              };
+              readonly impressions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AdImpression';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['campaignId'];
+                };
+              };
+              readonly partner: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Partner';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['partnerId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'AdCampaign';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly advertiserId: { readonly column: 'advertiserId' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly description: { readonly column: 'description' };
+                readonly endDate: { readonly column: 'endDate' };
+                readonly format: { readonly column: 'format' };
+                readonly id: { readonly column: 'id' };
+                readonly internalNotes: { readonly column: 'internalNotes' };
+                readonly name: { readonly column: 'name' };
+                readonly partnerId: { readonly column: 'partnerId' };
+                readonly placement: { readonly column: 'placement' };
+                readonly startDate: { readonly column: 'startDate' };
+                readonly status: { readonly column: 'status' };
+                readonly targetUrl: { readonly column: 'targetUrl' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly AdClick: {
+            readonly fields: {
+              readonly campaignId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly day: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly placement: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly campaign: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AdCampaign';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['campaignId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'AdClick';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly campaignId: { readonly column: 'campaignId' };
+                readonly count: { readonly column: 'count' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly day: { readonly column: 'day' };
+                readonly id: { readonly column: 'id' };
+                readonly placement: { readonly column: 'placement' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly AdCreative: {
+            readonly fields: {
+              readonly altText: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly campaignId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly contentType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly fileSize: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly height: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly imageUrl: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly width: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly campaign: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AdCampaign';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['campaignId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'AdCreative';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly altText: { readonly column: 'altText' };
+                readonly campaignId: { readonly column: 'campaignId' };
+                readonly contentType: { readonly column: 'contentType' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly fileSize: { readonly column: 'fileSize' };
+                readonly height: { readonly column: 'height' };
+                readonly id: { readonly column: 'id' };
+                readonly imageUrl: { readonly column: 'imageUrl' };
+                readonly width: { readonly column: 'width' };
+              };
+            };
+          };
+          readonly AdImpression: {
+            readonly fields: {
+              readonly campaignId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly count: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly day: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly placement: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly campaign: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AdCampaign';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['campaignId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'AdImpression';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly campaignId: { readonly column: 'campaignId' };
+                readonly count: { readonly column: 'count' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly day: { readonly column: 'day' };
+                readonly id: { readonly column: 'id' };
+                readonly placement: { readonly column: 'placement' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly Advertiser: {
+            readonly fields: {
+              readonly companyName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly contactName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly description: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly email: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly logoUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly websiteUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'Advertiser';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly companyName: { readonly column: 'companyName' };
+                readonly contactName: { readonly column: 'contactName' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly description: { readonly column: 'description' };
+                readonly email: { readonly column: 'email' };
+                readonly id: { readonly column: 'id' };
+                readonly logoUrl: { readonly column: 'logoUrl' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly websiteUrl: { readonly column: 'websiteUrl' };
+              };
+            };
+          };
+          readonly AdvertisingApplication: {
+            readonly fields: {
+              readonly adFormat: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly companyName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly contactName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly customMessage: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly description: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly desiredBudget: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly desiredEndDate: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly desiredStartDate: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly email: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly internalNotes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly phone: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly placement: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly rejectionReason: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly reviewedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly reviewedById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly websiteUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly reviewedBy: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['reviewedById'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'AdvertisingApplication';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly adFormat: { readonly column: 'adFormat' };
+                readonly companyName: { readonly column: 'companyName' };
+                readonly contactName: { readonly column: 'contactName' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly customMessage: { readonly column: 'customMessage' };
+                readonly description: { readonly column: 'description' };
+                readonly desiredBudget: { readonly column: 'desiredBudget' };
+                readonly desiredEndDate: { readonly column: 'desiredEndDate' };
+                readonly desiredStartDate: { readonly column: 'desiredStartDate' };
+                readonly email: { readonly column: 'email' };
+                readonly id: { readonly column: 'id' };
+                readonly internalNotes: { readonly column: 'internalNotes' };
+                readonly phone: { readonly column: 'phone' };
+                readonly placement: { readonly column: 'placement' };
+                readonly rejectionReason: { readonly column: 'rejectionReason' };
+                readonly reviewedAt: { readonly column: 'reviewedAt' };
+                readonly reviewedById: { readonly column: 'reviewedById' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly websiteUrl: { readonly column: 'websiteUrl' };
+              };
+            };
+          };
           readonly AnalyticsSourceStatus: {
             readonly fields: {
               readonly id: {
@@ -6734,6 +8645,257 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly Partner: {
+            readonly fields: {
+              readonly companyName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly description: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly isFeatured: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly logoUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly websiteUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly history: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'PartnerHistory';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['partnerId'];
+                };
+              };
+              readonly relationships: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'PartnerRelationship';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['partnerId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Partner';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly companyName: { readonly column: 'companyName' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly description: { readonly column: 'description' };
+                readonly id: { readonly column: 'id' };
+                readonly isFeatured: { readonly column: 'isFeatured' };
+                readonly logoUrl: { readonly column: 'logoUrl' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly websiteUrl: { readonly column: 'websiteUrl' };
+              };
+            };
+          };
+          readonly PartnerHistory: {
+            readonly fields: {
+              readonly action: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly details: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly partnerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly performedBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly relationshipId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly partner: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Partner';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['partnerId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly relationship: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'PartnerRelationship';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['relationshipId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'PartnerHistory';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly action: { readonly column: 'action' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly details: { readonly column: 'details' };
+                readonly id: { readonly column: 'id' };
+                readonly partnerId: { readonly column: 'partnerId' };
+                readonly performedBy: { readonly column: 'performedBy' };
+                readonly relationshipId: { readonly column: 'relationshipId' };
+              };
+            };
+          };
+          readonly PartnerRelationship: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly endDate: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly isPublic: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly partnerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly history: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'PartnerHistory';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['relationshipId'];
+                };
+              };
+              readonly partner: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Partner';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['partnerId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'PartnerRelationship';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly endDate: { readonly column: 'endDate' };
+                readonly id: { readonly column: 'id' };
+                readonly isPublic: { readonly column: 'isPublic' };
+                readonly partnerId: { readonly column: 'partnerId' };
+                readonly startDate: { readonly column: 'startDate' };
+                readonly status: { readonly column: 'status' };
+                readonly type: { readonly column: 'type' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly Plugin: {
             readonly fields: {
               readonly createdAt: {
@@ -8114,6 +10276,44 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
+          readonly AdCampaignStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
+              { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
+              { readonly name: 'SCHEDULED'; readonly value: 'SCHEDULED' },
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'PAUSED'; readonly value: 'PAUSED' },
+              { readonly name: 'COMPLETED'; readonly value: 'COMPLETED' },
+              { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+            ];
+          };
+          readonly AdFormat: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'BANNER'; readonly value: 'BANNER' },
+              { readonly name: 'SPONSOR_CARD'; readonly value: 'SPONSOR_CARD' },
+              { readonly name: 'LOGO_LINK'; readonly value: 'LOGO_LINK' },
+              { readonly name: 'CUSTOM'; readonly value: 'CUSTOM' },
+            ];
+          };
+          readonly AdPlacementType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'HOMEPAGE'; readonly value: 'HOMEPAGE' },
+              { readonly name: 'DOWNLOAD_PAGE'; readonly value: 'DOWNLOAD_PAGE' },
+              { readonly name: 'PUBLIC_PAGES'; readonly value: 'PUBLIC_PAGES' },
+            ];
+          };
+          readonly AdvertiserStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
+              { readonly name: 'SUSPENDED'; readonly value: 'SUSPENDED' },
+              { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
+            ];
+          };
           readonly AnalyticsSource: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -8140,6 +10340,16 @@ type ContractBase = Omit<
               { readonly name: 'PENDING'; readonly value: 'PENDING' },
               { readonly name: 'EMPTY'; readonly value: 'EMPTY' },
               { readonly name: 'UNSUPPORTED'; readonly value: 'UNSUPPORTED' },
+            ];
+          };
+          readonly ApplicationStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'PENDING'; readonly value: 'PENDING' },
+              { readonly name: 'UNDER_REVIEW'; readonly value: 'UNDER_REVIEW' },
+              { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
+              { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+              { readonly name: 'WITHDRAWN'; readonly value: 'WITHDRAWN' },
             ];
           };
           readonly AuthTokenType: {
@@ -8198,6 +10408,32 @@ type ContractBase = Omit<
               { readonly name: 'IMPRESSUM'; readonly value: 'IMPRESSUM' },
               { readonly name: 'DATENSCHUTZ'; readonly value: 'DATENSCHUTZ' },
               { readonly name: 'NUTZUNGSBEDINGUNGEN'; readonly value: 'NUTZUNGSBEDINGUNGEN' },
+            ];
+          };
+          readonly PartnerRelationshipStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'ENDED'; readonly value: 'ENDED' },
+              { readonly name: 'PAUSED'; readonly value: 'PAUSED' },
+            ];
+          };
+          readonly PartnerRelationshipType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'OFFICIAL_PARTNER'; readonly value: 'OFFICIAL_PARTNER' },
+              { readonly name: 'TECHNICAL_PARTNER'; readonly value: 'TECHNICAL_PARTNER' },
+              { readonly name: 'SPONSOR'; readonly value: 'SPONSOR' },
+              { readonly name: 'MEDIA_PARTNER'; readonly value: 'MEDIA_PARTNER' },
+              { readonly name: 'STRATEGIC_PARTNER'; readonly value: 'STRATEGIC_PARTNER' },
+            ];
+          };
+          readonly PartnerStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
+              { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
             ];
           };
           readonly PluginStatus: {
@@ -8291,6 +10527,32 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly AdCampaignStatus: readonly [
+            { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
+            { readonly name: 'PENDING_REVIEW'; readonly value: 'PENDING_REVIEW' },
+            { readonly name: 'SCHEDULED'; readonly value: 'SCHEDULED' },
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'PAUSED'; readonly value: 'PAUSED' },
+            { readonly name: 'COMPLETED'; readonly value: 'COMPLETED' },
+            { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+          ];
+          readonly AdFormat: readonly [
+            { readonly name: 'BANNER'; readonly value: 'BANNER' },
+            { readonly name: 'SPONSOR_CARD'; readonly value: 'SPONSOR_CARD' },
+            { readonly name: 'LOGO_LINK'; readonly value: 'LOGO_LINK' },
+            { readonly name: 'CUSTOM'; readonly value: 'CUSTOM' },
+          ];
+          readonly AdPlacementType: readonly [
+            { readonly name: 'HOMEPAGE'; readonly value: 'HOMEPAGE' },
+            { readonly name: 'DOWNLOAD_PAGE'; readonly value: 'DOWNLOAD_PAGE' },
+            { readonly name: 'PUBLIC_PAGES'; readonly value: 'PUBLIC_PAGES' },
+          ];
+          readonly AdvertiserStatus: readonly [
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
+            { readonly name: 'SUSPENDED'; readonly value: 'SUSPENDED' },
+            { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
+          ];
           readonly AnalyticsSource: readonly [
             { readonly name: 'TRAFFIC_VIEWS'; readonly value: 'TRAFFIC_VIEWS' },
             { readonly name: 'TRAFFIC_CLONES'; readonly value: 'TRAFFIC_CLONES' },
@@ -8312,6 +10574,13 @@ type ContractBase = Omit<
             { readonly name: 'PENDING'; readonly value: 'PENDING' },
             { readonly name: 'EMPTY'; readonly value: 'EMPTY' },
             { readonly name: 'UNSUPPORTED'; readonly value: 'UNSUPPORTED' },
+          ];
+          readonly ApplicationStatus: readonly [
+            { readonly name: 'PENDING'; readonly value: 'PENDING' },
+            { readonly name: 'UNDER_REVIEW'; readonly value: 'UNDER_REVIEW' },
+            { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
+            { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+            { readonly name: 'WITHDRAWN'; readonly value: 'WITHDRAWN' },
           ];
           readonly AuthTokenType: readonly [
             { readonly name: 'EMAIL_VERIFICATION'; readonly value: 'EMAIL_VERIFICATION' },
@@ -8349,6 +10618,23 @@ type ContractBase = Omit<
             { readonly name: 'IMPRESSUM'; readonly value: 'IMPRESSUM' },
             { readonly name: 'DATENSCHUTZ'; readonly value: 'DATENSCHUTZ' },
             { readonly name: 'NUTZUNGSBEDINGUNGEN'; readonly value: 'NUTZUNGSBEDINGUNGEN' },
+          ];
+          readonly PartnerRelationshipStatus: readonly [
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'ENDED'; readonly value: 'ENDED' },
+            { readonly name: 'PAUSED'; readonly value: 'PAUSED' },
+          ];
+          readonly PartnerRelationshipType: readonly [
+            { readonly name: 'OFFICIAL_PARTNER'; readonly value: 'OFFICIAL_PARTNER' },
+            { readonly name: 'TECHNICAL_PARTNER'; readonly value: 'TECHNICAL_PARTNER' },
+            { readonly name: 'SPONSOR'; readonly value: 'SPONSOR' },
+            { readonly name: 'MEDIA_PARTNER'; readonly value: 'MEDIA_PARTNER' },
+            { readonly name: 'STRATEGIC_PARTNER'; readonly value: 'STRATEGIC_PARTNER' },
+          ];
+          readonly PartnerStatus: readonly [
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
+            { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
           ];
           readonly PluginStatus: readonly [
             { readonly name: 'DRAFT'; readonly value: 'DRAFT' },
@@ -8445,6 +10731,147 @@ type ContractBase = Omit<
     readonly executionHash: ExecutionHash;
     readonly mutations: {
       readonly defaults: readonly [
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdCampaign';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdCampaign';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdCampaign';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdClick';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdClick';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdClick';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdCreative';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdCreative';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdImpression';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdImpression';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdImpression';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Advertiser';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Advertiser';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Advertiser';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdvertisingApplication';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdvertisingApplication';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AdvertisingApplication';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
         {
           readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
           readonly ref: {
@@ -8947,6 +11374,72 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'News';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Partner';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Partner';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Partner';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PartnerHistory';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PartnerHistory';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PartnerRelationship';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PartnerRelationship';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'PartnerRelationship';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };

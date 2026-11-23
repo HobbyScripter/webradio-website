@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { env } from '@/lib/env';
+import { useIsHydrated } from '@/lib/use-hydrated';
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_TEXT, validatePassword } from '@/lib/password-policy';
 
 function RegistrationDisabled() {
@@ -35,6 +36,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const hydrated = useIsHydrated();
 
   // Feature flag check (client-side only; server-side check is in the API route)
   if (!env.REGISTRATION_ENABLED) {
@@ -132,7 +134,7 @@ export default function RegisterPage() {
         </div>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form method="post" action="/auth/register" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="register-name" className={labelClass}>
             Anzeigename (optional)
@@ -244,7 +246,7 @@ export default function RegisterPage() {
 
         <button
           type="submit"
-          disabled={loading || success}
+          disabled={loading || success || !hydrated}
           className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-violet-950/40 transition-colors hover:bg-violet-500 disabled:opacity-50"
         >
           {loading ? 'Konto wird erstellt …' : success ? 'Konto erstellt' : 'Registrieren'}

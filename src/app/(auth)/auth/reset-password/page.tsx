@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PASSWORD_MIN_LENGTH, validatePassword } from '@/lib/password-policy';
+import { useIsHydrated } from '@/lib/use-hydrated';
 
 const inputClass =
   'w-full rounded-xl border border-white/10 bg-[#07070a] px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-500/20';
@@ -19,6 +20,7 @@ function ResetPasswordForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const hydrated = useIsHydrated();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -117,7 +119,7 @@ function ResetPasswordForm() {
           Zur Anmeldung
         </Link>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form method="post" action="/auth/reset-password" onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="reset-password" className={labelClass}>
               Neues Passwort (mindestens {PASSWORD_MIN_LENGTH} Zeichen)
@@ -156,7 +158,7 @@ function ResetPasswordForm() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !hydrated}
             className="mt-2 flex w-full items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-violet-950/40 transition-colors hover:bg-violet-500 disabled:opacity-50"
           >
             {loading ? 'Passwort wird geändert …' : 'Passwort ändern'}

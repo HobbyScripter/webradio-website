@@ -18,6 +18,8 @@ import {
   DownloadIcon,
   GitHubIcon,
   RadioIcon,
+  LayersIcon,
+  GlobeIcon,
 } from '@/components/ui/icons';
 
 export const metadata: Metadata = {
@@ -70,6 +72,16 @@ const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
     label: 'Analytics',
     href: '/admin/analytics',
     icon: <RadioIcon className="h-5 w-5" />,
+  },
+  {
+    label: 'Advertising',
+    href: '/admin/advertising',
+    icon: <LayersIcon className="h-5 w-5" />,
+  },
+  {
+    label: 'Partner',
+    href: '/admin/partners',
+    icon: <GlobeIcon className="h-5 w-5" />,
   },
   {
     label: 'Download Analytics',

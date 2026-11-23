@@ -14,6 +14,7 @@ import {
   DownloadIcon,
   ExternalLinkIcon,
   GitHubIcon,
+  GlobeIcon,
   LayersIcon,
   PaletteIcon,
   PlugIcon,
@@ -28,6 +29,8 @@ import {
   type GitHubSnapshot,
 } from '@/lib/github';
 import { formatDate } from '@/lib/format';
+import { PartnerService } from '@/lib/partner/service';
+import { RELATIONSHIP_TYPE } from '@/lib/advertising/labels';
 import { markdownToPlainText } from '@/components/public/MarkdownText';
 import {
   PACKAGE_UNDER_REVIEW_LABEL,
@@ -479,6 +482,87 @@ async function ReleasesPreview() {
   );
 }
 
+type PublicPartner = Awaited<ReturnType<typeof PartnerService.getPublicPartners>>[number];
+
+/**
+ * Subtle partner strip near the bottom of the homepage. It uses the same
+ * approval query as `/partners` (one data read), and renders nothing when no
+ * partner has an active, explicitly public relationship — the homepage never
+ * advertises an empty or purely internal partner program.
+ */
+async function PartnerSpotlight() {
+  await io();
+
+  let partners: PublicPartner[];
+  try {
+    partners = await PartnerService.getPublicPartners();
+  } catch {
+    return null;
+  }
+
+  const visible = partners.filter((partner) => partner.relationships.length > 0).slice(0, 6);
+
+  if (visible.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border-t border-white/[0.07] py-16 sm:py-20">
+      <Container>
+        <SectionHeading
+          eyebrow="Netzwerk"
+          title="Unsere Partner"
+          description="Unternehmen und Organisationen, die WebRadio begleiten. Veröffentlicht werden ausschließlich freigegebene, öffentliche Partnerschaften."
+          action={
+            <ButtonLink href="/partners" variant="secondary" size="sm">
+              Alle Partner ansehen <ArrowRightIcon className="h-3.5 w-3.5" />
+            </ButtonLink>
+          }
+        />
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((partner) => {
+            const labels = Array.from(
+              new Set(
+                partner.relationships.map(
+                  (relationship) =>
+                    RELATIONSHIP_TYPE[relationship.type] ?? relationship.type,
+                ),
+              ),
+            );
+
+            return (
+              <li
+                key={partner.id}
+                className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-3.5"
+              >
+                {partner.logoUrl ? (
+                  <img
+                    src={partner.logoUrl}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-white/[0.04] object-contain"
+                  />
+                ) : (
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-violet-300">
+                    <GlobeIcon className="h-4 w-4" />
+                  </span>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-100">
+                    {partner.companyName}
+                  </p>
+                  <p className="truncate text-xs text-zinc-500">{labels.join(' · ')}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </Container>
+    </section>
+  );
+}
+
 export default function HomePage() {
   return (
     <>
@@ -629,6 +713,10 @@ export default function HomePage() {
           </Suspense>
         </Container>
       </section>
+
+      <Suspense fallback={null}>
+        <PartnerSpotlight />
+      </Suspense>
 
       <section className="border-t border-white/[0.07] bg-white/[0.015] py-16 sm:py-20">
         <Container>
