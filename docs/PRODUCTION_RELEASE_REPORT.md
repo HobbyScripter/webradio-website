@@ -163,7 +163,7 @@ Push korrekt als Preview gebaut.
 | `/de/account` ohne Session | 200, 0 E-Mail-Adressen im HTML, nur Redirect-Anweisung |
 | Login mit ungültigen Daten | keine Session (`{}`) |
 | Sprachumschaltung | 303 → /pl + Secure/HttpOnly-Cookie |
-| Übersetzungs-Cron | 404 (siehe Befund 1) |
+| Übersetzungs-Cron | 404 zum Release-Zeitpunkt (Befund 1); behoben mit `9bea919` — nach dem Fix 405/503, siehe Nachtrag |
 | Serverlogs | keine Ausnahmen; ein `cron.analytics.rejected` (CRON_SECRET_MISSING) aus der eigenen Probe, sonst nur `pg`-SSL-Warnungen |
 
 Geplante Analytics-Läufe der Vorgängerversion liefen am 27.11. erfolgreich
@@ -174,26 +174,22 @@ Schedule-Mechanismus ist also intakt.
 
 ## 7. Offene Punkte (Konfiguration, keine Codeänderung im Release)
 
-**1. `/api/cron/translations` ist über HTTP nicht erreichbar (404).**
-Der Eintrag in `vercel.json` (`functions` → `experimentalTriggers`) entfernt —
+**1. `/api/cron/translations` war über HTTP nicht erreichbar (404). — BEHOBEN**
+Der Eintrag in `vercel.json` (`functions` → `experimentalTriggers`) entfernte —
 wie bei `/api/schedules/analytics` beabsichtigt — die öffentliche URL. Anders als
-die Analytics-Route ist die Übersetzungsroute jedoch nicht mit
+die Analytics-Route war die Übersetzungsroute jedoch nicht mit
 `handleSchedule` umgesetzt, sodass der Scheduler-Aufruf keine gültige
-Authentifizierung mitbringt (`verifyCronRequest` → 503 `misconfigured`, solange
-`CRON_SECRET` fehlt, sonst 401). Damit ist der tägliche Lauf der
-Übersetzungsengine derzeit wirkungslos, und der in
-`docs/TRANSLATION_ENGINE.md` dokumentierte manuelle Aufruf
-(`curl -X POST … -H "Authorization: Bearer $CRON_SECRET"`) läuft ins Leere.
-Empfehlung: entweder Route wie `src/app/api/schedules/analytics/route.ts` mit
-`handleSchedule` umsetzen, oder den `translations-worker`-Schedule-Eintrag
-entfernen und den Lauf über externen Cron/systemd (dokumentierter Weg) fahren.
+Authentifizierung mitbrachte. Behoben mit Commit `9bea919`: der Schedule
+`translations-worker` zielt jetzt auf die private Route
+`src/app/api/schedules/translations/route.ts` (`handleSchedule`, CloudEvent-
+Dispatch), und `/api/cron/translations` bleibt als dokumentierter externer
+Trigger öffentlich und `CRON_SECRET`-geschützt. Details im Nachtrag.
 
-**2. Produktionsumgebung ohne `CRON_SECRET` und ohne `DEEPL_API_KEY`.**
-Ohne `DEEPL_API_KEY` meldet die Engine `NOT_CONFIGURED` und sendet nichts
-(fail-closed, entspricht der Designentscheidung). Ohne `CRON_SECRET` antworten
-alle portablen Cron-Endpunkte mit 503. Beides ist reine Konfiguration in
-Vercel → Settings → Environment Variables; ohne diese Werte bleibt die
-Übersetzung funktionslos, die Oberfläche erklärt das korrekt.
+**2. Produktionsumgebung: `DEEPL_API_KEY` inzwischen gesetzt, `CRON_SECRET` fehlt.**
+Zum Release-Zeitpunkt fehlten beide Werte; `DEEPL_API_KEY` wurde am 27.11. nach
+dem Release in Vercel hinterlegt (belegt durch einen realen Lauf, siehe Nachtrag).
+Ohne `CRON_SECRET` antworten die portablen Cron-Endpunkte weiterhin mit 503
+`CRON_DISABLED`; wer den externen Trigger nutzen will, muss den Wert setzen.
 
 **3. `origin/master` enthält den Release-Commit noch nicht.**
 `origin/master` (`91638bb`) enthält `f6b443c`, aber nicht `aa11363`. Die
@@ -227,7 +223,42 @@ von diesem Release.
 
 Der Release ist ausgerollt und live geprüft: Mehrsprachigkeit, Sprachumschaltung,
 Custom Links, Anmeldung und Zugriffsschutz funktionieren in Produktion. Die
-Übersetzungsengine ist ausgeliefert und verhält sich fail-closed, kann aber ohne
-`DEEPL_API_KEY`/`CRON_SECRET` und ohne korrigierte Schedule-Verdrahtung noch
-nicht übersetzen. Der Release-Commit liegt auf dem Feature-Branch; der Merge nach
-`master` steht aus.
+Übersetzungsengine ist ausgeliefert, verhält sich fail-closed und übersetzt seit
+der korrigierten Schedule-Verdrahtung (`9bea919`) auch im geplanten Lauf. Der
+Release-Commit liegt auf dem Feature-Branch; der Merge nach `master` steht aus.
+
+---
+
+## 10. Nachtrag vom 27.11.2026 — Schedule-Verdrahtung korrigiert
+
+Commit `9bea919` („Übersetzungs-Schedule auf handleSchedule umstellen“, gepusht
+auf `feature/analytics-vercel-schedules`), Produktionsdeployment
+`dpl_DyF7yK58kTFGVs6x9UJ4vgL14n83` (`webradio-luwt9c2kg-…`, alias
+`https://webradio-weld.vercel.app`).
+
+**Änderung:** Der `schedule/v1beta`-Trigger liegt nicht mehr auf
+`/api/cron/translations`, sondern auf der neuen privaten Route
+`src/app/api/schedules/translations/route.ts` (`handleSchedule`). Der portable
+Endpunkt `/api/cron/translations` ist dadurch wieder öffentlich erreichbar und
+bleibt ausschließlich `CRON_SECRET`-geschützt. Beide Trigger teilen sich die
+Ausführung in `src/lib/translation/schedule-execution.ts`.
+
+**Prüfungen:**
+
+| Prüfung | Ergebnis |
+|---|---|
+| `npm run type-check` | Exit 0 |
+| `npm run lint` | 0 Fehler, 12 bekannte Warnungen |
+| Jest (`translations-schedule-sdk`, `analytics-schedule-sdk`, `cron-analytics-route`, `cron-auth`) | 30/30 grün |
+| Preview (Commit `9bea919`) `GET /api/cron/translations` | 405 `METHOD_NOT_ALLOWED` (vorher 404) |
+| Preview `POST /api/cron/translations` ohne/mit falschem Bearer | 503 `CRON_DISABLED` (fail-closed, kein `CRON_SECRET` in Preview) |
+| Preview `GET /api/schedules/translations` | 404 — private URL, wie `/api/schedules/analytics` |
+| `vercel schedules list` nach Produktionsdeploy | `translations-worker` → `Function: api/schedules/translations` |
+| `vercel schedules invoke translations-worker` | Request `POST /api/schedules/translations` → HTTP 200, Log `translations.schedule` mit `ok:true` |
+| Wirkung in der Datenbank | 20 `TranslationJob` `SUCCEEDED`, 20 neue `ContentTranslation` (19:10:15–19:10:49 UTC) |
+| Produktion live | `/` → 307, `/api/ready` 200 (DB ok), `/api/cron/translations` 405/503, `/api/schedules/translations` 404 |
+
+**Hinweise:** Der manuelle `invoke` war ein echter DeepL-Lauf (20 Felder, 2 480
+Zeichen, keine Fehler, ~37 s) — die neue Übersetzungen warten wie vorgesehen auf
+Freigabe im Adminbereich. `CRON_SECRET` fehlt weiterhin in Produktion; der
+externe Trigger bleibt daher bis zum Setzen des Werts bei 503.
