@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import {
@@ -12,8 +12,9 @@ import {
   CodeIcon,
   ServerIcon,
 } from '@/components/ui/icons';
-import { getAccountNavItems, ROLE_LABELS, type AccountNavIcon } from '@/lib/roles';
+import { getAccountNavItems, ROLE_LABEL_KEYS, type AccountNavIcon } from '@/lib/roles';
 import type { Role } from '@/lib/validations';
+import { useI18n } from '@/i18n/provider';
 
 type AccountDropdownProps = {
   email: string;
@@ -53,6 +54,7 @@ function NavIcon({ name }: { name: AccountNavIcon }) {
 }
 
 export default function AccountDropdown({ email, role }: AccountDropdownProps) {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   // Roving tabindex: exactly one menu item is tabbable, so Tab from the trigger
   // reaches the menu instead of skipping it.
@@ -63,6 +65,7 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
   const menuId = useId();
 
   const links = getAccountNavItems(role);
+  const roleLabel = t(ROLE_LABEL_KEYS[role]);
 
   const focusableItems = useCallback(
     () =>
@@ -196,7 +199,7 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-controls={isOpen ? menuId : undefined}
-        aria-label={`Konto-Menü für ${email} öffnen`}
+        aria-label={t('header.accountMenuFor', { email })}
         className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-zinc-100 transition-colors hover:border-white/[0.12] hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07070a]"
       >
         <span className="flex items-center gap-1.5">
@@ -210,7 +213,7 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
         <span
           className={`hidden rounded-md px-1.5 py-0.5 text-xs font-medium lg:inline ${ROLE_COLORS[role]}`}
         >
-          {ROLE_LABELS[role]}
+          {roleLabel}
         </span>
         <ChevronDownIcon
           className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -222,7 +225,7 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
           id={menuId}
           ref={menuRef}
           role="menu"
-          aria-label="Konto-Aktionen"
+          aria-label={t('header.accountActions')}
           className="absolute right-0 z-50 mt-2 w-60 rounded-xl border border-white/[0.08] bg-[#07070a] py-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl"
         >
           <div className="border-b border-white/[0.05] px-3 py-2">
@@ -234,14 +237,12 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
               </span>
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium text-white">{email}</div>
-                <div className={`text-xs font-medium ${ROLE_COLORS[role]}`}>
-                  {ROLE_LABELS[role]}
-                </div>
+                <div className={`text-xs font-medium ${ROLE_COLORS[role]}`}>{roleLabel}</div>
               </div>
             </div>
           </div>
 
-          <nav aria-label="Konto-Navigation" className="py-1">
+          <nav aria-label={t('header.accountNav')} className="py-1">
             {links.map((link, index) => (
               <Link
                 key={link.key}
@@ -253,7 +254,7 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
                 className="flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white focus-visible:bg-white/[0.06] focus-visible:text-white focus-visible:outline-none"
               >
                 <NavIcon name={link.icon} />
-                <span>{link.label}</span>
+                <span>{t(link.labelKey)}</span>
               </Link>
             ))}
           </nav>
@@ -268,7 +269,7 @@ export default function AccountDropdown({ email, role }: AccountDropdownProps) {
               className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-rose-300 transition-colors hover:bg-rose-500/5 hover:text-rose-200 focus-visible:bg-rose-500/10 focus-visible:text-rose-100 focus-visible:outline-none"
             >
               <NavIcon name="logout" />
-              <span>Abmelden</span>
+              <span>{t('header.signOut')}</span>
             </button>
           </div>
         </div>

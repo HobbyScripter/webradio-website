@@ -1,45 +1,26 @@
 import { handleSchedule } from '@vercel/schedules';
-import { runAnalyticsSchedule } from '@/lib/analytics/schedules';
+import { executeAnalyticsSchedule } from '@/lib/analytics/schedule-execution';
 
 /**
  * Private target for the four static Vercel Schedules. The `schedule/v1beta`
  * trigger in vercel.json removes the public URL; only the scheduler invokes it.
  * There is intentionally no GET or manual trigger here.
+ *
+ * The job logic lives in `@/lib/analytics/schedule-execution`, which is shared
+ * with the portable `POST /api/cron/analytics` endpoint. Vercel is only the
+ * trigger: the SDK parses the CloudEvent headers, and a failed task throws so
+ * the execution is not reported as green.
  */
 export const POST = handleSchedule(async (metadata) => {
-  const result = await runAnalyticsSchedule(metadata.name, metadata.executionId);
-  const line = {
-    event: 'analytics.schedule',
-    schedule: result.schedule,
+  const execution = await executeAnalyticsSchedule(metadata.name, {
     executionId: metadata.executionId,
     scheduledAt: metadata.scheduledAt.toISOString(),
     source: metadata.source,
-    startedAt: result.startedAt,
-    completedAt: result.completedAt,
-    durationMs: result.durationMs,
-    ok: result.ok,
-    errorCode: result.errorCode,
-    sources: result.sources,
-    jobs: result.jobs.map((job) => ({
-      job: job.job,
-      skipped: job.skipped,
-      attempts: job.attempts,
-      errorCode: job.errorCode,
-      outcomes: job.outcomes.map((outcome) => ({
-        source: outcome.source,
-        status: outcome.status,
-        httpStatus: outcome.httpStatus,
-        errorCode: outcome.errorCode,
-      })),
-    })),
-    retention: result.retention,
-  };
+  });
 
-  if (result.ok) {
-    console.info(JSON.stringify(line));
+  if (execution.ok) {
     return;
   }
 
-  console.error(JSON.stringify({ ...line, level: 'error' }));
-  throw new Error(`Analytics schedule ${result.schedule} failed: ${result.errorCode}`);
+  throw new Error(`Analytics schedule ${execution.schedule} failed: ${execution.errorCode}`);
 });

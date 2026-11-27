@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@/i18n/navigation';
 import { useEffect } from 'react';
 
 const EXCLUDED_PREFIXES = ['/admin', '/auth', '/api', '/account'] as const;

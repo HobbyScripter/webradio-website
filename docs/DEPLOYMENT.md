@@ -360,6 +360,7 @@ npm run db:verify
 ## 12. Preview-Prüfmatrix (nach einem echten Deployment)
 
 - [ ] `GET /api/health` → 200, keine internen Daten
+- [ ] `GET /api/ready` → 200 (`"status":"ready"`), keine internen Daten
 - [ ] Startseite, `/plugins`, `/themes`, `/releases`, `/docs` laden ohne
       Konsolen-/Netzwerkfehler
 - [ ] `/api/releases` → 200 mit `source.provider=github`, `fetchedAt` und
@@ -381,9 +382,17 @@ npm run db:verify
 ## 13. Health-Checks, Logs und Datenschutz bei der Diagnose
 
 - `/api/health` ist ein **Liveness**-Check: Er prüft Prozess und Version, nicht
-  PostgreSQL. Für Readiness muss ein separater, nicht öffentlicher Check die
-  Datenbank anpingen; ein öffentlicher DB-Check würde Last und
-  Informationsleck-Risiko erzeugen.
+  PostgreSQL.
+- `/api/ready` ist der **Readiness**-Check: Er führt `SELECT 1` über den
+  gemeinsamen Prisma-Client aus und antwortet mit 200/`{"status":"ready"}`
+  oder 503/`{"status":"not_ready"}`. Die Antwort ist `no-store` und enthält
+  weder Fehlerdetails noch Verbindungsdaten. Caddy nutzt sie als
+  Upstream-Health-Check (`health_uri /api/ready`); das Monitoring prüft
+  Liveness und Readiness getrennt. Docker- und Vercel-Healthchecks bleiben auf
+  `/api/health`, damit ein Datenbankausfall den Prozess nicht neu startet.
+  Solange die Readiness fehlschlägt, antwortet Caddy für **alle** Pfade mit
+  503, auch für `/api/health`; für eine reine Prozess-Liveness muss die
+  Loopback-Adresse der Anwendung geprüft werden.
 - Vercel-Funktionslogs enthalten die von `console.error` ausgegebenen
   Fehlernamen/-codes. Es werden keine Passwörter, Tokens, Session-IDs,
   E-Mail-Adressen oder vollständigen Verbindungs-Strings geloggt.

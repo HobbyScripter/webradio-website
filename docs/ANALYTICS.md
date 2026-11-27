@@ -173,3 +173,31 @@ Daten gelöscht.
 - Kein visueller Browser-Test der Admin-Seiten.
 - Keine automatische Löschung von Referrer-/Pfad-Snapshots und Sync-Läufen.
 - Keine Produktionsmigration und kein Deployment im Rahmen der Umsetzung.
+
+
+## 10. Phase DA 2.0 – Release-Kanäle, RC-Erkennung & erweiterte Download-Analytics
+
+Mit Phase DA 2.0 wurde das Download- und Release-Analytics-System konsolidiert und erweitert:
+
+### 10.1 Zentrale Release-Kanal-Klassifikation (`src/lib/analytics/channel.ts`)
+
+Zuvor existierte in `src/lib/download-analytics-service.ts` eine Dreifach-Unterscheidung (`stable`, `beta`, `alpha`), wodurch Release Candidates wie `1.0.8-rc.1` fälschlicherweise als `beta` erfasst wurden.
+
+Die zentrale Logik (`channelFor(tagName, prerelease)`) deckt nun alle vier Standardkanäle plus Edge-Cases ab:
+
+| Kanal | Kennzeichnung | Token / Farbe | Beschreibung |
+|---|---|---|---|
+| **Stable** | `prerelease: false` (oder saubere Versionsnummer) | `#22c55e` (Grün) | Offiziell veröffentlichte Versionen |
+| **Release Candidate (RC)** | Tag enthält `rc` (z. B. `1.0.8-rc.1`, `v1.0.8-RC.2`) | `#8b5cf6` (Violett) | Finale Testversionen vor dem Release |
+| **Beta** | Tag enthält `beta` (z. B. `1.0.8-beta.1`) | `#f59e0b` (Orange) | Feature-vollständige Testversionen |
+| **Alpha** | Tag enthält `alpha` (z. B. `1.0.8-alpha.1`) | `#ef4444` (Rot) | Frühe Entwicklungsversionen |
+| **Unbekannt** | `prerelease: true`, aber kein bekanntes Muster | `#71717a` (Zink) | Fallback; keine stillschweigende Umwidmung |
+
+Farben werden in der UI grundsätzlich von textuellen Badges (`ChannelBadge`) begleitet, um die Barrierefreiheit zu gewährleisten.
+
+### 10.2 Erweiterte Zeiträume und Kennzahlen
+
+- **Zeitfenster:** Die Filter unterstützen nun `7`, `30`, `90`, `180` (6 Monate) und `365` (1 Jahr) Tage.
+- **KPI-Karten:** Neben den Gesamtzahlen (GitHub kumulativ vs. Website-Anfragen getrennt) werden Differenzen im ausgewählten Zeitfenster, der tägliche Zuwachsschnitt und der Spitzentag ausgewertet.
+- **Plattform- und Format-Analyse:** Aufschlüsselung nach Betriebssystem (Windows, Linux, macOS, Arch Linux, Debian) sowie Paketformaten (EXE Installer, Portable, AppImage, DMG, PKG.TAR.ZST).
+- **Referrer-Auswertung:** Normalisierte Herkunfts-Hostnames für Download-Anfragen (ohne speicherbare sensible Query-Parameter).

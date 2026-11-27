@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import { fireEvent, render, screen } from '@testing-library/react';
 import CatalogCard from '@/components/public/CatalogCard';
 import MobileMenu from '@/components/public/MobileMenu';
@@ -21,7 +21,7 @@ describe('CatalogCard', () => {
     render(<CatalogCard item={item} kind="plugin" basePath="/plugins" />);
 
     const link = screen.getByRole('link', { name: /Alpha Plugin/ });
-    expect(link).toHaveAttribute('href', '/plugins/alpha-plugin');
+    expect(link).toHaveAttribute('href', '/de/plugins/alpha-plugin');
     expect(screen.getByText('von Studio Nord')).toBeInTheDocument();
     expect(screen.getByText('v1.4.0')).toBeInTheDocument();
     expect(screen.getByText('audio')).toBeInTheDocument();
@@ -37,8 +37,8 @@ describe('CatalogCard', () => {
 
 describe('MobileMenu', () => {
   const items = [
-    { label: 'Plugins', href: '/plugins' },
-    { label: 'Dokumentation', href: '/docs' },
+    { labelKey: 'nav.plugins', href: '/plugins' },
+    { labelKey: 'nav.docs', href: '/docs' },
   ];
 
   it('exposes an expanded state and closes with Escape', () => {
@@ -53,7 +53,7 @@ describe('MobileMenu', () => {
       'true',
     );
     expect(screen.getByRole('navigation', { name: 'Mobile Hauptnavigation' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Plugins' })).toHaveAttribute('href', '/plugins');
+    expect(screen.getByRole('link', { name: 'Plugins' })).toHaveAttribute('href', '/de/plugins');
 
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.getByRole('button', { name: 'Navigation öffnen' })).toHaveAttribute(
@@ -75,11 +75,11 @@ describe('CatalogPagination', () => {
 
     expect(screen.getByRole('link', { name: /Zurück/ })).toHaveAttribute(
       'href',
-      '/plugins?q=radio&sort=name',
+      '/de/plugins?q=radio&sort=name',
     );
     expect(screen.getByRole('link', { name: /Weiter/ })).toHaveAttribute(
       'href',
-      '/plugins?q=radio&sort=name&page=3',
+      '/de/plugins?q=radio&sort=name&page=3',
     );
     expect(screen.getByText('Seite 2')).toBeInTheDocument();
   });
@@ -106,7 +106,7 @@ describe('empty and error states', () => {
     expect(screen.getByRole('heading', { name: 'Keine Plugins gefunden' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Filter zurücksetzen' })).toHaveAttribute(
       'href',
-      '/plugins',
+      '/de/plugins',
     );
   });
 
@@ -124,7 +124,7 @@ describe('empty and error states', () => {
     expect(alert).not.toHaveTextContent(/SQL|relation|password/i);
     expect(screen.getByRole('link', { name: 'Erneut versuchen' })).toHaveAttribute(
       'href',
-      '/plugins',
+      '/de/plugins',
     );
   });
 });

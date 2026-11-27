@@ -1,0 +1,488 @@
+[
+  {
+    "id": "table.CustomLink",
+    "label": "Create table \"CustomLink\"",
+    "summary": "Creates table \"CustomLink\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "CustomLink"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"CustomLink\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"CustomLink\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"CustomLink\"",
+        "sql": "CREATE TABLE \"public\".\"CustomLink\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"createdBy\" text,\n  \"iconName\" text,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"openInNewTab\" bool DEFAULT false NOT NULL,\n  \"position\" text NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"updatedBy\" text,\n  \"url\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"CustomLink_position_check_d2c40e4f\" CHECK (\"position\" IN ('MAIN_NAVIGATION', 'FOOTER')),\n  CONSTRAINT \"CustomLink_type_check_14338608\" CHECK (\"type\" IN ('INTERNAL', 'EXTERNAL'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"CustomLink\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"CustomLink\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.CustomLinkLabel",
+    "label": "Create table \"CustomLinkLabel\"",
+    "summary": "Creates table \"CustomLinkLabel\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "CustomLinkLabel"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"CustomLinkLabel\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLinkLabel\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"CustomLinkLabel\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"CustomLinkLabel\"",
+        "sql": "CREATE TABLE \"public\".\"CustomLinkLabel\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"id\" text NOT NULL,\n  \"label\" text NOT NULL,\n  \"linkId\" text NOT NULL,\n  \"locale\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"CustomLinkLabel\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLinkLabel\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"CustomLinkLabel\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.CustomLinkLabel.CustomLinkLabel_linkId_locale_key",
+    "label": "Add unique constraint on \"CustomLinkLabel\" (linkId, locale)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "CustomLinkLabel_linkId_locale_key",
+        "table": "CustomLinkLabel"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"CustomLinkLabel_linkId_locale_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "CustomLinkLabel_linkId_locale_key",
+          "public",
+          "\"public\".\"CustomLinkLabel\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"CustomLinkLabel_linkId_locale_key\" on \"CustomLinkLabel\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"CustomLinkLabel_linkId_locale_key\"",
+        "sql": "ALTER TABLE \"public\".\"CustomLinkLabel\" ADD CONSTRAINT \"CustomLinkLabel_linkId_locale_key\" UNIQUE (\"linkId\", \"locale\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"CustomLinkLabel_linkId_locale_key\" exists on (linkId, locale)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "CustomLinkLabel_linkId_locale_key",
+          "public",
+          "\"public\".\"CustomLinkLabel\"",
+          "u",
+          "[\"linkId\",\"locale\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CustomLink.CustomLink_createdAt_idx_9575dbd7",
+    "label": "Create index \"CustomLink_createdAt_idx_9575dbd7\" on \"CustomLink\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CustomLink_createdAt_idx_9575dbd7",
+        "table": "CustomLink"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CustomLink_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CustomLink_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CustomLink_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"CustomLink_createdAt_idx_9575dbd7\" ON \"public\".\"CustomLink\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CustomLink_createdAt_idx_9575dbd7\" exists on \"CustomLink\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"CustomLink\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CustomLink.CustomLink_isActive_idx_77fe3ba1",
+    "label": "Create index \"CustomLink_isActive_idx_77fe3ba1\" on \"CustomLink\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CustomLink_isActive_idx_77fe3ba1",
+        "table": "CustomLink"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CustomLink_isActive_idx_77fe3ba1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_isActive_idx_77fe3ba1\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CustomLink_isActive_idx_77fe3ba1\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CustomLink_isActive_idx_77fe3ba1\"",
+        "sql": "CREATE INDEX \"CustomLink_isActive_idx_77fe3ba1\" ON \"public\".\"CustomLink\" (\"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CustomLink_isActive_idx_77fe3ba1\" exists on \"CustomLink\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_isActive_idx_77fe3ba1\"",
+          "i",
+          "I",
+          "\"public\".\"CustomLink\"",
+          "btree",
+          "[\"isActive\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CustomLink.CustomLink_position_idx_82a01784",
+    "label": "Create index \"CustomLink_position_idx_82a01784\" on \"CustomLink\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CustomLink_position_idx_82a01784",
+        "table": "CustomLink"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CustomLink_position_idx_82a01784\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_position_idx_82a01784\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CustomLink_position_idx_82a01784\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CustomLink_position_idx_82a01784\"",
+        "sql": "CREATE INDEX \"CustomLink_position_idx_82a01784\" ON \"public\".\"CustomLink\" (\"position\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CustomLink_position_idx_82a01784\" exists on \"CustomLink\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_position_idx_82a01784\"",
+          "i",
+          "I",
+          "\"public\".\"CustomLink\"",
+          "btree",
+          "[\"position\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CustomLink.CustomLink_sortOrder_idx_ebf2eac2",
+    "label": "Create index \"CustomLink_sortOrder_idx_ebf2eac2\" on \"CustomLink\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CustomLink_sortOrder_idx_ebf2eac2",
+        "table": "CustomLink"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CustomLink_sortOrder_idx_ebf2eac2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_sortOrder_idx_ebf2eac2\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CustomLink_sortOrder_idx_ebf2eac2\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CustomLink_sortOrder_idx_ebf2eac2\"",
+        "sql": "CREATE INDEX \"CustomLink_sortOrder_idx_ebf2eac2\" ON \"public\".\"CustomLink\" (\"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CustomLink_sortOrder_idx_ebf2eac2\" exists on \"CustomLink\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLink_sortOrder_idx_ebf2eac2\"",
+          "i",
+          "I",
+          "\"public\".\"CustomLink\"",
+          "btree",
+          "[\"sortOrder\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CustomLinkLabel.CustomLinkLabel_linkId_idx_09c902f6",
+    "label": "Create index \"CustomLinkLabel_linkId_idx_09c902f6\" on \"CustomLinkLabel\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CustomLinkLabel_linkId_idx_09c902f6",
+        "table": "CustomLinkLabel"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CustomLinkLabel_linkId_idx_09c902f6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLinkLabel_linkId_idx_09c902f6\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CustomLinkLabel_linkId_idx_09c902f6\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CustomLinkLabel_linkId_idx_09c902f6\"",
+        "sql": "CREATE INDEX \"CustomLinkLabel_linkId_idx_09c902f6\" ON \"public\".\"CustomLinkLabel\" (\"linkId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CustomLinkLabel_linkId_idx_09c902f6\" exists on \"CustomLinkLabel\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLinkLabel_linkId_idx_09c902f6\"",
+          "i",
+          "I",
+          "\"public\".\"CustomLinkLabel\"",
+          "btree",
+          "[\"linkId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CustomLinkLabel.CustomLinkLabel_locale_idx_ca6adb0a",
+    "label": "Create index \"CustomLinkLabel_locale_idx_ca6adb0a\" on \"CustomLinkLabel\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CustomLinkLabel_locale_idx_ca6adb0a",
+        "table": "CustomLinkLabel"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CustomLinkLabel_locale_idx_ca6adb0a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLinkLabel_locale_idx_ca6adb0a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CustomLinkLabel_locale_idx_ca6adb0a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CustomLinkLabel_locale_idx_ca6adb0a\"",
+        "sql": "CREATE INDEX \"CustomLinkLabel_locale_idx_ca6adb0a\" ON \"public\".\"CustomLinkLabel\" (\"locale\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CustomLinkLabel_locale_idx_ca6adb0a\" exists on \"CustomLinkLabel\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CustomLinkLabel_locale_idx_ca6adb0a\"",
+          "i",
+          "I",
+          "\"public\".\"CustomLinkLabel\"",
+          "btree",
+          "[\"locale\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.CustomLinkLabel.CustomLinkLabel_linkId_fkey",
+    "label": "Add foreign key \"CustomLinkLabel_linkId_fkey\" on \"CustomLinkLabel\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "CustomLinkLabel_linkId_fkey",
+        "table": "CustomLinkLabel"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"CustomLinkLabel_linkId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "CustomLinkLabel_linkId_fkey",
+          "public",
+          "\"public\".\"CustomLinkLabel\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"CustomLinkLabel_linkId_fkey\" on \"CustomLinkLabel\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"CustomLinkLabel_linkId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"CustomLinkLabel\"\nADD CONSTRAINT \"CustomLinkLabel_linkId_fkey\"\nFOREIGN KEY (\"linkId\")\nREFERENCES \"public\".\"CustomLink\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"CustomLinkLabel_linkId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "CustomLinkLabel_linkId_fkey",
+          "public",
+          "\"public\".\"CustomLinkLabel\"",
+          "f",
+          "[\"linkId\"]",
+          "\"public\".\"CustomLink\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import { Container, PageHeader } from '@/components/ui/layout';
 import type { LegalDetails, LegalSection } from '@/lib/legal';
 import LegalContent from '@/components/public/LegalContent';

@@ -371,3 +371,14 @@ Jede Phase endet mit eigenem Bericht; keine Phase gilt als fertig ohne Tests.
 - Deployment, Produktionsmigration, Änderung von Secrets oder GitHub-App-Berechtigungen.
 - Änderung bestehender Webhook-/Auth-Mechanismen.
 - Löschen vorhandener Daten.
+
+
+---
+
+## 8. Phase DA 2.0 – Erweiterte Download Analytics & RC-Kanal
+
+### Ziel und Umsetzung
+- **RC-Kanal-Integration:** Ablösung der lokalen 3-Kanal-Erkennung durch die zentrale `src/lib/analytics/channel.ts`. Erkennung von `rc` (case-insensitive, Wortgrenzen-sicher).
+- **KPI-Ausbau:** GitHub-Asset-Downloads und Website-Download-Anfragen bleiben strikt getrennt. Neue Kennzahlen für Fensterzuwachs, durchschnittliche Tagesdifferenz, bester Tag sowie Anzahl einzigartiger Releases/Assets.
+- **Plattform-, Format- und Referrer-Dimensionen:** Auswertung nach Installer-/Paket-Typ und Referrer-Hostnamen.
+- **Testing:** 63/63 Suiten erfolgreich (590 Tests), inkl. expliziter Sicherheits-, CSV-Injection- und Kanal-Grenztests.

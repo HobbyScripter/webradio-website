@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'e54862c5d731bb20d89d75e46c4c0d41ab25a388639be96f2f02bcb0785ae1a6'>;
+  StorageHashBase<'763e3b57bc99fa207bbd840d3b44199daed778109dc6e7ae6ee2f2c103ff70d6'>;
 export type ExecutionHash =
-  ExecutionHashBase<'d44909624484e1e9a67fde066f7431c79b8ba4075055d4d4b00657ce6203f85e'>;
+  ExecutionHashBase<'eb21318cec6b18d4e39f876ed7c4ea659942b92f0c9915d27feac8ea530a11f4'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -391,6 +391,16 @@ type FieldTypeOverrides = {
           readonly input: 'PLUGIN' | 'THEME' | 'PLUGIN_VERSION' | 'THEME_VERSION';
         };
       };
+      readonly CustomLink: {
+        readonly position: {
+          readonly output: 'MAIN_NAVIGATION' | 'FOOTER';
+          readonly input: 'MAIN_NAVIGATION' | 'FOOTER';
+        };
+        readonly type: {
+          readonly output: 'INTERNAL' | 'EXTERNAL';
+          readonly input: 'INTERNAL' | 'EXTERNAL';
+        };
+      };
       readonly DeveloperApplication: {
         readonly status: {
           readonly output: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
@@ -677,6 +687,16 @@ type ColumnTypeOverrides = {
       readonly targetType: {
         readonly output: 'PLUGIN' | 'THEME' | 'PLUGIN_VERSION' | 'THEME_VERSION';
         readonly input: 'PLUGIN' | 'THEME' | 'PLUGIN_VERSION' | 'THEME_VERSION';
+      };
+    };
+    readonly CustomLink: {
+      readonly position: {
+        readonly output: 'MAIN_NAVIGATION' | 'FOOTER';
+        readonly input: 'MAIN_NAVIGATION' | 'FOOTER';
+      };
+      readonly type: {
+        readonly output: 'INTERNAL' | 'EXTERNAL';
+        readonly input: 'INTERNAL' | 'EXTERNAL';
       };
     };
     readonly DeveloperApplication: {
@@ -993,6 +1013,49 @@ export namespace Models {
     reporter: public_User;
     resolvedBy: public_User | null;
     readonly [RelationKeys]?: 'reporter' | 'resolvedBy';
+  };
+  export type public_ContentTranslation = {
+    createdAt: FieldOutputTypes['public']['ContentTranslation']['createdAt'];
+    entityId: FieldOutputTypes['public']['ContentTranslation']['entityId'];
+    entityType: FieldOutputTypes['public']['ContentTranslation']['entityType'];
+    field: FieldOutputTypes['public']['ContentTranslation']['field'];
+    id: FieldOutputTypes['public']['ContentTranslation']['id'];
+    locale: FieldOutputTypes['public']['ContentTranslation']['locale'];
+    outdated: FieldOutputTypes['public']['ContentTranslation']['outdated'];
+    provider: FieldOutputTypes['public']['ContentTranslation']['provider'];
+    reviewedAt: FieldOutputTypes['public']['ContentTranslation']['reviewedAt'];
+    sourceHash: FieldOutputTypes['public']['ContentTranslation']['sourceHash'];
+    status: FieldOutputTypes['public']['ContentTranslation']['status'];
+    translatedById: FieldOutputTypes['public']['ContentTranslation']['translatedById'];
+    updatedAt: FieldOutputTypes['public']['ContentTranslation']['updatedAt'];
+    value: FieldOutputTypes['public']['ContentTranslation']['value'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_CustomLink = {
+    createdAt: FieldOutputTypes['public']['CustomLink']['createdAt'];
+    createdBy: FieldOutputTypes['public']['CustomLink']['createdBy'];
+    iconName: FieldOutputTypes['public']['CustomLink']['iconName'];
+    id: FieldOutputTypes['public']['CustomLink']['id'];
+    isActive: FieldOutputTypes['public']['CustomLink']['isActive'];
+    openInNewTab: FieldOutputTypes['public']['CustomLink']['openInNewTab'];
+    position: FieldOutputTypes['public']['CustomLink']['position'];
+    sortOrder: FieldOutputTypes['public']['CustomLink']['sortOrder'];
+    type: FieldOutputTypes['public']['CustomLink']['type'];
+    updatedAt: FieldOutputTypes['public']['CustomLink']['updatedAt'];
+    updatedBy: FieldOutputTypes['public']['CustomLink']['updatedBy'];
+    url: FieldOutputTypes['public']['CustomLink']['url'];
+    labels: public_CustomLinkLabel[];
+    readonly [RelationKeys]?: 'labels';
+  };
+  export type public_CustomLinkLabel = {
+    createdAt: FieldOutputTypes['public']['CustomLinkLabel']['createdAt'];
+    id: FieldOutputTypes['public']['CustomLinkLabel']['id'];
+    label: FieldOutputTypes['public']['CustomLinkLabel']['label'];
+    linkId: FieldOutputTypes['public']['CustomLinkLabel']['linkId'];
+    locale: FieldOutputTypes['public']['CustomLinkLabel']['locale'];
+    updatedAt: FieldOutputTypes['public']['CustomLinkLabel']['updatedAt'];
+    link: public_CustomLink;
+    readonly [RelationKeys]?: 'link';
   };
   export type public_DeveloperApplication = {
     createdAt: FieldOutputTypes['public']['DeveloperApplication']['createdAt'];
@@ -1428,11 +1491,60 @@ export namespace Models {
     theme: public_Theme;
     readonly [RelationKeys]?: 'theme';
   };
+  export type public_TranslationEvent = {
+    action: FieldOutputTypes['public']['TranslationEvent']['action'];
+    actorId: FieldOutputTypes['public']['TranslationEvent']['actorId'];
+    createdAt: FieldOutputTypes['public']['TranslationEvent']['createdAt'];
+    entityId: FieldOutputTypes['public']['TranslationEvent']['entityId'];
+    entityType: FieldOutputTypes['public']['TranslationEvent']['entityType'];
+    field: FieldOutputTypes['public']['TranslationEvent']['field'];
+    fromStatus: FieldOutputTypes['public']['TranslationEvent']['fromStatus'];
+    id: FieldOutputTypes['public']['TranslationEvent']['id'];
+    locale: FieldOutputTypes['public']['TranslationEvent']['locale'];
+    note: FieldOutputTypes['public']['TranslationEvent']['note'];
+    provider: FieldOutputTypes['public']['TranslationEvent']['provider'];
+    toStatus: FieldOutputTypes['public']['TranslationEvent']['toStatus'];
+    translationId: FieldOutputTypes['public']['TranslationEvent']['translationId'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_TranslationJob = {
+    attempts: FieldOutputTypes['public']['TranslationJob']['attempts'];
+    characters: FieldOutputTypes['public']['TranslationJob']['characters'];
+    createdAt: FieldOutputTypes['public']['TranslationJob']['createdAt'];
+    entityId: FieldOutputTypes['public']['TranslationJob']['entityId'];
+    entityType: FieldOutputTypes['public']['TranslationJob']['entityType'];
+    errorCode: FieldOutputTypes['public']['TranslationJob']['errorCode'];
+    field: FieldOutputTypes['public']['TranslationJob']['field'];
+    finishedAt: FieldOutputTypes['public']['TranslationJob']['finishedAt'];
+    id: FieldOutputTypes['public']['TranslationJob']['id'];
+    jobKey: FieldOutputTypes['public']['TranslationJob']['jobKey'];
+    locale: FieldOutputTypes['public']['TranslationJob']['locale'];
+    provider: FieldOutputTypes['public']['TranslationJob']['provider'];
+    requestedById: FieldOutputTypes['public']['TranslationJob']['requestedById'];
+    sourceHash: FieldOutputTypes['public']['TranslationJob']['sourceHash'];
+    startedAt: FieldOutputTypes['public']['TranslationJob']['startedAt'];
+    status: FieldOutputTypes['public']['TranslationJob']['status'];
+    updatedAt: FieldOutputTypes['public']['TranslationJob']['updatedAt'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_TranslationUsage = {
+    characters: FieldOutputTypes['public']['TranslationUsage']['characters'];
+    costMicros: FieldOutputTypes['public']['TranslationUsage']['costMicros'];
+    createdAt: FieldOutputTypes['public']['TranslationUsage']['createdAt'];
+    id: FieldOutputTypes['public']['TranslationUsage']['id'];
+    locale: FieldOutputTypes['public']['TranslationUsage']['locale'];
+    provider: FieldOutputTypes['public']['TranslationUsage']['provider'];
+    quotaLimit: FieldOutputTypes['public']['TranslationUsage']['quotaLimit'];
+    quotaUsed: FieldOutputTypes['public']['TranslationUsage']['quotaUsed'];
+    requests: FieldOutputTypes['public']['TranslationUsage']['requests'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_User = {
     createdAt: FieldOutputTypes['public']['User']['createdAt'];
     email: FieldOutputTypes['public']['User']['email'];
     emailVerified: FieldOutputTypes['public']['User']['emailVerified'];
     id: FieldOutputTypes['public']['User']['id'];
+    locale: FieldOutputTypes['public']['User']['locale'];
     name: FieldOutputTypes['public']['User']['name'];
     passwordHash: FieldOutputTypes['public']['User']['passwordHash'];
     role: FieldOutputTypes['public']['User']['role'];
@@ -1521,6 +1633,9 @@ export declare const models: {
     AuthToken: Models.public_AuthToken;
     Changelog: Models.public_Changelog;
     ContentReport: Models.public_ContentReport;
+    ContentTranslation: Models.public_ContentTranslation;
+    CustomLink: Models.public_CustomLink;
+    CustomLinkLabel: Models.public_CustomLinkLabel;
     DeveloperApplication: Models.public_DeveloperApplication;
     DeveloperProfile: Models.public_DeveloperProfile;
     DownloadSyncLog: Models.public_DownloadSyncLog;
@@ -1558,6 +1673,9 @@ export declare const models: {
     ThemeScreenshot: Models.public_ThemeScreenshot;
     ThemeTag: Models.public_ThemeTag;
     ThemeVersion: Models.public_ThemeVersion;
+    TranslationEvent: Models.public_TranslationEvent;
+    TranslationJob: Models.public_TranslationJob;
+    TranslationUsage: Models.public_TranslationUsage;
     User: Models.public_User;
     WebsiteDownloadRequestDaily: Models.public_WebsiteDownloadRequestDaily;
     WebsiteDownloadStat: Models.public_WebsiteDownloadStat;
@@ -2750,6 +2868,324 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly ContentTranslation: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly entityId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly entityType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly field: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly locale: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly outdated: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
+                readonly provider: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly reviewedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly sourceHash: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'MISSING'>;
+                  };
+                  readonly many: false;
+                };
+                readonly translatedById: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly value: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', ''>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['entityType', 'entityId', 'locale', 'field'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'ContentTranslation_entityType_entityId_idx_ea0fa809';
+                  readonly prefix: 'ContentTranslation_entityType_entityId_idx';
+                  readonly columns: readonly ['entityType', 'entityId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ContentTranslation_locale_idx_ca6adb0a';
+                  readonly prefix: 'ContentTranslation_locale_idx';
+                  readonly columns: readonly ['locale'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ContentTranslation_outdated_idx_7ff64e50';
+                  readonly prefix: 'ContentTranslation_outdated_idx';
+                  readonly columns: readonly ['outdated'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ContentTranslation_status_idx_e98638ab';
+                  readonly prefix: 'ContentTranslation_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly CustomLink: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdBy: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly iconName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly isActive: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
+                  };
+                  readonly many: false;
+                };
+                readonly openInNewTab: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
+                readonly position: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly sortOrder: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedBy: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly url: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'CustomLink_createdAt_idx_9575dbd7';
+                  readonly prefix: 'CustomLink_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'CustomLink_isActive_idx_77fe3ba1';
+                  readonly prefix: 'CustomLink_isActive_idx';
+                  readonly columns: readonly ['isActive'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'CustomLink_position_idx_82a01784';
+                  readonly prefix: 'CustomLink_position_idx';
+                  readonly columns: readonly ['position'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'CustomLink_sortOrder_idx_ebf2eac2';
+                  readonly prefix: 'CustomLink_sortOrder_idx';
+                  readonly columns: readonly ['sortOrder'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly CustomLinkLabel: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly label: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly linkId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly locale: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['linkId', 'locale'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'CustomLinkLabel_linkId_idx_09c902f6';
+                  readonly prefix: 'CustomLinkLabel_linkId_idx';
+                  readonly columns: readonly ['linkId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'CustomLinkLabel_locale_idx_ca6adb0a';
+                  readonly prefix: 'CustomLinkLabel_locale_idx';
+                  readonly columns: readonly ['locale'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'CustomLinkLabel';
+                    readonly columns: readonly ['linkId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'CustomLink';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -5608,6 +6044,345 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly TranslationEvent: {
+              columns: {
+                readonly action: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly actorId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly entityId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly entityType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly field: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly fromStatus: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly locale: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly note: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly provider: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly toStatus: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly translationId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'TranslationEvent_action_idx_cd0d2116';
+                  readonly prefix: 'TranslationEvent_action_idx';
+                  readonly columns: readonly ['action'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TranslationEvent_createdAt_idx_9575dbd7';
+                  readonly prefix: 'TranslationEvent_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TranslationEvent_entityType_entityId_locale_field_idx_b7f094a4';
+                  readonly prefix: 'TranslationEvent_entityType_entityId_locale_field_idx';
+                  readonly columns: readonly ['entityType', 'entityId', 'locale', 'field'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly TranslationJob: {
+              columns: {
+                readonly attempts: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly characters: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly entityId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly entityType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly errorCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly field: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly finishedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly jobKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly locale: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly provider: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly requestedById: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly sourceHash: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly startedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'PENDING'>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['jobKey'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'TranslationJob_createdAt_idx_9575dbd7';
+                  readonly prefix: 'TranslationJob_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TranslationJob_entityType_entityId_idx_ea0fa809';
+                  readonly prefix: 'TranslationJob_entityType_entityId_idx';
+                  readonly columns: readonly ['entityType', 'entityId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TranslationJob_locale_idx_ca6adb0a';
+                  readonly prefix: 'TranslationJob_locale_idx';
+                  readonly columns: readonly ['locale'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TranslationJob_status_idx_e98638ab';
+                  readonly prefix: 'TranslationJob_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly TranslationUsage: {
+              columns: {
+                readonly characters: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly costMicros: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly locale: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly provider: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly quotaLimit: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly quotaUsed: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly requests: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'TranslationUsage_locale_idx_ca6adb0a';
+                  readonly prefix: 'TranslationUsage_locale_idx';
+                  readonly columns: readonly ['locale'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TranslationUsage_provider_createdAt_idx_fd3b9fd1';
+                  readonly prefix: 'TranslationUsage_provider_createdAt_idx';
+                  readonly columns: readonly ['provider', 'createdAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly User: {
               columns: {
                 readonly createdAt: {
@@ -5632,6 +6407,12 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly locale: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly name: {
@@ -6148,6 +6929,14 @@ type ContractBase = Omit<
                 'ACCOUNT_SUSPENDED',
               ];
             };
+            readonly CustomLinkPosition: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['MAIN_NAVIGATION', 'FOOTER'];
+            };
+            readonly CustomLinkType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['INTERNAL', 'EXTERNAL'];
+            };
             readonly DeveloperApplicationStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN'];
@@ -6293,6 +7082,18 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'ContentReport';
     };
+    readonly ContentTranslation: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ContentTranslation';
+    };
+    readonly CustomLink: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'CustomLink';
+    };
+    readonly CustomLinkLabel: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'CustomLinkLabel';
+    };
     readonly DeveloperApplication: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'DeveloperApplication';
@@ -6416,6 +7217,18 @@ type ContractBase = Omit<
     readonly ThemeVersion: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'ThemeVersion';
+    };
+    readonly TranslationEvent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'TranslationEvent';
+    };
+    readonly TranslationJob: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'TranslationJob';
+    };
+    readonly TranslationUsage: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'TranslationUsage';
     };
     readonly User: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
     readonly WebsiteDownloadRequestDaily: {
@@ -7395,6 +8208,245 @@ type ContractBase = Omit<
                 readonly status: { readonly column: 'status' };
                 readonly targetId: { readonly column: 'targetId' };
                 readonly targetType: { readonly column: 'targetType' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly ContentTranslation: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly entityId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly entityType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly field: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly locale: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly outdated: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly provider: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly reviewedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly sourceHash: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly translatedById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly value: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'ContentTranslation';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly entityId: { readonly column: 'entityId' };
+                readonly entityType: { readonly column: 'entityType' };
+                readonly field: { readonly column: 'field' };
+                readonly id: { readonly column: 'id' };
+                readonly locale: { readonly column: 'locale' };
+                readonly outdated: { readonly column: 'outdated' };
+                readonly provider: { readonly column: 'provider' };
+                readonly reviewedAt: { readonly column: 'reviewedAt' };
+                readonly sourceHash: { readonly column: 'sourceHash' };
+                readonly status: { readonly column: 'status' };
+                readonly translatedById: { readonly column: 'translatedById' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly value: { readonly column: 'value' };
+              };
+            };
+          };
+          readonly CustomLink: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly createdBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly iconName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly isActive: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly openInNewTab: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly position: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sortOrder: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly updatedBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly url: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly labels: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'CustomLinkLabel';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['linkId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'CustomLink';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly createdBy: { readonly column: 'createdBy' };
+                readonly iconName: { readonly column: 'iconName' };
+                readonly id: { readonly column: 'id' };
+                readonly isActive: { readonly column: 'isActive' };
+                readonly openInNewTab: { readonly column: 'openInNewTab' };
+                readonly position: { readonly column: 'position' };
+                readonly sortOrder: { readonly column: 'sortOrder' };
+                readonly type: { readonly column: 'type' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly updatedBy: { readonly column: 'updatedBy' };
+                readonly url: { readonly column: 'url' };
+              };
+            };
+          };
+          readonly CustomLinkLabel: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly label: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly linkId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly locale: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly link: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'CustomLink';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['linkId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'CustomLinkLabel';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly label: { readonly column: 'label' };
+                readonly linkId: { readonly column: 'linkId' };
+                readonly locale: { readonly column: 'locale' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
@@ -9847,6 +10899,252 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly TranslationEvent: {
+            readonly fields: {
+              readonly action: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly actorId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly entityId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly entityType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly field: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fromStatus: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly locale: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly note: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly provider: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly toStatus: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly translationId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'TranslationEvent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly action: { readonly column: 'action' };
+                readonly actorId: { readonly column: 'actorId' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly entityId: { readonly column: 'entityId' };
+                readonly entityType: { readonly column: 'entityType' };
+                readonly field: { readonly column: 'field' };
+                readonly fromStatus: { readonly column: 'fromStatus' };
+                readonly id: { readonly column: 'id' };
+                readonly locale: { readonly column: 'locale' };
+                readonly note: { readonly column: 'note' };
+                readonly provider: { readonly column: 'provider' };
+                readonly toStatus: { readonly column: 'toStatus' };
+                readonly translationId: { readonly column: 'translationId' };
+              };
+            };
+          };
+          readonly TranslationJob: {
+            readonly fields: {
+              readonly attempts: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly characters: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly entityId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly entityType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly errorCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly field: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly finishedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly jobKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly locale: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly provider: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly requestedById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sourceHash: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'TranslationJob';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly attempts: { readonly column: 'attempts' };
+                readonly characters: { readonly column: 'characters' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly entityId: { readonly column: 'entityId' };
+                readonly entityType: { readonly column: 'entityType' };
+                readonly errorCode: { readonly column: 'errorCode' };
+                readonly field: { readonly column: 'field' };
+                readonly finishedAt: { readonly column: 'finishedAt' };
+                readonly id: { readonly column: 'id' };
+                readonly jobKey: { readonly column: 'jobKey' };
+                readonly locale: { readonly column: 'locale' };
+                readonly provider: { readonly column: 'provider' };
+                readonly requestedById: { readonly column: 'requestedById' };
+                readonly sourceHash: { readonly column: 'sourceHash' };
+                readonly startedAt: { readonly column: 'startedAt' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly TranslationUsage: {
+            readonly fields: {
+              readonly characters: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly costMicros: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly locale: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly provider: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly quotaLimit: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly quotaUsed: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly requests: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'TranslationUsage';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly characters: { readonly column: 'characters' };
+                readonly costMicros: { readonly column: 'costMicros' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly locale: { readonly column: 'locale' };
+                readonly provider: { readonly column: 'provider' };
+                readonly quotaLimit: { readonly column: 'quotaLimit' };
+                readonly quotaUsed: { readonly column: 'quotaUsed' };
+                readonly requests: { readonly column: 'requests' };
+              };
+            };
+          };
           readonly User: {
             readonly fields: {
               readonly createdAt: {
@@ -9869,6 +11167,10 @@ type ContractBase = Omit<
               };
               readonly id: {
                 readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly locale: {
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly name: {
@@ -10044,6 +11346,7 @@ type ContractBase = Omit<
                 readonly email: { readonly column: 'email' };
                 readonly emailVerified: { readonly column: 'emailVerified' };
                 readonly id: { readonly column: 'id' };
+                readonly locale: { readonly column: 'locale' };
                 readonly name: { readonly column: 'name' };
                 readonly passwordHash: { readonly column: 'passwordHash' };
                 readonly role: { readonly column: 'role' };
@@ -10369,6 +11672,20 @@ type ContractBase = Omit<
               { readonly name: 'ACCOUNT_SUSPENDED'; readonly value: 'ACCOUNT_SUSPENDED' },
             ];
           };
+          readonly CustomLinkPosition: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'MAIN_NAVIGATION'; readonly value: 'MAIN_NAVIGATION' },
+              { readonly name: 'FOOTER'; readonly value: 'FOOTER' },
+            ];
+          };
+          readonly CustomLinkType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'INTERNAL'; readonly value: 'INTERNAL' },
+              { readonly name: 'EXTERNAL'; readonly value: 'EXTERNAL' },
+            ];
+          };
           readonly DeveloperApplicationStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -10592,6 +11909,14 @@ type ContractBase = Omit<
             { readonly name: 'CONTENT_REMOVED'; readonly value: 'CONTENT_REMOVED' },
             { readonly name: 'WARNING_ISSUED'; readonly value: 'WARNING_ISSUED' },
             { readonly name: 'ACCOUNT_SUSPENDED'; readonly value: 'ACCOUNT_SUSPENDED' },
+          ];
+          readonly CustomLinkPosition: readonly [
+            { readonly name: 'MAIN_NAVIGATION'; readonly value: 'MAIN_NAVIGATION' },
+            { readonly name: 'FOOTER'; readonly value: 'FOOTER' },
+          ];
+          readonly CustomLinkType: readonly [
+            { readonly name: 'INTERNAL'; readonly value: 'INTERNAL' },
+            { readonly name: 'EXTERNAL'; readonly value: 'EXTERNAL' },
           ];
           readonly DeveloperApplicationStatus: readonly [
             { readonly name: 'PENDING'; readonly value: 'PENDING' },
@@ -10974,6 +12299,81 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'ContentReport';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ContentTranslation';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ContentTranslation';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ContentTranslation';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'CustomLink';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'CustomLink';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'CustomLink';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'CustomLinkLabel';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'CustomLinkLabel';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'CustomLinkLabel';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };
@@ -11660,6 +13060,63 @@ type ContractBase = Omit<
           readonly ref: {
             readonly entry: 'ThemeVersion';
             readonly field: 'releasedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TranslationEvent';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TranslationEvent';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TranslationJob';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TranslationJob';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TranslationJob';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TranslationUsage';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TranslationUsage';
+            readonly field: 'id';
             readonly namespace: 'public';
           };
         },

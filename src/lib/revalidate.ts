@@ -59,6 +59,37 @@ export function revalidateCatalogue(
 }
 
 /**
+ * A content translation changed state (approved, rejected, edited, retranslated
+ * or marked outdated).
+ *
+ * Only approved rows are served, so both directions matter: approving must make
+ * the translation visible, and rejecting/withdrawing must remove it again. The
+ * catalogues and legal documents are cached with tags; the remaining public
+ * pages are dynamic but are purged as well so a route-level cache can never keep
+ * an old translation.
+ */
+export function revalidateTranslations(): void {
+  revalidateTag(CACHE_TAGS.catalog, 'max');
+  revalidateTag(CACHE_TAGS.catalogKind('PLUGIN'), 'max');
+  revalidateTag(CACHE_TAGS.catalogKind('THEME'), 'max');
+  revalidateTag(CACHE_TAGS.legal, 'max');
+
+  for (const path of [
+    '/',
+    '/plugins',
+    '/themes',
+    '/news',
+    '/partners',
+    '/roadmap',
+    '/impressum',
+    '/datenschutz',
+    '/nutzungsbedingungen',
+  ]) {
+    revalidatePath(path);
+  }
+}
+
+/**
  * A legal document was published, saved or restored. The footer links all three
  * documents on every page, so the homepage is included.
  */

@@ -1,4 +1,4 @@
-import { getAccountNavItems, hasRole, ROLE_LABELS, ROLE_ORDER } from '../roles';
+import { getAccountNavItems, hasRole, ROLE_LABEL_KEYS, ROLE_ORDER } from '../roles';
 
 describe('role hierarchy', () => {
   it('orders USER < DEVELOPER < ADMIN < SYSTEM_ADMIN', () => {
@@ -16,7 +16,7 @@ describe('role hierarchy', () => {
   it('ranks every role exactly once', () => {
     expect(new Set(ROLE_ORDER).size).toBe(4);
     for (const role of ROLE_ORDER) {
-      expect(ROLE_LABELS[role].length).toBeGreaterThan(0);
+      expect(ROLE_LABEL_KEYS[role]).toMatch(/^roles\./);
     }
   });
 });
@@ -26,7 +26,7 @@ describe('account navigation', () => {
     const keys = getAccountNavItems('USER').map((item) => item.key);
     // `developer-access` is the application page, not the developer dashboard:
     // it is open to every account and grants nothing by itself.
-    expect(keys).toEqual(['account', 'profile', 'security', 'developer-access']);
+    expect(keys).toEqual(['account', 'profile', 'security', 'language', 'developer-access']);
     expect(keys).not.toContain('developer');
     expect(keys).not.toContain('admin');
     expect(keys).not.toContain('system-admin');
@@ -52,6 +52,7 @@ describe('account navigation', () => {
       'account',
       'profile',
       'security',
+      'language',
       'developer-access',
       'developer',
       'admin',
@@ -64,12 +65,14 @@ describe('account navigation', () => {
       'account',
       'profile',
       'security',
+      'language',
       'developer-access',
     ]);
     expect(getAccountNavItems(undefined).map((item) => item.key)).toEqual([
       'account',
       'profile',
       'security',
+      'language',
       'developer-access',
     ]);
   });

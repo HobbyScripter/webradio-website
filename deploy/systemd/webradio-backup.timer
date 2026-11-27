@@ -1,0 +1,13 @@
+[Unit]
+Description=Daily encrypted database backup at 02:15 (before the analytics jobs)
+Documentation=file:/opt/webradio/docs/DISASTER_RECOVERY_GUIDE.md
+
+[Timer]
+OnCalendar=*-*-* 02:15:00
+RandomizedDelaySec=300
+Persistent=true
+AccuracySec=1min
+Unit=webradio-backup.service
+
+[Install]
+WantedBy=timers.target

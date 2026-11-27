@@ -10,6 +10,8 @@ import { and, or } from '@prisma/orm-postgres/orm-client';
 import { db } from './db';
 import { pageOffset, type CatalogSort } from './catalog-query';
 import { WEBRADIO_PRODUCT } from './product';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/config';
+import { localizeRecord, localizeRecords } from './content-translations';
 
 export type PluginSummary = {
   id: string;
@@ -243,6 +245,8 @@ export async function listPublishedPlugins(input: {
   sort: CatalogSort;
   page: number;
   pageSize: number;
+  /** Interface locale; approved translations are applied, German is the source. */
+  locale?: Locale;
 }): Promise<{ items: PluginSummary[]; hasNext: boolean }> {
   const rows = await fetchPluginList({
     q: input.q,
@@ -251,8 +255,14 @@ export async function listPublishedPlugins(input: {
     take: input.pageSize + 1,
   });
 
+  const items = await localizeRecords(
+    'Plugin',
+    input.locale ?? DEFAULT_LOCALE,
+    rows.slice(0, input.pageSize).map(toPluginSummary),
+  );
+
   return {
-    items: rows.slice(0, input.pageSize).map(toPluginSummary),
+    items,
     hasNext: rows.length > input.pageSize,
   };
 }
@@ -262,6 +272,8 @@ export async function listPublishedThemes(input: {
   sort: CatalogSort;
   page: number;
   pageSize: number;
+  /** Interface locale; approved translations are applied, German is the source. */
+  locale?: Locale;
 }): Promise<{ items: ThemeSummary[]; hasNext: boolean }> {
   const rows = await fetchThemeList({
     q: input.q,
@@ -270,13 +282,22 @@ export async function listPublishedThemes(input: {
     take: input.pageSize + 1,
   });
 
+  const items = await localizeRecords(
+    'Theme',
+    input.locale ?? DEFAULT_LOCALE,
+    rows.slice(0, input.pageSize).map(toThemeSummary),
+  );
+
   return {
-    items: rows.slice(0, input.pageSize).map(toThemeSummary),
+    items,
     hasNext: rows.length > input.pageSize,
   };
 }
 
-async function queryPublishedPluginBySlug(slug: string): Promise<PluginDetail | null> {
+async function queryPublishedPluginBySlug(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<PluginDetail | null> {
   const row = await db.orm.public.Plugin.where((p) =>
     and(
       p.slug.eq(slug),
@@ -313,7 +334,7 @@ async function queryPublishedPluginBySlug(slug: string): Promise<PluginDetail | 
 
   const summary = toPluginSummary(row);
 
-  return {
+  const detail: PluginDetail = {
     ...summary,
     sourceUrl: (row as { repositoryUrl?: string | null }).repositoryUrl ?? null,
     developer: {
@@ -335,9 +356,21 @@ async function queryPublishedPluginBySlug(slug: string): Promise<PluginDetail | 
       isLatest: version.isLatest,
     })),
   };
+
+  // Only the allowlisted fields (name, description) can be replaced; versions,
+  // developer data and URLs keep their source values.
+  return (await localizeRecord(
+    'Plugin',
+    detail.id,
+    locale,
+    detail as unknown as Record<string, unknown>,
+  )) as unknown as PluginDetail;
 }
 
-async function queryPublishedThemeBySlug(slug: string): Promise<ThemeDetail | null> {
+async function queryPublishedThemeBySlug(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<ThemeDetail | null> {
   const row = await db.orm.public.Theme.where((t) =>
     and(
       t.slug.eq(slug),
@@ -374,7 +407,7 @@ async function queryPublishedThemeBySlug(slug: string): Promise<ThemeDetail | nu
 
   const summary = toThemeSummary(row);
 
-  return {
+  const detail: ThemeDetail = {
     ...summary,
     sourceUrl: null,
     developer: {
@@ -396,6 +429,13 @@ async function queryPublishedThemeBySlug(slug: string): Promise<ThemeDetail | nu
       isLatest: version.isLatest,
     })),
   };
+
+  return (await localizeRecord(
+    'Theme',
+    detail.id,
+    locale,
+    detail as unknown as Record<string, unknown>,
+  )) as unknown as ThemeDetail;
 }
 
 /** Request-scoped dedupe between generateMetadata and the page render. */
@@ -431,7 +471,10 @@ export async function listReleases(limit = 20): Promise<ReleaseEntry[]> {
   }));
 }
 
-export async function listPublishedNews(limit = 20): Promise<NewsEntry[]> {
+export async function listPublishedNews(
+  limit = 20,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<NewsEntry[]> {
   const now = Temporal.Now.instant();
   const rows = await db.orm.public.News.where((n) =>
     and(n.isPublished.eq(true), n.publishedAt.lte(now)),
@@ -440,14 +483,18 @@ export async function listPublishedNews(limit = 20): Promise<NewsEntry[]> {
     .limit(limit)
     .all();
 
-  return rows.map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    title: row.title,
-    summary: row.summary ?? '',
-    content: row.content,
-    publishedAt: row.publishedAt ? row.publishedAt.toString() : null,
-  }));
+  return localizeRecords(
+    'News',
+    locale,
+    rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      summary: row.summary ?? '',
+      content: row.content,
+      publishedAt: row.publishedAt ? row.publishedAt.toString() : null,
+    })),
+  );
 }
 
 /**
@@ -466,7 +513,10 @@ export async function hasPublishedNews(): Promise<boolean> {
   }
 }
 
-async function queryPublishedNewsBySlug(slug: string): Promise<NewsEntry | null> {
+async function queryPublishedNewsBySlug(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<NewsEntry | null> {
   const now = Temporal.Now.instant();
   const row = await db.orm.public.News.where((n) =>
     and(n.slug.eq(slug), n.isPublished.eq(true), n.publishedAt.lte(now)),
@@ -476,7 +526,7 @@ async function queryPublishedNewsBySlug(slug: string): Promise<NewsEntry | null>
     return null;
   }
 
-  return {
+  const entry: NewsEntry = {
     id: row.id,
     slug: row.slug,
     title: row.title,
@@ -484,21 +534,32 @@ async function queryPublishedNewsBySlug(slug: string): Promise<NewsEntry | null>
     content: row.content,
     publishedAt: row.publishedAt ? row.publishedAt.toString() : null,
   };
+
+  return (await localizeRecord(
+    'News',
+    entry.id,
+    locale,
+    entry as unknown as Record<string, unknown>,
+  )) as unknown as NewsEntry;
 }
 
-export async function listRoadmapItems(): Promise<RoadmapEntry[]> {
+export async function listRoadmapItems(locale: Locale = DEFAULT_LOCALE): Promise<RoadmapEntry[]> {
   const rows = await db.orm.public.RoadmapItem.orderBy([
     (item) => item.priority.desc(),
     (item) => item.createdAt.asc(),
   ]).all();
 
-  return rows.map((row) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    status: row.status,
-    priority: row.priority,
-    targetDate: row.targetDate ? row.targetDate.toString() : null,
-    completedAt: row.completedAt ? row.completedAt.toString() : null,
-  }));
+  return localizeRecords(
+    'RoadmapItem',
+    locale,
+    rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      targetDate: row.targetDate ? row.targetDate.toString() : null,
+      completedAt: row.completedAt ? row.completedAt.toString() : null,
+    })),
+  );
 }

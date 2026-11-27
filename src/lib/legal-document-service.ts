@@ -5,6 +5,8 @@
  * latest published version of a given type is returned to the public pages.
  */
 import type * as DbModule from './db';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/config';
+import { localizeRecord } from './content-translations';
 import type { Role } from './validations';
 import { findLegalContentProblems } from './legal-template';
 
@@ -128,13 +130,27 @@ async function assertPublishable(content: string): Promise<void> {
 
 export async function getPublishedLegalDocument(
   type: LegalDocumentType,
+  locale: Locale = DEFAULT_LOCALE,
 ): Promise<LegalDocumentVersion | null> {
   try {
     const rows = await (await getDb()).orm.public.LegalDocument.where({ type, status: 'PUBLISHED' })
       .orderBy((doc) => doc.versionNumber.desc())
       .all();
     const row = rows[0];
-    return row ? toVersion(row as never) : null;
+    if (!row) return null;
+
+    const version = toVersion(row as never);
+    if (locale === DEFAULT_LOCALE) return version;
+
+    // Legal texts are machine translations at best and are created with
+    // `REVIEW_REQUIRED`; only an explicitly approved row replaces the German
+    // text here. Status, consent flag and version number are never localized.
+    return (await localizeRecord(
+      'LegalDocument',
+      version.id,
+      locale,
+      version as unknown as Record<string, unknown>,
+    )) as unknown as LegalDocumentVersion;
   } catch {
     return null;
   }

@@ -15,8 +15,8 @@ import MobileMenu from '@/components/public/MobileMenu';
 import type { Role } from '@/lib/validations';
 
 const NAV_ITEMS = [
-  { label: 'Plugins', href: '/plugins' },
-  { label: 'Releases', href: '/releases' },
+  { labelKey: 'nav.plugins', href: '/plugins' },
+  { labelKey: 'nav.releases', href: '/releases' },
 ];
 
 const mockSignOut = jest.mocked(signOut);
@@ -41,15 +41,15 @@ describe('AccountDropdown', () => {
 
     expect(within(accountNav).getByRole('menuitem', { name: 'Mein Konto' })).toHaveAttribute(
       'href',
-      '/account',
+      '/de/account',
     );
     expect(within(accountNav).getByRole('menuitem', { name: 'Profil' })).toHaveAttribute(
       'href',
-      '/account/profile',
+      '/de/account/profile',
     );
     expect(within(accountNav).getByRole('menuitem', { name: 'Sicherheit' })).toHaveAttribute(
       'href',
-      '/account/security',
+      '/de/account/security',
     );
     expect(
       within(accountNav).queryByRole('menuitem', { name: 'Developer-Dashboard' }),
@@ -68,7 +68,7 @@ describe('AccountDropdown', () => {
 
     expect(
       within(accountNav).getByRole('menuitem', { name: 'Developer-Dashboard' }),
-    ).toHaveAttribute('href', '/developer');
+    ).toHaveAttribute('href', '/de/developer');
     expect(
       within(accountNav).queryByRole('menuitem', { name: 'Admin-Dashboard' }),
     ).not.toBeInTheDocument();
@@ -80,7 +80,7 @@ describe('AccountDropdown', () => {
 
     expect(within(accountNav).getByRole('menuitem', { name: 'Admin-Dashboard' })).toHaveAttribute(
       'href',
-      '/admin',
+      '/de/admin',
     );
     expect(
       within(accountNav).queryByRole('menuitem', { name: 'Systemverwaltung' }),
@@ -97,7 +97,7 @@ describe('AccountDropdown', () => {
     expect(within(accountNav).getByRole('menuitem', { name: 'Admin-Dashboard' })).toBeInTheDocument();
     expect(
       within(accountNav).getByRole('menuitem', { name: 'Systemverwaltung' }),
-    ).toHaveAttribute('href', '/system-admin');
+    ).toHaveAttribute('href', '/de/system-admin');
   });
 
   it('exposes menu semantics, closes on Escape and returns focus', () => {
@@ -164,11 +164,11 @@ describe('MobileMenu while signed in', () => {
     const accountNav = screen.getByRole('navigation', { name: 'Konto-Navigation' });
     expect(within(accountNav).getByRole('link', { name: 'Developer-Dashboard' })).toHaveAttribute(
       'href',
-      '/developer',
+      '/de/developer',
     );
     expect(within(accountNav).getByRole('link', { name: 'Mein Konto' })).toHaveAttribute(
       'href',
-      '/account',
+      '/de/account',
     );
     expect(within(accountNav).queryByRole('link', { name: 'Admin-Dashboard' })).not.toBeInTheDocument();
     expect(within(accountNav).getByRole('button', { name: 'Abmelden' })).toBeInTheDocument();
@@ -178,14 +178,14 @@ describe('MobileMenu while signed in', () => {
     render(<MobileMenu items={NAV_ITEMS} />);
     fireEvent.click(screen.getByRole('button', { name: 'Navigation öffnen' }));
 
-    expect(screen.getByRole('link', { name: 'Anmelden' })).toHaveAttribute('href', '/auth/login');
+    expect(screen.getByRole('link', { name: 'Anmelden' })).toHaveAttribute('href', '/de/auth/login');
     expect(screen.getByRole('link', { name: 'Registrieren' })).toHaveAttribute(
       'href',
-      '/auth/register',
+      '/de/auth/register',
     );
     expect(screen.getByRole('link', { name: 'Entwicklerbereich' })).toHaveAttribute(
       'href',
-      '/developer',
+      '/de/developer',
     );
     expect(screen.queryByRole('navigation', { name: 'Konto-Navigation' })).not.toBeInTheDocument();
   });

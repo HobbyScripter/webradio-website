@@ -34,6 +34,8 @@ function loadConfig(overrides: Record<string, string | undefined>): LoadedConfig
     'DIRECT_URL',
     'DATABASE_URL',
     'DATABASE_URL_POOLED',
+    'DATABASE_PROVIDER',
+    'DATABASE_ALLOWED_HOSTS',
     'NODE_ENV',
     'NEXT_PHASE',
   ]) {

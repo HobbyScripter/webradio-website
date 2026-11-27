@@ -1,9 +1,10 @@
 # Optional local PostgreSQL for development.
 #
-# NOTE: Docker was NOT available on the machine this project was verified on,
-# so this file is provided for developers who do have Docker and is explicitly
-# unverified here. The verified path is a local PostgreSQL 18 installation —
-# see docs/PHASE3_5_REPORT.md.
+# This file only starts a development database. The full application stack
+# (app + database) lives in `compose.yaml`; see docs/HOSTING_PORTABILITY.md.
+#
+# Verified with Docker Engine 29.9.3 / PostgreSQL 18 (see
+# docs/PHASE_INFRA1.2_HOSTING_PORTABILITY_REPORT.md).
 #
 # Usage:
 #   POSTGRES_PASSWORD="$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))")" \
@@ -24,7 +25,9 @@ services:
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
-      - webradio_pgdata:/var/lib/postgresql/data
+      # postgres:18 keeps its cluster under /var/lib/postgresql (PGDATA is
+      # /var/lib/postgresql/18/docker), not under .../data.
+      - webradio_pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d webradio_dev"]
       interval: 5s

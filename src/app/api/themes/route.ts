@@ -3,6 +3,7 @@ import { errorResponse } from '@/lib/api-response';
 import { listPublishedThemes } from '@/lib/catalog';
 import { PAGE_SIZE } from '@/lib/catalog-query';
 import { parseCatalogRequest, publicJson } from '@/lib/public-api';
+import { parseLocale } from '@/i18n/config';
 
 /**
  * GET /api/themes
@@ -17,11 +18,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const locale = parseLocale(new URL(request.url).searchParams.get('locale') ?? undefined);
     const result = await listPublishedThemes({
       q: parsed.query.q,
       sort: parsed.query.sort,
       page: parsed.query.page,
       pageSize: PAGE_SIZE,
+      ...(locale ? { locale } : {}),
     });
 
     return publicJson({

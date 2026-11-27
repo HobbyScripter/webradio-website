@@ -11,6 +11,8 @@
  */
 import 'temporal-polyfill/global';
 import { db } from '@/lib/db';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/config';
+import { localizeRecords } from '@/lib/content-translations';
 import type { Models } from '../../../prisma/contract.d';
 import { calculateDuration, type DurationDate } from './duration';
 
@@ -126,7 +128,7 @@ export class PartnerService {
    * Prisma 8, so the fetched rows are ordered in memory (stable sort keeps the
    * company-name order inside both groups).
    */
-  static async getPublicPartners() {
+  static async getPublicPartners(locale: Locale = DEFAULT_LOCALE) {
     const partners = await db.orm.public.Partner.where({ status: 'ACTIVE' })
       .include('relationships', (relationships) =>
         relationships
@@ -136,7 +138,12 @@ export class PartnerService {
       .orderBy((p) => p.companyName.asc())
       .all();
 
-    return partners.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured));
+    // Only `description` is translatable for a partner; company name, logo and
+    // website stay the source values. Approval and staleness are enforced by
+    // the localizer, so an unreleased translation shows the German text.
+    const localized = await localizeRecords('Partner', locale, partners);
+
+    return localized.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured));
   }
 
   /**

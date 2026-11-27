@@ -1,0 +1,15 @@
+[Unit]
+OnFailure=webradio-alert@%n.service
+Description=Weekly restore drill against an isolated database
+Documentation=file:/opt/webradio/docs/DISASTER_RECOVERY_GUIDE.md
+After=network-online.target postgresql.service docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=/etc/webradio/backup.env
+ExecStart=/usr/local/sbin/webradio-restore-drill
+Nice=15
+IOSchedulingClass=best-effort
+TimeoutStartSec=1800

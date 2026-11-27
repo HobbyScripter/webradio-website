@@ -1,0 +1,63 @@
+# Caddy edge for an isolated test host (no public DNS, internal CA).
+#
+# Selected with CADDYFILE=./deploy/Caddyfile.internal. Caddy creates its own
+# root CA under /data/caddy/pki/authorities/local; clients must trust it or use
+# --cacert. Never use this file for a real domain: browsers will not trust it.
+
+{
+	admin off
+	# No ACME: certificates come from Caddy's local CA.
+	auto_https disable_redirects
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+}
+
+http://:8080 {
+	respond /healthz "ok" 200
+}
+
+# Explicit HTTP listener because automatic redirects are disabled above; the
+# compose mapping decides which host port reaches it.
+http://{$SITE_HOST:localhost}:80 {
+	# SITE_PORT is the published HTTPS port (8443 on a test host, 443 in
+	# production). Without it the redirect would silently drop the port.
+	redir https://{$SITE_HOST:localhost}:{$SITE_PORT:8443}{uri} permanent
+}
+
+https://{$SITE_HOST:localhost} {
+	tls internal
+	encode zstd gzip
+
+	header {
+		# Short HSTS on purpose: a test host with an internal CA must not be
+		# pinned in a browser for a year.
+		Strict-Transport-Security "max-age=86400"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+	}
+
+	# Readiness, not liveness: /api/ready runs SELECT 1. If the database is
+	# unreachable, Caddy marks the only upstream unhealthy and answers 503 instead
+	# of routing requests that cannot be served. The container healthcheck keeps
+	# using /api/health, so a database outage does not restart the application.
+	reverse_proxy webradio:3000 {
+		health_uri /api/ready
+		health_interval 5s
+		health_timeout 3s
+		lb_try_duration 10s
+		lb_try_interval 500ms
+		header_up X-Real-IP {remote_host}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

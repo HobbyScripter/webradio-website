@@ -1,0 +1,60 @@
+# Caddy edge for the Docker Compose stack (automatic HTTPS via ACME).
+#
+# SITE_ADDRESS is the full public origin, e.g. https://webradio.example.com.
+# Caddy obtains and renews the certificate automatically; port 80 stays open
+# for the HTTP->HTTPS redirect and the ACME HTTP challenge.
+#
+# For an isolated test host without a public name use Caddyfile.internal
+# (tls internal) instead; the compose file selects it via CADDYFILE.
+
+{
+	admin off
+	email {$ACME_EMAIL}
+	# JSON access logs go to stdout and are rotated by the Docker json-file
+	# driver (10 MB x 3), not by a file inside the container.
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+}
+
+# Internal probe listener, not published by compose. Container healthchecks use
+# it because the public :80 server only redirects.
+http://:8080 {
+	respond /healthz "ok" 200
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+	}
+
+	# Caddy overwrites X-Forwarded-For/-Proto/-Host for proxied requests, which
+	# is exactly what TRUST_PROXY=1 in the app assumes.
+	# Readiness, not liveness: /api/ready runs SELECT 1. If the database is
+	# unreachable, Caddy marks the only upstream unhealthy and answers 503 instead
+	# of routing requests that cannot be served. The container healthcheck keeps
+	# using /api/health, so a database outage does not restart the application.
+	reverse_proxy webradio:3000 {
+		health_uri /api/ready
+		health_interval 5s
+		health_timeout 3s
+		lb_try_duration 10s
+		lb_try_interval 500ms
+		header_up X-Real-IP {remote_host}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

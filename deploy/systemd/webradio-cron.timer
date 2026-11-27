@@ -1,0 +1,13 @@
+[Unit]
+Description=Run the WebRadio analytics schedules daily at 03:15
+Documentation=file:/opt/webradio/docs/SELF_HOSTED_DEPLOYMENT_GUIDE.md
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=300
+Persistent=true
+AccuracySec=1min
+Unit=webradio-cron.service
+
+[Install]
+WantedBy=timers.target

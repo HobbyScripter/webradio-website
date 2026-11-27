@@ -1,0 +1,49 @@
+# Caddy for the native operating form (systemd service, host PostgreSQL,
+# application on 127.0.0.1:3010). Install as /etc/caddy/Caddyfile.
+#
+# /etc/caddy/caddy.env (0600):
+#   SITE_ADDRESS=https://webradio.example.com
+#   ACME_EMAIL=ops@example.com
+#
+# For an isolated test host without public DNS use Caddyfile.native-test.
+{
+	admin off
+	email {$ACME_EMAIL}
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+	}
+
+	# Readiness, not liveness: /api/ready runs SELECT 1. If the database is
+	# unreachable, Caddy marks the only upstream unhealthy and answers 503 instead
+	# of routing requests that cannot be served. The systemd unit and monitoring
+	# keep checking liveness separately, so a database outage does not restart the
+	# application.
+	reverse_proxy 127.0.0.1:3010 {
+		health_uri /api/ready
+		health_interval 5s
+		health_timeout 3s
+		lb_try_duration 10s
+		lb_try_interval 500ms
+		header_up X-Real-IP {remote_host}
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}

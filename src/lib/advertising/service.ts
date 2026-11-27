@@ -18,6 +18,8 @@
 import 'temporal-polyfill/global';
 import { and } from '@prisma/orm-postgres/orm-client';
 import { db } from '@/lib/db';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/config';
+import { localizeRecords } from '@/lib/content-translations';
 import { RuleError } from '@/lib/rule-error';
 import type { Models } from '../../../prisma/contract.d';
 import {
@@ -345,10 +347,10 @@ export class AdvertisingService {
   /**
    * Campaigns that are live right now for a placement.
    */
-  static async getActiveCampaigns(placement: AdPlacement) {
+  static async getActiveCampaigns(placement: AdPlacement, locale: Locale = DEFAULT_LOCALE) {
     const now = Temporal.Now.instant();
 
-    return db.orm.public.AdCampaign.where((c) =>
+    const campaigns = await db.orm.public.AdCampaign.where((c) =>
       and(
         c.placement.eq(placement),
         c.status.eq('ACTIVE'),
@@ -356,6 +358,10 @@ export class AdvertisingService {
         c.endDate.gte(now),
       ),
     ).all();
+
+    // `name` and `description` only; target URL, dates and internal notes are
+    // not translatable fields and keep their stored values.
+    return localizeRecords('AdCampaign', locale, campaigns);
   }
 
   static async recordImpression(campaignId: string, placement: AdPlacement) {

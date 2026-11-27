@@ -1,0 +1,10 @@
+[Unit]
+Description=Alert for failed WebRadio unit %i
+Documentation=file:/opt/webradio/docs/SELF_HOSTED_DEPLOYMENT_GUIDE.md
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=-/etc/webradio/monitoring.env
+ExecStart=/usr/local/sbin/webradio-alert %i
+TimeoutStartSec=60

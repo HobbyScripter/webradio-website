@@ -24,23 +24,27 @@ import {
 } from './catalog';
 import type { CatalogSort } from './catalog-query';
 import { getPublishedLegalDocument, type LegalDocumentType, type LegalDocumentVersion } from './legal-document-service';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/config';
 
 export type CatalogListInput = {
   q: string;
   sort: CatalogSort;
   page: number;
   pageSize: number;
+  /** Part of the cache key: a page must never serve another locale's text. */
+  locale?: Locale;
 };
 
 export type CatalogListResult<T> = { items: T[]; hasNext: boolean };
 
 export async function getCachedLegalDocument(
   type: LegalDocumentType,
+  locale: Locale = DEFAULT_LOCALE,
 ): Promise<LegalDocumentVersion | null> {
   'use cache';
   cacheLife('minutes');
   cacheTag(CACHE_TAGS.legal, CACHE_TAGS.legalType(type));
-  return getPublishedLegalDocument(type);
+  return getPublishedLegalDocument(type, locale);
 }
 
 export async function listCachedPlugins(
@@ -61,7 +65,10 @@ export async function listCachedThemes(
   return listPublishedThemes(input);
 }
 
-export async function getCachedPluginBySlug(slug: string): Promise<PluginDetail | null> {
+export async function getCachedPluginBySlug(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<PluginDetail | null> {
   'use cache';
   cacheLife('minutes');
   cacheTag(
@@ -69,10 +76,13 @@ export async function getCachedPluginBySlug(slug: string): Promise<PluginDetail 
     CACHE_TAGS.catalogKind('PLUGIN'),
     CACHE_TAGS.catalogEntry('PLUGIN', slug),
   );
-  return getPublishedPluginBySlug(slug);
+  return getPublishedPluginBySlug(slug, locale);
 }
 
-export async function getCachedThemeBySlug(slug: string): Promise<ThemeDetail | null> {
+export async function getCachedThemeBySlug(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<ThemeDetail | null> {
   'use cache';
   cacheLife('minutes');
   cacheTag(
@@ -80,5 +90,5 @@ export async function getCachedThemeBySlug(slug: string): Promise<ThemeDetail | 
     CACHE_TAGS.catalogKind('THEME'),
     CACHE_TAGS.catalogEntry('THEME', slug),
   );
-  return getPublishedThemeBySlug(slug);
+  return getPublishedThemeBySlug(slug, locale);
 }

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import {
   ArrowLeftIcon,
   PencilIcon,
@@ -21,7 +21,7 @@ import {
   submitThemeAction,
   withdrawPluginAction,
   withdrawThemeAction,
-} from '@/app/(developer)/developer/actions';
+} from '@/app/[locale]/(developer)/developer/actions';
 
 export type CatalogEntryView = {
   id: string;

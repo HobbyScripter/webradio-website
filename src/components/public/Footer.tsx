@@ -1,7 +1,12 @@
+import { Suspense } from 'react';
+import { connection } from 'next/server';
 import Brand from './Brand';
 import FooterNav from './FooterNav';
 import { Container } from '@/components/ui/layout';
-import { TERMS_LABEL, LEGAL_PAGE_PATHS } from '@/lib/legal-labels';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/config';
+import { createServerI18n } from '@/i18n/server';
+import { LEGAL_PAGE_PATHS } from '@/lib/legal-labels';
+import { CustomLinkService, type PublicCustomLink } from '@/lib/custom-links/service';
 import {
   PRODUCT_CONTRIBUTING_URL,
   PRODUCT_DISCUSSIONS_URL,
@@ -9,64 +14,117 @@ import {
   PRODUCT_ISSUES_URL,
   PRODUCT_LICENSE_URL,
   PRODUCT_PLUGIN_SDK_URL,
-  PRODUCT_PRIVACY_URL,
   PRODUCT_RELEASES_URL,
   PRODUCT_REPOSITORY_URL,
   PRODUCT_SECURITY_URL,
   PRODUCT_THEME_SDK_URL,
-  WEBSITE_REPOSITORY_URL,
 } from '@/lib/site';
 
-const LINK_GROUPS = [
-  {
-    title: 'Produkt',
-    links: [
-      { label: 'Startseite', href: '/' },
-      { label: 'Releases & Downloads', href: '/releases' },
-      { label: 'Plugins', href: '/plugins' },
-      { label: 'Themes', href: '/themes' },
-    ],
-  },
-  {
-    title: 'Dokumentation',
-    links: [
-      { label: 'Projektübersicht', href: '/docs' },
-      { label: 'Offizielle Docs', href: PRODUCT_DOCS_URL, external: true },
-      { label: 'Plugin SDK', href: PRODUCT_PLUGIN_SDK_URL, external: true },
-      { label: 'Theme SDK', href: PRODUCT_THEME_SDK_URL, external: true },
-    ],
-  },
-  {
-    title: 'Projekt',
-    links: [
-      { label: 'Quellcode', href: PRODUCT_REPOSITORY_URL, external: true },
-      { label: 'Alle Releases', href: PRODUCT_RELEASES_URL, external: true },
-      { label: 'Issues', href: PRODUCT_ISSUES_URL, external: true },
-      { label: 'Discussions', href: PRODUCT_DISCUSSIONS_URL, external: true },
-      { label: 'Sicherheit', href: PRODUCT_SECURITY_URL, external: true },
-      { label: 'Lizenz (Apache-2.0)', href: PRODUCT_LICENSE_URL, external: true },
-    ],
-  },
-  {
-    title: 'Partner & Unternehmen',
-    links: [
-      { label: 'Unsere Partner', href: '/partners' },
-      { label: 'Werbung & Sponsoring', href: '/advertising' },
-    ],
-  },
-  {
-    title: 'Rechtliches',
-    links: [
-      { label: 'Impressum', href: LEGAL_PAGE_PATHS.IMPRESSUM },
-      { label: 'Datenschutz', href: LEGAL_PAGE_PATHS.DATENSCHUTZ },
-      { label: TERMS_LABEL, href: LEGAL_PAGE_PATHS.NUTZUNGSBEDINGUNGEN },
-    ],
-  },
-] as const;
+type FooterGroup = {
+  title: string;
+  links: readonly { label: string; href: string; external?: boolean; iconName?: string }[];
+};
 
-export default function Footer() {
+/**
+ * Editorial footer links. They live in their own boundary because the footer is
+ * prerendered with the page: reading the database here must not make every
+ * static page dynamic.
+ */
+async function FooterCustomLinks({ locale, title }: { locale: Locale; title: string }) {
+  await connection();
+
+  let links;
+  try {
+    links = await CustomLinkService.getPublicCustomLinks('FOOTER', locale);
+  } catch {
+    // Editorial links are optional: a database hiccup must not remove the
+    // permanent footer, least of all the legal links.
+    return null;
+  }
+
+  if (links.length === 0) {
+    return null;
+  }
+
+  const items = links.map((link: PublicCustomLink) => ({
+    label: link.label,
+    href: link.url,
+    external: link.type === 'EXTERNAL',
+    iconName: link.iconName ?? undefined,
+  }));
+
+  return (
+    <nav aria-label={title}>
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">{title}</h2>
+      <ul className="mt-4 space-y-2.5">
+        {items.map((link) => (
+          <li key={`${link.href}-${link.label}`}>
+            <a
+              href={link.href}
+              {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              className="block rounded text-sm text-zinc-400 transition-colors hover:text-white"
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+export default function Footer({ locale = DEFAULT_LOCALE }: { locale?: Locale }) {
+  const { t } = createServerI18n(locale);
+
   // The legal pages are permanent parts of the site, so their links are always
   // rendered — independent of environment variables, roles or account state.
+  const groups: FooterGroup[] = [
+    {
+      title: t('footer.product'),
+      links: [
+        { label: t('footer.home'), href: '/' },
+        { label: t('footer.releasesDownloads'), href: '/releases' },
+        { label: t('nav.plugins'), href: '/plugins' },
+        { label: t('nav.themes'), href: '/themes' },
+      ],
+    },
+    {
+      title: t('footer.documentation'),
+      links: [
+        { label: t('footer.projectOverview'), href: '/docs' },
+        { label: t('footer.officialDocs'), href: PRODUCT_DOCS_URL, external: true },
+        { label: t('footer.pluginSdk'), href: PRODUCT_PLUGIN_SDK_URL, external: true },
+        { label: t('footer.themeSdk'), href: PRODUCT_THEME_SDK_URL, external: true },
+      ],
+    },
+    {
+      title: t('footer.project'),
+      links: [
+        { label: t('footer.sourceCode'), href: PRODUCT_REPOSITORY_URL, external: true },
+        { label: t('footer.allReleases'), href: PRODUCT_RELEASES_URL, external: true },
+        { label: t('footer.issues'), href: PRODUCT_ISSUES_URL, external: true },
+        { label: t('footer.discussions'), href: PRODUCT_DISCUSSIONS_URL, external: true },
+        { label: t('footer.security'), href: PRODUCT_SECURITY_URL, external: true },
+        { label: t('footer.license'), href: PRODUCT_LICENSE_URL, external: true },
+      ],
+    },
+    {
+      title: t('footer.partnersBusiness'),
+      links: [
+        { label: t('footer.ourPartners'), href: '/partners' },
+        { label: t('footer.advertising'), href: '/advertising' },
+      ],
+    },
+    {
+      title: t('footer.legal'),
+      links: [
+        { label: t('footer.impressum'), href: LEGAL_PAGE_PATHS.IMPRESSUM },
+        { label: t('footer.privacy'), href: LEGAL_PAGE_PATHS.DATENSCHUTZ },
+        { label: t('footer.terms'), href: LEGAL_PAGE_PATHS.NUTZUNGSBEDINGUNGEN },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t border-white/[0.07] bg-[#050507]">
       <Container className="py-14 sm:py-16">
@@ -74,8 +132,7 @@ export default function Footer() {
           <div>
             <Brand />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-zinc-400">
-              Quelloffener Internetradio-Player für Windows und Linux. Weltweite Sendersuche,
-              native Audiopipeline, Plugins und Themes – entwickelt von Your Elite Systems.
+              {t('footer.description')}
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <a
@@ -84,7 +141,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
               >
-                Downloads
+                {t('footer.downloads')}
               </a>
               <a
                 href={PRODUCT_DOCS_URL}
@@ -92,7 +149,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
               >
-                Dokumentation
+                {t('footer.documentation')}
               </a>
               <a
                 href={PRODUCT_CONTRIBUTING_URL}
@@ -100,49 +157,26 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
               >
-                Mitmachen
+                {t('footer.contributing')}
               </a>
             </div>
           </div>
 
-          <FooterNav groups={LINK_GROUPS} />
+          <FooterNav groups={groups} />
+          <Suspense fallback={null}>
+            <FooterCustomLinks locale={locale} title={t('footer.more')} />
+          </Suspense>
         </div>
 
-        <div className="mt-10 space-y-3 border-t border-white/[0.07] pt-6 text-xs leading-relaxed text-zinc-500">
+        <div className="mt-12 space-y-4 border-t border-white/[0.07] pt-8 text-xs leading-relaxed text-zinc-500">
+          <p>{t('footer.releaseSource')}</p>
           <p>
-            Release-Daten und Download-Links stammen direkt aus dem offiziellen GitHub-Repository.
-            Plugins und Themes in diesem Katalog sind ausschließlich für WebRadio bestimmt.
+            {t('footer.legalNote', {
+              terms: t('footer.terms'),
+              projectDocs: t('footer.projectDocs'),
+            })}
           </p>
-          <p>
-            Impressum, Datenschutzerklärung und {TERMS_LABEL} sind jederzeit über die Links im
-            Footer erreichbar. Es werden keine Analyse- oder Marketing-Cookies eingesetzt.{' '}
-            Die Datenschutzhinweise des Desktop-Programms stehen in der{' '}
-            <a
-              href={PRODUCT_PRIVACY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-400 underline-offset-4 hover:text-white hover:underline"
-            >
-              Projektdokumentation
-            </a>
-            .{' '}
-            <a
-              href={WEBSITE_REPOSITORY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-400 underline-offset-4 hover:text-white hover:underline"
-            >
-              Website-Quellcode
-            </a>
-          </p>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 border-t border-white/[0.07] pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Your Elite Systems · WebRadio steht unter Apache-2.0.</p>
-          <p className="inline-flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-            Offizielle Projekt- und Release-Daten von GitHub
-          </p>
+          <p className="text-zinc-600">{t('footer.copyright')}</p>
         </div>
       </Container>
     </footer>

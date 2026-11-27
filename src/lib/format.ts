@@ -1,75 +1,41 @@
 /**
- * Display formatting helpers (server-safe, no dependencies).
+ * Display formatting helpers.
+ *
+ * Every helper accepts an optional locale and delegates to `Intl` through
+ * `src/i18n/format.ts`. The default stays German, so existing server code keeps
+ * its output while a page that knows its locale can opt in:
+ *
+ *   formatDate(value, locale)
+ *
+ * The time zone is a fixed application concern (UTC for dates, Central European
+ * Time for date-times) and never changes with the language: switching to Polish
+ * must not move an event to another hour.
  */
+import { createFormatters, type DateInput } from '@/i18n/format';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/config';
 
-const dateFormatter = new Intl.DateTimeFormat('de-DE', {
-  day: '2-digit',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
+export type { DateInput };
 
-/**
- * Values accepted by the date helpers: ISO strings, Date objects and Prisma 8
- * `Temporal.Instant` values (which expose an ISO-8601 `toString()`).
- */
-export type DateInput = string | Date | { toString(): string } | null | undefined;
-
-function toDate(value: DateInput): Date | null {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  const date = value instanceof Date ? value : new Date(String(value));
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-  return date;
+/** Format an ISO timestamp as a date in the given language. */
+export function formatDate(value: DateInput, locale: Locale = DEFAULT_LOCALE): string | null {
+  return createFormatters(locale).date(value);
 }
 
-/** Format an ISO timestamp as a German date; returns null for invalid input. */
-export function formatDate(value: DateInput): string | null {
-  const date = toDate(value);
-  return date ? dateFormatter.format(date) : null;
-}
-
-const dateTimeFormatter = new Intl.DateTimeFormat('de-DE', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZone: 'Europe/Berlin',
-});
-
-/** Format an ISO timestamp as a German date and time (Europe/Berlin). */
-export function formatDateTime(value: DateInput): string | null {
-  const date = toDate(value);
-  return date ? dateTimeFormatter.format(date) : null;
+/** Format an ISO timestamp as date and time (Europe/Berlin) in the given language. */
+export function formatDateTime(value: DateInput, locale: Locale = DEFAULT_LOCALE): string | null {
+  return createFormatters(locale).dateTime(value);
 }
 
 /** 1536 -> "1,5 KB"; null/undefined -> null. */
-export function formatFileSize(bytes: number | null | undefined): string | null {
-  if (bytes === null || bytes === undefined || !Number.isFinite(bytes) || bytes < 0) {
-    return null;
-  }
-
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-
-  const formatted = new Intl.NumberFormat('de-DE', {
-    maximumFractionDigits: unit === 0 ? 0 : 1,
-  }).format(value);
-
-  return `${formatted} ${units[unit]}`;
+export function formatFileSize(
+  bytes: number | null | undefined,
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
+  return createFormatters(locale).fileSize(bytes);
 }
 
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat('de-DE').format(value);
+export function formatNumber(value: number, locale: Locale = DEFAULT_LOCALE): string {
+  return createFormatters(locale).number(value);
 }
 
 export type ReleaseChannel = 'stable' | 'beta';
@@ -82,6 +48,20 @@ export function releaseChannel(version: string): ReleaseChannel {
   return version.includes('-') ? 'beta' : 'stable';
 }
 
+const CHANNEL_LABEL_KEYS = {
+  stable: 'Stabil',
+  beta: 'Beta',
+} as const;
+
+/**
+ * Channel label. The German wording is kept for existing call sites; translate
+ * through `releaseChannelKey` when rendering in the visitor's language.
+ */
 export function releaseChannelLabel(version: string): string {
-  return releaseChannel(version) === 'beta' ? 'Beta' : 'Stabil';
+  return CHANNEL_LABEL_KEYS[releaseChannel(version)];
+}
+
+/** Stable translation-independent channel key. */
+export function releaseChannelKey(version: string): ReleaseChannel {
+  return releaseChannel(version);
 }

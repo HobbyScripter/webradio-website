@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import { CheckIcon } from '@/components/ui/icons';
 
 /** Plain-text article editor. Content is rendered as text, never as HTML. */

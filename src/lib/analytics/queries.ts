@@ -1,10 +1,18 @@
 import 'temporal-polyfill/global';
 import { db } from '@/lib/db';
+import { CHANNEL_LABELS, CHANNEL_COLORS, type ReleaseChannel } from './channel';
 
-export type AnalyticsWindow = 7 | 30 | 90;
+export { CHANNEL_LABELS, CHANNEL_COLORS };
+export type { ReleaseChannel };
+
+export type AnalyticsWindow = 7 | 30 | 90 | 180 | 365;
 
 export function parseAnalyticsWindow(value: string | undefined): AnalyticsWindow {
-  return value === '7' ? 7 : value === '90' ? 90 : 30;
+  if (value === '7') return 7;
+  if (value === '90') return 90;
+  if (value === '180') return 180;
+  if (value === '365') return 365;
+  return 30;
 }
 
 function windowCutoff(days: AnalyticsWindow): Temporal.Instant {
@@ -99,20 +107,35 @@ export async function getTrafficAnalytics(days: AnalyticsWindow): Promise<Traffi
 export type ReleaseAnalytics = {
   assetCount: number;
   totalDownloads: number;
-  channels: { stable: number; beta: number; alpha: number; other: number };
+  channels: { stable: number; beta: number; alpha: number; rc: number; unknown: number };
+  releaseGroups: {
+    tag: string;
+    channel: ReleaseChannel;
+    channelLabel: string;
+    totalDownloads: number;
+    assetCount: number;
+    publishedAt: string | null;
+    prerelease: boolean;
+  }[];
   assets: {
     id: string;
     tag: string;
     channel: string;
+    channelLabel: string;
     fileName: string;
     platform: string;
+    format: string;
     size: number;
     downloads: number;
     latestDelta: number | null;
     digest: string | null;
     publishedAt: string | null;
     prerelease: boolean;
+    arch: string;
   }[];
+  byPlatform: CountRow[];
+  byFormat: CountRow[];
+  byArch: CountRow[];
 };
 
 export async function getReleaseAnalytics(): Promise<ReleaseAnalytics> {
@@ -128,19 +151,75 @@ export async function getReleaseAnalytics(): Promise<ReleaseAnalytics> {
     snapshotsByAsset.set(snapshot.assetId, list);
   }
 
-  const channels = { stable: 0, beta: 0, alpha: 0, other: 0 };
+  const channels = { stable: 0, beta: 0, alpha: 0, rc: 0, unknown: 0 };
   for (const asset of assets) {
-    if (asset.releaseChannel === 'stable') channels.stable += asset.currentDownloadCount;
-    else if (asset.releaseChannel === 'beta') channels.beta += asset.currentDownloadCount;
-    else if (asset.releaseChannel === 'alpha') channels.alpha += asset.currentDownloadCount;
-    else channels.other += asset.currentDownloadCount;
+    const ch = asset.releaseChannel as ReleaseChannel;
+    if (ch === 'stable') channels.stable += asset.currentDownloadCount;
+    else if (ch === 'beta') channels.beta += asset.currentDownloadCount;
+    else if (ch === 'alpha') channels.alpha += asset.currentDownloadCount;
+    else if (ch === 'rc') channels.rc += asset.currentDownloadCount;
+    else channels.unknown += asset.currentDownloadCount;
   }
+
+  // Build per-release groups
+  const releaseMap = new Map<string, {
+    tag: string;
+    channel: ReleaseChannel;
+    totalDownloads: number;
+    assetCount: number;
+    publishedAt: string | null;
+    prerelease: boolean;
+  }>();
+  for (const asset of assets) {
+    const existing = releaseMap.get(asset.releaseTag);
+    const pubAt = asset.releasePublishedAt ? String(asset.releasePublishedAt) : null;
+    if (existing) {
+      existing.totalDownloads += asset.currentDownloadCount;
+      existing.assetCount++;
+      if (!existing.publishedAt && pubAt) existing.publishedAt = pubAt;
+    } else {
+      releaseMap.set(asset.releaseTag, {
+        tag: asset.releaseTag,
+        channel: asset.releaseChannel as ReleaseChannel,
+        totalDownloads: asset.currentDownloadCount,
+        assetCount: 1,
+        publishedAt: pubAt,
+        prerelease: asset.isPrerelease,
+      });
+    }
+  }
+
+  const releaseGroups = Array.from(releaseMap.values()).map((r) => ({
+    ...r,
+    channelLabel: CHANNEL_LABELS[r.channel] ?? r.channel,
+  }));
+
+  // Platform / format / arch aggregates
+  const platformMap = new Map<string, number>();
+  const formatMap = new Map<string, number>();
+  const archMap = new Map<string, number>();
+
+  for (const asset of assets) {
+    const p = asset.platform ?? 'unbekannt';
+    platformMap.set(p, (platformMap.get(p) ?? 0) + asset.currentDownloadCount);
+    const f = asset.format ?? 'unbekannt';
+    formatMap.set(f, (formatMap.get(f) ?? 0) + asset.currentDownloadCount);
+    // Arch is derived from filename
+    const arch = detectArchFromFilename(asset.fileName) || 'unbekannt';
+    archMap.set(arch, (archMap.get(arch) ?? 0) + asset.currentDownloadCount);
+  }
+
+  const toCountRows = (m: Map<string, number>): CountRow[] =>
+    Array.from(m.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count);
 
   return {
     assetCount: assets.length,
     totalDownloads: assets.reduce((sum, asset) => sum + asset.currentDownloadCount, 0),
     channels,
-    assets: assets.slice(0, 100).map((asset) => {
+    releaseGroups,
+    assets: assets.slice(0, 200).map((asset) => {
       const counts = snapshotsByAsset.get(asset.id) ?? [];
       const latest = counts.at(-1);
       const previous = counts.at(-2);
@@ -148,17 +227,33 @@ export async function getReleaseAnalytics(): Promise<ReleaseAnalytics> {
         id: asset.id,
         tag: asset.releaseTag,
         channel: asset.releaseChannel,
+        channelLabel: CHANNEL_LABELS[asset.releaseChannel as ReleaseChannel] ?? asset.releaseChannel,
         fileName: asset.fileName,
         platform: asset.platform ?? '–',
+        format: asset.format ?? '–',
         size: Number(asset.size),
         downloads: asset.currentDownloadCount,
         latestDelta: latest !== undefined && previous !== undefined ? Math.max(0, latest - previous) : null,
         digest: asset.digest,
         publishedAt: asset.releasePublishedAt ? String(asset.releasePublishedAt) : null,
         prerelease: asset.isPrerelease,
+        arch: detectArchFromFilename(asset.fileName),
       };
     }),
+    byPlatform: toCountRows(platformMap),
+    byFormat: toCountRows(formatMap),
+    byArch: toCountRows(archMap),
   };
+}
+
+/** Arch detection from asset filename (mirrors website.ts detectArch). */
+function detectArchFromFilename(fileName: string | null | undefined): string {
+  if (!fileName) return '';
+  if (/arm64|aarch64/i.test(fileName)) return 'arm64';
+  if (/armv7|armhf/i.test(fileName)) return 'arm';
+  if (/x64|amd64|x86_64/i.test(fileName)) return 'x64';
+  if (/ia32|i386|x86/i.test(fileName)) return 'x86';
+  return '';
 }
 
 // ---------------------------------------------------------------------------
@@ -173,6 +268,7 @@ export type DownloadRequestAnalytics = {
   byPlatform: CountRow[];
   byArch: CountRow[];
   byCountry: CountRow[];
+  byReferrer: CountRow[];
 };
 
 export async function getDownloadRequestAnalytics(
@@ -199,6 +295,10 @@ export async function getDownloadRequestAnalytics(
     byPlatform: topCounts(rows.map((row) => ({ key: row.platform || 'unbekannt', count: row.count }))),
     byArch: topCounts(rows.map((row) => ({ key: row.arch || 'unbekannt', count: row.count }))),
     byCountry: topCounts(rows.map((row) => ({ key: row.countryCode, count: row.count })), 20),
+    byReferrer: topCounts(
+      rows.map((row) => ({ key: row.referrerHost || 'direkt', count: row.count })),
+      10,
+    ),
   };
 }
 

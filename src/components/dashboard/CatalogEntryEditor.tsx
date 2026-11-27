@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import { ArrowLeftIcon, AlertIcon, CheckIcon } from '@/components/ui/icons';
 import CatalogEntryForm from './CatalogEntryForm';
 import CatalogStatusBadge from './CatalogStatusBadge';
@@ -7,7 +7,7 @@ import {
   createThemeAction,
   updatePluginAction,
   updateThemeAction,
-} from '@/app/(developer)/developer/actions';
+} from '@/app/[locale]/(developer)/developer/actions';
 import type { CatalogKind } from '@/lib/catalog-workflow';
 
 /**

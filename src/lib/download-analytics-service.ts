@@ -2,6 +2,7 @@ import 'temporal-polyfill/global';
 import { z } from 'zod';
 import type * as DbModule from './db';
 import { GITHUB_REPOSITORY, getInstallationAccessToken } from './github-app';
+import { channelFor as centralChannelFor, type ReleaseChannel } from './analytics/channel';
 
 async function getDb(): Promise<typeof DbModule.db> {
   const mod = await import('./db');
@@ -42,9 +43,8 @@ export type SyncResult = {
   durationMs: number;
 };
 
-function channelFor(tagName: string, prerelease: boolean): 'stable' | 'beta' | 'alpha' {
-  if (!prerelease) return 'stable';
-  return tagName.toLowerCase().includes('alpha') ? 'alpha' : 'beta';
+function channelFor(tagName: string, prerelease: boolean): ReleaseChannel {
+  return centralChannelFor(tagName, prerelease);
 }
 
 function detectPlatform(name: string): { platform: string; format: string } {
@@ -305,6 +305,8 @@ export type DownloadAnalyticsDashboardData = {
       stable: number;
       beta: number;
       alpha: number;
+      rc: number;
+      unknown: number;
     };
     lastSyncedAt: string | null;
     syncStatus: 'SUCCESS' | 'FAILED' | 'RUNNING' | 'NEVER';
@@ -362,7 +364,7 @@ export async function getDownloadAnalyticsData(daysBack = 30): Promise<DownloadA
     .all();
 
   let totalGitHubDownloads = 0;
-  const channelDownloads = { stable: 0, beta: 0, alpha: 0 };
+  const channelDownloads = { stable: 0, beta: 0, alpha: 0, rc: 0, unknown: 0 };
 
   const assetMap = new Map<string, {
     id: string;
@@ -382,6 +384,8 @@ export async function getDownloadAnalyticsData(daysBack = 30): Promise<DownloadA
     if (a.releaseChannel === 'stable') channelDownloads.stable += a.currentDownloadCount;
     else if (a.releaseChannel === 'beta') channelDownloads.beta += a.currentDownloadCount;
     else if (a.releaseChannel === 'alpha') channelDownloads.alpha += a.currentDownloadCount;
+    else if (a.releaseChannel === 'rc') channelDownloads.rc += a.currentDownloadCount;
+    else channelDownloads.unknown += a.currentDownloadCount;
 
     assetMap.set(a.id, {
       id: a.id,

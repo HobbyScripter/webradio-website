@@ -11,9 +11,12 @@ import {
   POOLED_HOST,
   isBuildPhase,
   isProductionRuntime,
+  isSelfHostedHostnameAllowed,
+  parseAllowedDatabaseHosts,
   parsePostgresHostname,
   probeCliDatabaseUrl,
   resolveCliDatabaseUrl,
+  resolveDatabaseProvider,
   resolveRuntimeDatabaseUrl,
   type DatabaseEnv,
 } from '../db-connection';
@@ -376,5 +379,306 @@ describe('probeCliDatabaseUrl (used by prisma.config.ts)', () => {
     });
 
     expect(probe.status).toBe('unconfigured');
+  });
+});
+
+describe('resolveDatabaseProvider', () => {
+  it('defaults to prisma, so existing deployments keep the strict rules', () => {
+    expect(resolveDatabaseProvider({})).toBe('prisma');
+    expect(resolveDatabaseProvider({ DATABASE_PROVIDER: 'prisma' })).toBe('prisma');
+    expect(resolveDatabaseProvider({ DATABASE_PROVIDER: ' PRISMA ' })).toBe('prisma');
+    expect(resolveDatabaseProvider({ DATABASE_PROVIDER: 'self-hosted' })).toBe('self-hosted');
+  });
+
+  it('rejects an unknown value without echoing it', () => {
+    const error = expectConfigError(
+      () => resolveDatabaseProvider({ DATABASE_PROVIDER: 'postgresql://u:5up3rsecret@h/db' }),
+      /DATABASE_PROVIDER has an unknown value/,
+    );
+    expect(error.message).not.toMatch(/5up3rsecret/);
+  });
+
+  it('fails runtime and CLI resolution for an unknown provider instead of guessing', () => {
+    expectConfigError(
+      () =>
+        resolveRuntimeDatabaseUrl({
+          NODE_ENV: 'production',
+          DATABASE_PROVIDER: 'mysql',
+          DATABASE_URL_POOLED: POOLED_URL,
+        }),
+      /DATABASE_PROVIDER has an unknown value/,
+    );
+
+    expectConfigError(
+      () =>
+        resolveCliDatabaseUrl({
+          NODE_ENV: 'production',
+          DATABASE_PROVIDER: 'mysql',
+          DIRECT_URL: DIRECT_URL_VALUE,
+        }),
+      /DATABASE_PROVIDER has an unknown value/,
+    );
+  });
+});
+
+describe('resolveRuntimeDatabaseUrl (self-hosted)', () => {
+  const DOCKER_URL = 'postgresql://webradio:docker-db-pass@postgres:5432/webradio';
+
+  it('accepts the docker service host in production', () => {
+    const resolved = resolveRuntimeDatabaseUrl({
+      NODE_ENV: 'production',
+      DATABASE_PROVIDER: 'self-hosted',
+      DATABASE_URL_POOLED: DOCKER_URL,
+    });
+
+    expect(resolved).toEqual({
+      url: DOCKER_URL,
+      hostname: 'postgres',
+      source: 'DATABASE_URL_POOLED (self-hosted)',
+    });
+  });
+
+  it('accepts DATABASE_URL as the single self-hosted runtime variable', () => {
+    const resolved = resolveRuntimeDatabaseUrl({
+      NODE_ENV: 'production',
+      DATABASE_PROVIDER: 'self-hosted',
+      DATABASE_URL: DOCKER_URL,
+    });
+
+    expect(resolved.source).toBe('DATABASE_URL (self-hosted)');
+    expect(resolved.hostname).toBe('postgres');
+  });
+
+  it('accepts loopback in production when the database runs beside the app', () => {
+    const resolved = resolveRuntimeDatabaseUrl({
+      NODE_ENV: 'production',
+      DATABASE_PROVIDER: 'self-hosted',
+      DATABASE_URL: 'postgresql://webradio:local-db-pass@127.0.0.1:5432/webradio',
+    });
+
+    expect(resolved.hostname).toBe('127.0.0.1');
+  });
+
+  it('rejects an arbitrary external host that is not allowlisted', () => {
+    expectConfigError(
+      () =>
+        resolveRuntimeDatabaseUrl({
+          NODE_ENV: 'production',
+          DATABASE_PROVIDER: 'self-hosted',
+          DATABASE_URL: 'postgresql://webradio:remote-db-pass@db.example.com:5432/webradio',
+        }),
+      /not allowed in the self-hosted database mode: db\.example\.com/,
+    );
+  });
+
+  it('accepts an explicitly allowlisted FQDN and private IP', () => {
+    for (const [host, allowed, expectedHostname] of [
+      ['db.example.com', 'db.example.com', 'db.example.com'],
+      ['10.0.0.5', ' 10.0.0.5 , db.example.com ', '10.0.0.5'],
+      // IPv6 literals need brackets in a URL; the allowlist entry does not.
+      ['[fd00::5]', 'fd00::5', '[fd00::5]'],
+    ] as const) {
+      const resolved = resolveRuntimeDatabaseUrl({
+        NODE_ENV: 'production',
+        DATABASE_PROVIDER: 'self-hosted',
+        DATABASE_ALLOWED_HOSTS: allowed,
+        DATABASE_URL: `postgresql://webradio:allowlist-pass@${host}:5432/webradio`,
+      });
+
+      expect(resolved.hostname).toBe(expectedHostname);
+    }
+  });
+
+  it('does not accept the Prisma Postgres hosts unless they are allowlisted', () => {
+    expectConfigError(
+      () =>
+        resolveRuntimeDatabaseUrl({
+          NODE_ENV: 'production',
+          DATABASE_PROVIDER: 'self-hosted',
+          DATABASE_URL_POOLED: POOLED_URL,
+        }),
+      /not allowed in the self-hosted database mode: pooled\.db\.prisma\.io/,
+    );
+  });
+
+  it('rejects URLs without a database name, user or production password', () => {
+    const base = { NODE_ENV: 'production', DATABASE_PROVIDER: 'self-hosted' } as const;
+
+    expectConfigError(
+      () => resolveRuntimeDatabaseUrl({ ...base, DATABASE_URL: 'postgresql://user:pass@postgres:5432' }),
+      /does not name a database/,
+    );
+
+    expectConfigError(
+      () =>
+        resolveRuntimeDatabaseUrl({ ...base, DATABASE_URL: 'postgresql://:pass@postgres:5432/webradio' }),
+      /has no user name/,
+    );
+
+    expectConfigError(
+      () =>
+        resolveRuntimeDatabaseUrl({ ...base, DATABASE_URL: 'postgresql://webradio@postgres:5432/webradio' }),
+      /has no password/,
+    );
+  });
+
+  it('keeps rejecting invalid protocols and connection strings', () => {
+    const base = { NODE_ENV: 'production', DATABASE_PROVIDER: 'self-hosted' } as const;
+
+    for (const url of [
+      'https://postgres:5432/webradio',
+      'postgresql://webradio:pass@postgres:not-a-port/webradio',
+      'not-a-url',
+    ]) {
+      expectConfigError(
+        () => resolveRuntimeDatabaseUrl({ ...base, DATABASE_URL: url }),
+        /is not a valid PostgreSQL connection URL/,
+      );
+    }
+  });
+
+  it('requires a URL in production', () => {
+    expectConfigError(
+      () => resolveRuntimeDatabaseUrl({ NODE_ENV: 'production', DATABASE_PROVIDER: 'self-hosted' }),
+      /DATABASE_URL must be set at runtime with DATABASE_PROVIDER=self-hosted/,
+    );
+  });
+
+  it('keeps the loopback placeholder for builds and tests', () => {
+    for (const env of [
+      { NODE_ENV: 'test', DATABASE_PROVIDER: 'self-hosted' },
+      {
+        NODE_ENV: 'production',
+        DATABASE_PROVIDER: 'self-hosted',
+        NEXT_PHASE: 'phase-production-build',
+      },
+    ] as DatabaseEnv[]) {
+      const resolved = resolveRuntimeDatabaseUrl(env);
+      expect(resolved.url).toBe(PLACEHOLDER_DATABASE_URL);
+      expect(resolved.source).toBe('placeholder (build/test)');
+    }
+  });
+
+  it('keeps credentials out of every error message', () => {
+    const cases: DatabaseEnv[] = [
+      {
+        NODE_ENV: 'production',
+        DATABASE_PROVIDER: 'self-hosted',
+        DATABASE_URL: 'postgresql://u:selfhost-secret@db.example.com:5432/webradio',
+      },
+      {
+        NODE_ENV: 'production',
+        DATABASE_PROVIDER: 'self-hosted',
+        DATABASE_URL: 'postgresql://u:selfhost-secret@postgres:5432',
+      },
+      {
+        NODE_ENV: 'production',
+        DATABASE_PROVIDER: 'self-hosted',
+        DATABASE_URL: 'postgresql://u:selfhost-secret@10.1.1.1:5432/webradio',
+      },
+    ];
+
+    for (const env of cases) {
+      try {
+        resolveRuntimeDatabaseUrl(env);
+        throw new Error('expected a DatabaseConfigError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DatabaseConfigError);
+        expect((error as DatabaseConfigError).message).not.toMatch(/selfhost-secret|\\bu:/);
+      }
+    }
+  });
+});
+
+describe('resolveCliDatabaseUrl (self-hosted)', () => {
+  const DOCKER_URL = 'postgresql://webradio:docker-db-pass@postgres:5432/webradio';
+
+  it('uses DATABASE_URL when DIRECT_URL is absent', () => {
+    const resolved = resolveCliDatabaseUrl({
+      NODE_ENV: 'production',
+      DATABASE_PROVIDER: 'self-hosted',
+      DATABASE_URL: DOCKER_URL,
+    });
+
+    expect(resolved).toEqual({
+      url: DOCKER_URL,
+      hostname: 'postgres',
+      source: 'DATABASE_URL (self-hosted)',
+    });
+  });
+
+  it('prefers DIRECT_URL when both are set', () => {
+    const resolved = resolveCliDatabaseUrl({
+      NODE_ENV: 'production',
+      DATABASE_PROVIDER: 'self-hosted',
+      DIRECT_URL: DOCKER_URL,
+      DATABASE_URL: 'postgresql://webradio:pooled-pass@pooled:5432/webradio',
+    });
+
+    expect(resolved.source).toBe('DIRECT_URL (self-hosted)');
+    expect(resolved.hostname).toBe('postgres');
+  });
+
+  it('applies the same host rule as the runtime', () => {
+    expectConfigError(
+      () =>
+        resolveCliDatabaseUrl({
+          NODE_ENV: 'production',
+          DATABASE_PROVIDER: 'self-hosted',
+          DIRECT_URL: 'postgresql://webradio:cli-pass@db.example.com:5432/webradio',
+        }),
+      /not allowed in the self-hosted database mode: db\.example\.com/,
+    );
+  });
+
+  it('throws when nothing is configured', () => {
+    expectConfigError(
+      () => resolveCliDatabaseUrl({ NODE_ENV: 'production', DATABASE_PROVIDER: 'self-hosted' }),
+      /DIRECT_URL or DATABASE_URL must be set for Prisma CLI operations/,
+    );
+  });
+});
+
+describe('probeCliDatabaseUrl (self-hosted)', () => {
+  it('resolves DATABASE_URL for migrations', () => {
+    const probe = probeCliDatabaseUrl({
+      NODE_ENV: 'production',
+      DATABASE_PROVIDER: 'self-hosted',
+      DATABASE_URL: 'postgresql://webradio:probe-pass@postgres:5432/webradio',
+    });
+
+    expect(probe.status).toBe('resolved');
+    if (probe.status !== 'resolved') throw new Error('unreachable');
+    expect(probe.connection.source).toBe('DATABASE_URL (self-hosted)');
+  });
+
+  it('reports an unknown provider as invalid instead of silently unconfigured', () => {
+    const probe = probeCliDatabaseUrl({ NODE_ENV: 'production', DATABASE_PROVIDER: 'postgres' });
+
+    expect(probe.status).toBe('invalid');
+    if (probe.status !== 'invalid') throw new Error('unreachable');
+    expect(probe.reason).toMatch(/DATABASE_PROVIDER has an unknown value/);
+  });
+
+  it('stays unconfigured without any URL so the build works offline', () => {
+    expect(
+      probeCliDatabaseUrl({ NODE_ENV: 'production', DATABASE_PROVIDER: 'self-hosted' }),
+    ).toEqual({ status: 'unconfigured' });
+  });
+});
+
+describe('self-hosted host rules', () => {
+  it('parses the allowlist and keeps service names allowed', () => {
+    expect(
+      parseAllowedDatabaseHosts({ DATABASE_ALLOWED_HOSTS: ' Db.Example.com , 10.0.0.5, ' }),
+    ).toEqual(['db.example.com', '10.0.0.5']);
+    expect(parseAllowedDatabaseHosts({})).toEqual([]);
+
+    expect(isSelfHostedHostnameAllowed('postgres', [])).toBe(true);
+    expect(isSelfHostedHostnameAllowed('webradio-db', [])).toBe(true);
+    expect(isSelfHostedHostnameAllowed('127.0.0.1', [])).toBe(true);
+    expect(isSelfHostedHostnameAllowed('db.example.com', [])).toBe(false);
+    expect(isSelfHostedHostnameAllowed('10.0.0.5', [])).toBe(false);
+    expect(isSelfHostedHostnameAllowed('db.example.com', ['db.example.com'])).toBe(true);
   });
 });

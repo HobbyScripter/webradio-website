@@ -1,0 +1,15 @@
+[Unit]
+OnFailure=webradio-alert@%n.service
+Description=WebRadio self-hosted health check (no daemon)
+Documentation=file:/opt/webradio/docs/SELF_HOSTED_DEPLOYMENT_GUIDE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=-/etc/webradio/monitoring.env
+ExecStart=/usr/local/sbin/webradio-health
+Nice=10
+IOSchedulingClass=best-effort
+TimeoutStartSec=120

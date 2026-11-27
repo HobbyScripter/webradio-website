@@ -1,0 +1,16 @@
+[Unit]
+Description=Trigger the WebRadio analytics schedules (replaces Vercel cron)
+Documentation=file:/opt/webradio/docs/SELF_HOSTED_DEPLOYMENT_GUIDE.md
+After=network-online.target
+Wants=network-online.target
+OnFailure=webradio-alert@%n.service
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=/etc/webradio/cron.env
+ExecStart=/usr/local/sbin/webradio-cron-run
+Nice=10
+IOSchedulingClass=best-effort
+# Four schedules with a 300 s timeout each.
+TimeoutStartSec=1500

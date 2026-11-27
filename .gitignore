@@ -72,3 +72,13 @@ Desktop.ini
 ci-clean-temp/
 .vercel
 .env*
+# self-hosted deployment environments (real values, never committed)
+deploy/env.production
+deploy/env.test
+deploy/env.*.local
+
+# local acceptance working data (database clusters, logs, backup paths)
+.acceptance/
+
+# Freebuff Desktop project marker
+.freebuff/

@@ -76,7 +76,7 @@ export async function requestPasswordReset(
     // Audit failure must not turn a valid request into an enumeration oracle.
   }
 
-  const delivery = await sendPasswordResetEmail(user.email, token.raw);
+  const delivery = await sendPasswordResetEmail(user.email, token.raw, user.locale);
   return { accountFound: true, delivery };
 }
 
@@ -127,7 +127,7 @@ export async function requestEmailVerification(
     // Non-critical.
   }
 
-  const delivery = await sendEmailVerificationEmail(user.email, token.raw);
+  const delivery = await sendEmailVerificationEmail(user.email, token.raw, user.locale);
   return { sent: true, delivery };
 }
 

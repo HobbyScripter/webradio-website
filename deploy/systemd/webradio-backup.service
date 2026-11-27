@@ -1,0 +1,18 @@
+[Unit]
+OnFailure=webradio-alert@%n.service
+Description=Encrypted PostgreSQL backup for the WebRadio Website
+Documentation=file:/opt/webradio/docs/DISASTER_RECOVERY_GUIDE.md
+After=network-online.target postgresql.service docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=/etc/webradio/backup.env
+# Database dump first, then the (secret-free) configuration archive. Both use
+# the same key and rotation; a failure in either run fails the unit.
+ExecStart=/usr/local/sbin/webradio-backup
+ExecStart=/usr/local/sbin/webradio-config-backup
+Nice=10
+IOSchedulingClass=best-effort
+TimeoutStartSec=900

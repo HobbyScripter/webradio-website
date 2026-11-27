@@ -26,6 +26,8 @@ import crypto from 'crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import nodemailer from 'nodemailer';
+import { DEFAULT_LOCALE, localizePath, parseLocale, type Locale } from '@/i18n/config';
+import { getTranslator } from '@/i18n/messages';
 
 /** How the message left the application. */
 export type EmailDeliveryMode =
@@ -370,44 +372,86 @@ function withLink(
   return sendTransactionalEmail(build(link));
 }
 
+/** E-mail language: the account's stored locale, else German. */
+function emailLocale(raw: string | null | undefined): Locale {
+  return parseLocale(raw) ?? DEFAULT_LOCALE;
+}
+
+/**
+ * Common body layout for transactional mail.
+ *
+ * Plain text only: no HTML to sanitise, no tracking pixel, no external asset.
+ * The language is the one stored on the account, so a Dutch visitor does not
+ * receive a German reset link.
+ */
+function composeBody(
+  t: ReturnType<typeof getTranslator>,
+  parts: { intro: string; action: string; url: string; expiry: string; ignore: string },
+): string {
+  return [
+    `${t('emails.greeting')},`,
+    '',
+    parts.intro,
+    '',
+    `${parts.action}:`,
+    parts.url,
+    '',
+    parts.expiry,
+    parts.ignore,
+    '',
+    t('emails.signature'),
+    t('emails.automated'),
+  ].join('\n');
+}
+
+/**
+ * Password-reset mail in the account language.
+ *
+ * Dependency-free text; the link points at the locale-prefixed page so the
+ * recipient continues in the same language.
+ */
 export async function sendPasswordResetEmail(
   to: string,
   token: string,
+  localeInput?: string | null,
 ): Promise<EmailDeliveryResult> {
-  const link = buildAuthLink('/auth/reset-password', token);
+  const locale = emailLocale(localeInput);
+  const t = getTranslator(locale);
+  const link = buildAuthLink(localizePath(locale, '/auth/reset-password'), token);
 
   return withLink(link, (url) => ({
     to,
-    subject: 'WebRadio: Passwort zurücksetzen',
-    text: [
-      'Für dein WebRadio-Konto wurde ein Passwort-Reset angefordert.',
-      '',
-      'Link zum Festlegen eines neuen Passworts (60 Minuten gültig):',
+    subject: `WebRadio: ${t('emails.resetSubject')}`,
+    text: composeBody(t, {
+      intro: `${t('emails.greeting')}, ${t('emails.resetIntro')}`,
+      action: t('emails.resetAction'),
       url,
-      '',
-      'Wenn du das nicht angefordert hast, ignoriere diese Nachricht. Dein',
-      'Passwort bleibt dann unverändert.',
-    ].join('\n'),
+      expiry: t('emails.resetExpiry'),
+      ignore: t('emails.resetIgnore'),
+    }),
   }));
 }
 
+/** Verification mail in the account language. */
 export async function sendEmailVerificationEmail(
   to: string,
   token: string,
+  localeInput?: string | null,
 ): Promise<EmailDeliveryResult> {
-  const link = buildAuthLink('/auth/verify-email', token);
+  const locale = emailLocale(localeInput);
+  const t = getTranslator(locale);
+  const link = buildAuthLink(localizePath(locale, '/auth/verify-email'), token);
 
   return withLink(link, (url) => ({
     to,
-    subject: 'WebRadio: E-Mail-Adresse bestätigen',
-    text: [
-      'Bitte bestätige die E-Mail-Adresse für dein WebRadio-Konto.',
-      '',
-      'Bestätigungslink (24 Stunden gültig):',
+    subject: `WebRadio: ${t('emails.verifySubject')}`,
+    text: composeBody(t, {
+      intro: `${t('emails.greeting')}, ${t('emails.verifyIntro')}`,
+      action: t('emails.verifyAction'),
       url,
-      '',
-      'Wenn du kein Konto erstellt hast, ignoriere diese Nachricht.',
-    ].join('\n'),
+      expiry: t('emails.verifyExpiry'),
+      ignore: t('emails.verifyIgnore'),
+    }),
   }));
 }
 

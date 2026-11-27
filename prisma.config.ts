@@ -34,9 +34,13 @@ import { probeCliDatabaseUrl } from './src/lib/db-connection.ts';
  * and friends fail with a precise message instead of a generic loader error.
  * No migration is ever part of `prebuild`/`build`.
  *
- * Deployed environments:
+ * Deployed environments (Prisma mode, the default):
  * - DATABASE_URL_POOLED: pooled.db.prisma.io (application runtime)
  * - DIRECT_URL:          db.prisma.io         (only for migration/DB commands)
+ *
+ * With `DATABASE_PROVIDER=self-hosted` the CLI uses `DIRECT_URL`, then
+ * `DATABASE_URL`, validated against the self-hosted host rule instead. See
+ * docs/HOSTING_PORTABILITY.md.
  */
 
 const probe = probeCliDatabaseUrl();

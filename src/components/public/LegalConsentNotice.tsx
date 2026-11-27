@@ -1,8 +1,8 @@
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import { getServerAuthSession } from '@/lib/server-auth';
 import { listOutstandingLegalConsents } from '@/lib/legal-document-service';
 import { LEGAL_PAGE_LABELS, LEGAL_PAGE_PATHS } from '@/lib/legal-labels';
-import { acceptLegalVersionAction } from '@/app/(public)/legal-consent-action';
+import { acceptLegalVersionAction } from '@/app/[locale]/(public)/legal-consent-action';
 import { CheckIcon } from '@/components/ui/icons';
 
 /**

@@ -29,6 +29,10 @@ model User {
   name             String?
   role             Role               @default(USER)
   emailVerified    DateTime?
+  // Preferred interface language (BCP-47 primary subtag: de, en, nl, fr, es, it, pl).
+  // Null means "not chosen yet" so detection can fall through to the cookie and
+  // the browser instead of forcing German onto a new account.
+  locale           String?
   status           UserStatus         @default(ACTIVE)
   suspendedAt      DateTime?
   suspendedUntil   DateTime?
@@ -52,6 +56,139 @@ model User {
   @@index([email])
   @@index([role])
   @@index([status])
+}
+
+// Translations of stored content (plugins, themes, partners, advertising, …).
+//
+// Normalised on purpose: one row per (entity, locale, field) instead of a
+// column per language. Adding a language therefore inserts rows, never a
+// schema change, and the original value stays in its own column on the entity —
+// nothing is overwritten and a missing translation simply falls back.
+//
+// `status` gates publication: only APPROVED rows are served publicly, so a
+// draft or a review copy can never leak to visitors.
+//
+// Statuses (enforced in the service layer):
+//   MISSING            — a job exists, no value yet
+//   MACHINE_TRANSLATED — produced by a provider, **never** treated as reviewed
+//   REVIEW_REQUIRED    — machine output that needs human review (legal, names)
+//   APPROVED           — explicitly released by an administrator
+//   REJECTED           — reviewed and refused; not served
+//
+// `sourceHash` records the German source the value was produced from. If the
+// source changes, the hash no longer matches and the row is outdated: it is not
+// served and is offered for re-translation instead of being overwritten.
+model ContentTranslation {
+  id             String   @id @onCreate(uuid(7))
+  // Entity name as written in the contract, e.g. "Plugin" or "AdCampaign".
+  entityType     String
+  entityId       String
+  locale         String
+  // Field of the entity, e.g. "name" or "description".
+  field          String
+  value          String   @default("")
+  // MISSING | MACHINE_TRANSLATED | REVIEW_REQUIRED | APPROVED | REJECTED.
+  status         String   @default("MISSING")
+  // Provider that produced the current value ("deepl"), null for human edits.
+  provider       String?
+  // SHA-256 of the source text this value was translated from.
+  sourceHash     String?
+  // Set when the source changed after translating; outdated rows are not served.
+  outdated       Boolean  @default(false)
+  translatedById String?
+  reviewedAt     DateTime?
+  createdAt      DateTime @onCreate(now())
+  updatedAt      DateTime @onCreate(now()) @onUpdate(now())
+
+  @@unique([entityType, entityId, locale, field])
+  @@index([entityType, entityId])
+  @@index([locale])
+  @@index([status])
+  @@index([outdated])
+}
+
+// Idempotent unit of machine translation work.
+//
+// `jobKey` is a hash over (entity, locale, field, sourceHash). The unique index
+// is what makes a job idempotent: a second request for the same source text and
+// target reuses the finished job instead of paying for the same API call twice.
+// The row is also the persistent queue — a job stays PENDING until a worker
+// (admin action, cron endpoint) claims it.
+model TranslationJob {
+  id            String    @id @onCreate(uuid(7))
+  jobKey        String    @unique
+  entityType    String
+  entityId      String
+  locale        String
+  field         String
+  provider      String
+  // PENDING | RUNNING | SUCCEEDED | FAILED | SKIPPED
+  status        String    @default("PENDING")
+  attempts      Int       @default(0)
+  // Stable, secret-free error code (e.g. RATE_LIMITED, QUOTA_EXCEEDED).
+  errorCode     String?
+  sourceHash    String
+  characters    Int       @default(0)
+  requestedById String?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime  @onCreate(now())
+  updatedAt     DateTime  @onCreate(now()) @onUpdate(now())
+
+  @@index([status])
+  @@index([locale])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// Append-only history of every translation decision.
+//
+// Nothing here is ever updated or deleted: who changed which translation from
+// which status to which status, with which provider, and when. Machine output
+// and human approval stay distinguishable forever.
+model TranslationEvent {
+  id            String   @id @onCreate(uuid(7))
+  // Null when the event concerns a field that has no row yet (blocked, failed).
+  translationId String?
+  entityType    String
+  entityId      String
+  locale        String
+  field         String
+  // MACHINE_TRANSLATED | EDITED | APPROVED | REJECTED | RETRANSLATED |
+  // MARKED_OUTDATED | BLOCKED | FAILED
+  action        String
+  fromStatus    String?
+  toStatus      String?
+  provider      String?
+  actorId       String?
+  // Short, non-sensitive explanation (error code, reason).
+  note          String?
+  createdAt     DateTime @onCreate(now())
+
+  @@index([entityType, entityId, locale, field])
+  @@index([createdAt])
+  @@index([action])
+}
+
+// Provider consumption and cost, one row per accepted API call.
+//
+// `costMicros` is stored at write time (characters × configured price), so a
+// later price change never rewrites the history of what was actually spent.
+model TranslationUsage {
+  id         String   @id @onCreate(uuid(7))
+  provider   String
+  // Target locale of the call, null for account-level readings.
+  locale     String?
+  characters Int      @default(0)
+  requests   Int      @default(1)
+  costMicros Int      @default(0)
+  // Provider-reported monthly quota, when the provider exposes it.
+  quotaUsed  Int?
+  quotaLimit Int?
+  createdAt  DateTime @onCreate(now())
+
+  @@index([provider, createdAt])
+  @@index([locale])
 }
 
 // Session model for server-side authentication & revocation
@@ -1174,5 +1311,56 @@ model AdClick {
   @@unique([campaignId, placement, day])
   @@index([day])
   @@index([placement])
+}
+
+// ---------------------------------------------------------------------------
+// Custom Links Management
+// ---------------------------------------------------------------------------
+
+enum CustomLinkPosition {
+  MAIN_NAVIGATION
+  FOOTER
+}
+
+enum CustomLinkType {
+  INTERNAL
+  EXTERNAL
+}
+
+model CustomLink {
+  id          String             @id @onCreate(uuid(7))
+  position    CustomLinkPosition
+  sortOrder   Int                @default(0)
+  isActive    Boolean            @default(true)
+  url         String
+  type        CustomLinkType
+  openInNewTab Boolean            @default(false)
+  iconName    String?
+  createdAt   DateTime           @onCreate(now())
+  updatedAt   DateTime           @onCreate(now()) @onUpdate(now())
+  createdBy   String?
+  updatedBy   String?
+
+  labels      CustomLinkLabel[]
+
+  @@index([position])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model CustomLinkLabel {
+  id          String   @id @onCreate(uuid(7))
+  linkId      String
+  locale      String
+  label       String
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+  link        CustomLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@unique([linkId, locale])
+  @@index([linkId])
+  @@index([locale])
 }
 

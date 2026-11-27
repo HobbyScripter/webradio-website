@@ -1,0 +1,13 @@
+[Unit]
+Description=Copy the nightly encrypted backups offsite at 02:45
+Documentation=file:/opt/webradio/docs/DISASTER_RECOVERY_GUIDE.md
+
+[Timer]
+OnCalendar=*-*-* 02:45:00
+RandomizedDelaySec=300
+Persistent=true
+AccuracySec=1min
+Unit=webradio-offsite.service
+
+[Install]
+WantedBy=timers.target

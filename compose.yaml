@@ -1,0 +1,227 @@
+# Self-hosted production stack: Caddy (edge) + Next.js (standalone) + PostgreSQL 18.
+#
+# This is the *container* operating form. The native form (host PostgreSQL,
+# systemd service, Caddy as a systemd unit) is documented separately in
+# docs/SELF_HOSTED_DEPLOYMENT_GUIDE.md. Never run both forms on one host: both
+# want port 443 and a database of the same name.
+#
+# Usage:
+#   cp deploy/env.production.example deploy/env.production   # 0600, fill in
+#   docker compose --env-file deploy/env.production up -d --build
+#   docker compose --env-file deploy/env.production ps
+#   docker compose --env-file deploy/env.production run --rm tools \
+#     node scripts/prisma-db.mts db migrate
+#
+# `--env-file` is mandatory: the repository `.env` is the development file
+# (127.0.0.1:5433, loopback secrets). WEBRADIO_STACK_ENV is required and only
+# present in the production env file, so a forgotten flag fails immediately
+# instead of silently starting with development values.
+#
+# Ports: only Caddy publishes. The application (3000) and PostgreSQL (5432) are
+# reachable exclusively inside the private `backend` network.
+
+name: webradio
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Shared by the app and the one-shot tools container.
+x-app-environment: &app-environment
+  NODE_ENV: production
+  PORT: "3000"
+  HOSTNAME: "0.0.0.0"
+  DATABASE_PROVIDER: self-hosted
+  # Service name `postgres` is a single-label host and therefore allowed by the
+  # self-hosted host rule without DATABASE_ALLOWED_HOSTS.
+  DATABASE_URL: ${APP_DATABASE_URL:-postgresql://${POSTGRES_USER:?set POSTGRES_USER}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?set POSTGRES_DB}}
+  DATABASE_ALLOWED_HOSTS: ${APP_DATABASE_ALLOWED_HOSTS:-}
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET}
+  NEXTAUTH_URL: ${NEXTAUTH_URL:?set NEXTAUTH_URL (https://your-domain.example)}
+  NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
+  TRUST_PROXY: ${TRUST_PROXY:-1}
+  CRON_SECRET: ${CRON_SECRET:-}
+  GITHUB_APP_ID: ${GITHUB_APP_ID:-}
+  GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+  GITHUB_INSTALLATION_ID: ${GITHUB_INSTALLATION_ID:-}
+  GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-}
+  GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+  WEBRADIO_STACK_ENV: ${WEBRADIO_STACK_ENV:?use --env-file deploy/env.production}
+
+services:
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    ports:
+      # 80/443 in production. For the isolated test host override
+      # CADDY_HTTP_PORT/CADDY_HTTPS_PORT (e.g. 8080/8443).
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
+      - "${CADDY_HTTPS_PORT:-443}:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS (https://your-domain.example)}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+      SITE_HOST: ${SITE_HOST:-localhost}
+      # Only used by deploy/Caddyfile.internal for the HTTP->HTTPS redirect.
+      SITE_PORT: ${CADDY_HTTPS_PORT:-443}
+      WEBRADIO_STACK_ENV: ${WEBRADIO_STACK_ENV:?use --env-file deploy/env.production}
+    volumes:
+      # CADDYFILE defaults to the ACME/automatic-HTTPS config. Test hosts use
+      # deploy/Caddyfile.internal (tls internal) instead.
+      - ${CADDYFILE:-./deploy/Caddyfile}:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      webradio:
+        condition: service_healthy
+    healthcheck:
+      # Internal plain-HTTP listener defined in both Caddyfiles; the public
+      # :80 server is a redirect and is not suitable for a container probe.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+    cpus: 0.5
+    networks:
+      - edge
+      - backend
+
+  webradio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: webradio-website:infra1.4
+    restart: unless-stopped
+    init: true
+    # Next.js handles SIGTERM itself; give it time to drain requests.
+    stop_grace_period: 30s
+    environment: *app-environment
+    expose:
+      - "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Liveness only on purpose: a database outage must not make Docker restart
+    # the application. Readiness is checked by Caddy (/api/ready) and by
+    # deploy/monitoring/health-report.sh.
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=64m
+    # Measured on the INFRA 1.3 VM: 254 MB RSS idle, 310 MB after load.
+    # 768 MB leaves room for spikes and image optimisation without letting a
+    # leak starve PostgreSQL on a 2 GB host.
+    mem_limit: 768m
+    cpus: 2.0
+    networks:
+      - backend
+      # Outbound traffic (GitHub API, SMTP) is not possible on the internal
+      # `backend` network, so the app also joins a regular bridge.
+      - egress
+
+  # One-shot database commands with the full source tree (the image has no
+  # npm entrypoint, so the command is always `node scripts/prisma-db.mts ...`):
+  #   ... run --rm tools node scripts/prisma-db.mts db migrate
+  #   ... run --rm tools node scripts/prisma-db.mts db verify --strict
+  #   ... run --rm tools (uses the `command:` below, i.e. db verify)
+  tools:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: webradio-website:infra1.4-tools
+    environment: *app-environment
+    command: ["node", "scripts/prisma-db.mts", "db", "verify"]
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:18.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB}
+      # Keep the cluster's own locale/timezone explicit and reproducible.
+      TZ: ${TZ:-UTC}
+      PGTZ: ${TZ:-UTC}
+    command:
+      - postgres
+      # Sized for a small root server (2 vCPU / 2-4 GB). Values are derived
+      # from the measured working set in
+      # docs/PHASE_INFRA1.4_PRODUCTION_READINESS_REPORT.md: the application
+      # keeps one pool with a handful of connections and the aggregates are
+      # small, so 50 connections and 256 MB shared buffers are generous.
+      - -c
+      - shared_buffers=${PG_SHARED_BUFFERS:-256MB}
+      - -c
+      - effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-768MB}
+      - -c
+      - max_connections=${PG_MAX_CONNECTIONS:-50}
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - wal_compression=on
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - log_min_duration_statement=500
+    volumes:
+      # postgres:18 keeps PGDATA in /var/lib/postgresql/18/docker.
+      - postgres-data:/var/lib/postgresql
+    # No `ports:` on purpose. The database is never published; use
+    # `docker compose exec postgres psql` or the backup/restore scripts.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 60s
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 256m
+    mem_limit: 512m
+    cpus: 1.0
+    networks:
+      - backend
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  edge:
+    driver: bridge
+  # No route to the outside: database traffic stays between app and PostgreSQL.
+  backend:
+    driver: bridge
+    internal: true
+  egress:
+    driver: bridge

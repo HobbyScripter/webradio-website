@@ -5,8 +5,12 @@
  * use the exact same hierarchy as the server-side authorization helpers. The
  * server still re-reads the role from PostgreSQL on every check; the values
  * here describe ordering and labels only.
+ *
+ * Labels are translation keys, not text: the signed-in chrome is rendered in
+ * the visitor's language through `<I18nProvider>`.
  */
 import type { Role } from './validations';
+import type { TranslationKey } from '@/i18n/messages';
 
 export const ROLE_RANK: Record<Role, number> = {
   USER: 0,
@@ -15,12 +19,18 @@ export const ROLE_RANK: Record<Role, number> = {
   SYSTEM_ADMIN: 3,
 };
 
-export const ROLE_LABELS: Record<Role, string> = {
-  USER: 'Benutzer',
-  DEVELOPER: 'Entwickler',
-  ADMIN: 'Administrator',
-  SYSTEM_ADMIN: 'Systemadministrator',
-};
+/** Translation key per role; resolve with `t(ROLE_LABEL_KEYS[role])`. */
+export const ROLE_LABEL_KEYS = {
+  USER: 'roles.USER',
+  DEVELOPER: 'roles.DEVELOPER',
+  ADMIN: 'roles.ADMIN',
+  SYSTEM_ADMIN: 'roles.SYSTEM_ADMIN',
+} as const satisfies Record<Role, TranslationKey>;
+
+/** Resolve a role's label in the active language. */
+export function roleLabel(t: (key: string) => string, role: Role): string {
+  return t(ROLE_LABEL_KEYS[role]);
+}
 
 /** True when `userRole` satisfies `requiredRole` in the fixed hierarchy. */
 export function hasRole(userRole: Role, requiredRole: Role): boolean {
@@ -71,7 +81,7 @@ export type AccountNavIcon = 'user' | 'settings' | 'shield' | 'code' | 'server' 
 
 export type AccountNavItem = {
   key: string;
-  label: string;
+  labelKey: TranslationKey;
   href: string;
   icon: AccountNavIcon;
   /** Minimum role that sees this entry. USER entries are visible to everyone. */
@@ -83,45 +93,58 @@ export type AccountNavItem = {
  * Higher roles inherit the entries of lower roles.
  */
 export const ACCOUNT_NAV_ITEMS: readonly AccountNavItem[] = [
-  { key: 'account', label: 'Mein Konto', href: '/account', icon: 'user', requiredRole: 'USER' },
+  {
+    key: 'account',
+    labelKey: 'account.navOverview',
+    href: '/account',
+    icon: 'user',
+    requiredRole: 'USER',
+  },
   {
     key: 'profile',
-    label: 'Profil',
+    labelKey: 'account.navProfile',
     href: '/account/profile',
     icon: 'settings',
     requiredRole: 'USER',
   },
   {
     key: 'security',
-    label: 'Sicherheit',
+    labelKey: 'account.navSecurity',
     href: '/account/security',
     icon: 'shield',
     requiredRole: 'USER',
   },
   {
+    key: 'language',
+    labelKey: 'account.navLanguage',
+    href: '/account/settings',
+    icon: 'settings',
+    requiredRole: 'USER',
+  },
+  {
     key: 'developer-access',
-    label: 'Entwicklerzugang',
+    labelKey: 'account.navDeveloperAccess',
     href: '/account/developer',
     icon: 'code',
     requiredRole: 'USER',
   },
   {
     key: 'developer',
-    label: 'Developer-Dashboard',
+    labelKey: 'account.navDeveloperDashboard',
     href: '/developer',
     icon: 'code',
     requiredRole: 'DEVELOPER',
   },
   {
     key: 'admin',
-    label: 'Admin-Dashboard',
+    labelKey: 'account.navAdminDashboard',
     href: '/admin',
     icon: 'shield',
     requiredRole: 'ADMIN',
   },
   {
     key: 'system-admin',
-    label: 'Systemverwaltung',
+    labelKey: 'account.navSystemAdmin',
     href: '/system-admin',
     icon: 'server',
     requiredRole: 'SYSTEM_ADMIN',

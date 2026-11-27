@@ -1,0 +1,18 @@
+[Unit]
+Description=Copy encrypted WebRadio backups to the offsite target
+Documentation=file:/opt/webradio/docs/DISASTER_RECOVERY_GUIDE.md
+After=network-online.target
+Wants=network-online.target
+OnFailure=webradio-alert@%n.service
+
+[Service]
+Type=oneshot
+User=root
+# -: the unit runs even before the template is filled in; the script exits 0
+# with "offsite not configured" in that case.
+EnvironmentFile=-/etc/webradio/offsite.env
+EnvironmentFile=-/etc/webradio/backup.env
+ExecStart=/usr/local/sbin/webradio-offsite-sync
+Nice=15
+IOSchedulingClass=best-effort
+TimeoutStartSec=1800

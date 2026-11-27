@@ -1,0 +1,48 @@
+[Unit]
+Description=WebRadio Website (Next.js standalone)
+Documentation=file:/opt/webradio/docs/SELF_HOSTED_DEPLOYMENT_GUIDE.md
+After=network-online.target postgresql.service
+Wants=network-online.target
+# Only reached after the restart budget is exhausted; OnFailure is not a
+# per-restart notification.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+OnFailure=webradio-alert@%n.service
+
+[Service]
+Type=simple
+User=webradio
+Group=webradio
+WorkingDirectory=/opt/webradio
+# 0600/0640 app.env with DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL,
+# CRON_SECRET, TRUST_PROXY=1, PORT=3010, HOSTNAME=127.0.0.1.
+EnvironmentFile=/etc/webradio/app.env
+# /usr/bin/env resolves node from systemd's default PATH, so both the distro
+# package (/usr/bin/node) and an official tarball (/usr/local/bin/node) work.
+ExecStart=/usr/bin/env node .next/standalone/server.js
+# Next.js handles SIGTERM and drains requests.
+KillSignal=SIGTERM
+TimeoutStopSec=35
+Restart=always
+RestartSec=3
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+ReadWritePaths=/opt/webradio/.next/cache
+UMask=0027
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

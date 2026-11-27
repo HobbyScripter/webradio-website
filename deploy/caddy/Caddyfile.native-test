@@ -1,0 +1,48 @@
+# Caddy for the isolated test VM (internal CA, no public DNS).
+#
+#   SITE_HOST=webradio.infra13.test
+#   SITE_ADDRESS=https://webradio.infra13.test:8443
+#
+# Clients must trust /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt
+# or pass it explicitly. Never use this file for a real domain.
+{
+	admin off
+	auto_https disable_redirects
+}
+
+http://{$SITE_HOST:webradio.infra13.test}:8080 {
+	redir https://{$SITE_HOST:webradio.infra13.test}:8443{uri} permanent
+}
+
+https://{$SITE_HOST:webradio.infra13.test}:8443 {
+	tls internal
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=86400"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+	# Readiness, not liveness: /api/ready runs SELECT 1. If the database is
+	# unreachable, Caddy marks the only upstream unhealthy and answers 503 instead
+	# of routing requests that cannot be served. The systemd unit and monitoring
+	# keep checking liveness separately, so a database outage does not restart the
+	# application.
+	reverse_proxy 127.0.0.1:3010 {
+		health_uri /api/ready
+		health_interval 5s
+		health_timeout 3s
+		lb_try_duration 10s
+		lb_try_interval 500ms
+		header_up X-Real-IP {remote_host}
+	}
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+		format json
+	}
+}

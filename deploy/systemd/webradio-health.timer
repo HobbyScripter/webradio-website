@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the WebRadio health check every five minutes
+Documentation=file:/opt/webradio/docs/SELF_HOSTED_DEPLOYMENT_GUIDE.md
+
+[Timer]
+OnCalendar=*:0/5
+AccuracySec=30s
+Unit=webradio-health.service
+
+[Install]
+WantedBy=timers.target

@@ -4,7 +4,18 @@
   "installCommand": "npm ci",
   "functions": {
     "src/app/api/schedules/analytics/route.ts": {
-      "experimentalTriggers": [{ "type": "schedule/v1beta" }]
+      "experimentalTriggers": [
+        {
+          "type": "schedule/v1beta"
+        }
+      ]
+    },
+    "src/app/api/cron/translations/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "schedule/v1beta"
+        }
+      ]
     }
   },
   "schedules": {
@@ -27,6 +38,11 @@
       "schedule": "45 4 * * *",
       "timezone": "UTC",
       "function": "api/schedules/analytics"
+    },
+    "translations-worker": {
+      "schedule": "30 5 * * *",
+      "timezone": "UTC",
+      "function": "api/cron/translations"
     }
   }
 }

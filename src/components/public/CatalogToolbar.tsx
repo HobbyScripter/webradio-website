@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/i18n/navigation';
 import { useRef } from 'react';
 import type { CatalogQuery } from '@/lib/catalog-query';
 import { SearchIcon } from '@/components/ui/icons';

@@ -119,7 +119,7 @@ describe('getDownloadAnalyticsData', () => {
 
     expect(data.summary.totalGitHubDownloads).toBe(0);
     expect(data.summary.totalWebsiteDownloads).toBe(0);
-    expect(data.summary.channelDownloads).toEqual({ stable: 0, beta: 0, alpha: 0 });
+    expect(data.summary.channelDownloads).toEqual({ stable: 0, beta: 0, alpha: 0, rc: 0, unknown: 0 });
     expect(data.summary.syncStatus).toBe('NEVER');
     expect(data.summary.lastSyncedAt).toBeNull();
     expect(data.assets).toEqual([]);
@@ -152,7 +152,7 @@ describe('getDownloadAnalyticsData', () => {
 
     expect(data.summary.totalGitHubDownloads).toBe(100);
     expect(data.summary.totalWebsiteDownloads).toBe(8);
-    expect(data.summary.channelDownloads).toEqual({ stable: 100, beta: 0, alpha: 0 });
+    expect(data.summary.channelDownloads).toEqual({ stable: 100, beta: 0, alpha: 0, rc: 0, unknown: 0 });
     expect(data.summary.syncStatus).toBe('SUCCESS');
     expect(data.assets).toHaveLength(1);
     expect(data.assets[0]).toMatchObject({

@@ -15,10 +15,11 @@
  * uses a connection pool that must live for the entire process lifetime.
  * Do NOT construct `postgres()` inside request handlers.
  *
- * Connection Configuration:
- * - Production/Vercel runtime: `DATABASE_URL_POOLED` (pooled.db.prisma.io)
- * - Local development/tests:   `DATABASE_URL` (loopback PostgreSQL only)
- * - Prisma CLI operations:     `DIRECT_URL` (db.prisma.io) - prisma.config.ts
+ * Connection Configuration (`DATABASE_PROVIDER` selects the rules):
+ * - Prisma mode (default/Vercel): `DATABASE_URL_POOLED` (pooled.db.prisma.io)
+ * - Self-hosted mode:            `DATABASE_URL_POOLED`, then `DATABASE_URL`
+ * - Local development/tests:     `DATABASE_URL` (loopback PostgreSQL only)
+ * - Prisma CLI operations:       `DIRECT_URL` (db.prisma.io) - prisma.config.ts
  *
  * The rules live in `src/lib/db-connection.ts` so the runtime and the CLI can
  * not drift apart. In production there is no fallback from the pooled runtime

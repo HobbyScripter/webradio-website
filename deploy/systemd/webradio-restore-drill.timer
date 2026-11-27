@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the restore drill every Sunday at 05:30
+Documentation=file:/opt/webradio/docs/DISASTER_RECOVERY_GUIDE.md
+
+[Timer]
+OnCalendar=Sun *-*-* 05:30:00
+Persistent=true
+AccuracySec=1min
+Unit=webradio-restore-drill.service
+
+[Install]
+WantedBy=timers.target

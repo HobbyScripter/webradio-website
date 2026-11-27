@@ -259,7 +259,7 @@ describe('GET /api/news', () => {
       },
     ]);
 
-    const response = await getNews();
+    const response = await getNews(new NextRequest('http://localhost/api/news'));
     const body = await response.json();
 
     expect(response.status).toBe(200);

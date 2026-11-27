@@ -1,0 +1,303 @@
+[
+  {
+    "id": "table.ContentTranslation",
+    "label": "Create table \"ContentTranslation\"",
+    "summary": "Creates table \"ContentTranslation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ContentTranslation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ContentTranslation\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"ContentTranslation\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ContentTranslation\"",
+        "sql": "CREATE TABLE \"public\".\"ContentTranslation\" (\n  \"createdAt\" timestamptz NOT NULL,\n  \"entityId\" text NOT NULL,\n  \"entityType\" text NOT NULL,\n  \"field\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"locale\" text NOT NULL,\n  \"reviewedAt\" timestamptz,\n  \"status\" text DEFAULT 'DRAFT' NOT NULL,\n  \"translatedById\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"value\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ContentTranslation\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"ContentTranslation\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.User.locale",
+    "label": "Add column \"locale\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "locale",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"locale\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "locale"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"locale\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"locale\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"locale\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"locale\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "locale"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"locale\" on \"User\""
+        }
+      },
+      {
+        "description": "verify column \"locale\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "locale",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.ContentTranslation.ContentTranslation_entityType_entityId_locale_field_key",
+    "label": "Add unique constraint on \"ContentTranslation\" (entityType, entityId, locale, field)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "ContentTranslation_entityType_entityId_locale_field_key",
+        "table": "ContentTranslation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ContentTranslation_entityType_entityId_locale_field_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ContentTranslation_entityType_entityId_locale_field_key",
+          "public",
+          "\"public\".\"ContentTranslation\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"ContentTranslation_entityType_entityId_locale_field_key\" on \"ContentTranslation\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"ContentTranslation_entityType_entityId_locale_field_key\"",
+        "sql": "ALTER TABLE \"public\".\"ContentTranslation\" ADD CONSTRAINT \"ContentTranslation_entityType_entityId_locale_field_key\" UNIQUE (\"entityType\", \"entityId\", \"locale\", \"field\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"ContentTranslation_entityType_entityId_locale_field_key\" exists on (entityType, entityId, locale, field)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "ContentTranslation_entityType_entityId_locale_field_key",
+          "public",
+          "\"public\".\"ContentTranslation\"",
+          "u",
+          "[\"entityType\",\"entityId\",\"locale\",\"field\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentTranslation.ContentTranslation_entityType_entityId_idx_ea0fa809",
+    "label": "Create index \"ContentTranslation_entityType_entityId_idx_ea0fa809\" on \"ContentTranslation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentTranslation_entityType_entityId_idx_ea0fa809",
+        "table": "ContentTranslation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentTranslation_entityType_entityId_idx_ea0fa809\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation_entityType_entityId_idx_ea0fa809\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentTranslation_entityType_entityId_idx_ea0fa809\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentTranslation_entityType_entityId_idx_ea0fa809\"",
+        "sql": "CREATE INDEX \"ContentTranslation_entityType_entityId_idx_ea0fa809\" ON \"public\".\"ContentTranslation\" (\"entityType\", \"entityId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentTranslation_entityType_entityId_idx_ea0fa809\" exists on \"ContentTranslation\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation_entityType_entityId_idx_ea0fa809\"",
+          "i",
+          "I",
+          "\"public\".\"ContentTranslation\"",
+          "btree",
+          "[\"entityType\",\"entityId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentTranslation.ContentTranslation_locale_idx_ca6adb0a",
+    "label": "Create index \"ContentTranslation_locale_idx_ca6adb0a\" on \"ContentTranslation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentTranslation_locale_idx_ca6adb0a",
+        "table": "ContentTranslation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentTranslation_locale_idx_ca6adb0a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation_locale_idx_ca6adb0a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentTranslation_locale_idx_ca6adb0a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentTranslation_locale_idx_ca6adb0a\"",
+        "sql": "CREATE INDEX \"ContentTranslation_locale_idx_ca6adb0a\" ON \"public\".\"ContentTranslation\" (\"locale\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentTranslation_locale_idx_ca6adb0a\" exists on \"ContentTranslation\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation_locale_idx_ca6adb0a\"",
+          "i",
+          "I",
+          "\"public\".\"ContentTranslation\"",
+          "btree",
+          "[\"locale\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ContentTranslation.ContentTranslation_status_idx_e98638ab",
+    "label": "Create index \"ContentTranslation_status_idx_e98638ab\" on \"ContentTranslation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ContentTranslation_status_idx_e98638ab",
+        "table": "ContentTranslation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ContentTranslation_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation_status_idx_e98638ab\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ContentTranslation_status_idx_e98638ab\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ContentTranslation_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"ContentTranslation_status_idx_e98638ab\" ON \"public\".\"ContentTranslation\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ContentTranslation_status_idx_e98638ab\" exists on \"ContentTranslation\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ContentTranslation_status_idx_e98638ab\"",
+          "i",
+          "I",
+          "\"public\".\"ContentTranslation\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  }
+]

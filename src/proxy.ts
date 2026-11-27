@@ -1,14 +1,22 @@
 /**
  * Next.js 16 Proxy (formerly Middleware)
  *
- * Two responsibilities:
+ * Responsibilities, in order:
  *
- * 1. **Optimistic auth redirect.** It redirects requests that carry no
+ * 1. **Locale resolution.** Every page lives under `/[locale]`. A request
+ *    without a supported locale prefix is redirected once (307) to the locale
+ *    chosen by `detectLocale()`: account → cookie → `Accept-Language` → country
+ *    hint → German. The redirect is temporary on purpose — the answer depends
+ *    on the visitor, so it must never be cached as a permanent alias.
+ *    `/api/*`, `/_next/*` and static files are excluded by the matcher and are
+ *    never redirected.
+ *
+ * 2. **Optimistic auth redirect.** It redirects requests that carry no
  *    NextAuth session cookie away from /developer and /admin. It deliberately
  *    does not decode the cookie, does not read the database for auth and is
  *    NOT an authorization boundary.
  *
- * 2. **Real 404 status for detail routes.** With Cache Components, a
+ * 3. **Real 404 status for detail routes.** With Cache Components, a
  *    `notFound()` that runs after an async database read has already started
  *    streaming, so the response would keep a 200 status. Checking the slug
  *    before rendering lets us answer with a real 404. The response is built
@@ -33,6 +41,16 @@ import type { NextRequest } from 'next/server';
 import { and } from '@prisma/orm-postgres/orm-client';
 import { db } from '@/lib/db';
 import { WEBRADIO_PRODUCT } from '@/lib/product';
+import {
+  LOCALE_COOKIE,
+  LOCALE_COOKIE_MAX_AGE,
+  LOCALE_META,
+  localizePath,
+  localeFromPath,
+  stripLocale,
+  type Locale,
+} from '@/i18n/config';
+import { detectLocale, shouldPersistDetection } from '@/i18n/detect';
 
 // Routes that need a session cookie before rendering (optimistic only)
 const PROTECTED_PREFIXES = ['/developer', '/admin'];
@@ -44,17 +62,66 @@ const SESSION_COOKIE_NAMES = [
 
 const DETAIL_ROUTE_PATTERN = /^\/(plugins|themes|news)\/([^/]+)\/?$/;
 
+/** Copy shown by the self-contained 404 below. Kept small on purpose. */
+const NOT_FOUND_TEXT: Record<Locale, { title: string; body: string; home: string; plugins: string }> = {
+  de: {
+    title: 'Seite nicht gefunden',
+    body: 'Dieser Eintrag existiert nicht, wurde zurückgezogen oder ist noch nicht freigegeben.',
+    home: 'Zur Startseite',
+    plugins: 'Plugins entdecken',
+  },
+  en: {
+    title: 'Page not found',
+    body: 'This entry does not exist, has been withdrawn or has not been released yet.',
+    home: 'Go to the home page',
+    plugins: 'Discover plugins',
+  },
+  nl: {
+    title: 'Pagina niet gevonden',
+    body: 'Dit item bestaat niet, is ingetrokken of is nog niet vrijgegeven.',
+    home: 'Naar de startpagina',
+    plugins: 'Plug-ins ontdekken',
+  },
+  fr: {
+    title: 'Page introuvable',
+    body: "Cette entrée n'existe pas, a été retirée ou n'est pas encore publiée.",
+    home: "Aller à l'accueil",
+    plugins: 'Découvrir les extensions',
+  },
+  es: {
+    title: 'Página no encontrada',
+    body: 'Esta entrada no existe, se ha retirado o aún no se ha publicado.',
+    home: 'Ir al inicio',
+    plugins: 'Descubrir complementos',
+  },
+  it: {
+    title: 'Pagina non trovata',
+    body: 'Questo contenuto non esiste, è stato ritirato o non è ancora pubblicato.',
+    home: 'Vai alla pagina iniziale',
+    plugins: 'Scopri i plugin',
+  },
+  pl: {
+    title: 'Nie znaleziono strony',
+    body: 'Ten wpis nie istnieje, został wycofany lub nie został jeszcze opublikowany.',
+    home: 'Przejdź do strony głównej',
+    plugins: 'Odkryj wtyczki',
+  },
+};
+
 // Minimal, self-contained 404 page. It is intentionally not rendered through
 // the App Router, so no framework/CDN cache directive for a prerendered page
 // can be attached to a negative answer. Styling is inline to avoid shipping
 // assets for a page that must never be cached.
-const NOT_FOUND_HTML = `<!doctype html>
-<html lang="de">
+function notFoundHtml(locale: Locale): string {
+  const text = NOT_FOUND_TEXT[locale];
+  const meta = LOCALE_META[locale];
+  return `<!doctype html>
+<html lang="${meta.code}" dir="${meta.direction}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>404 — Seite nicht gefunden | WebRadio</title>
+<title>404 — ${text.title} | WebRadio</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -77,21 +144,21 @@ const NOT_FOUND_HTML = `<!doctype html>
 <body>
 <main>
   <div class="code">404</div>
-  <h1>Seite nicht gefunden</h1>
-  <p>Dieser Eintrag existiert nicht, wurde zurückgezogen oder ist noch nicht freigegeben.</p>
+  <h1>${text.title}</h1>
+  <p>${text.body}</p>
   <nav>
-    <a class="primary" href="/">Zur Startseite</a>
-    <a class="secondary" href="/plugins">Plugins entdecken</a>
+    <a class="primary" href="${localizePath(locale, '/')}">${text.home}</a>
+    <a class="secondary" href="${localizePath(locale, '/plugins')}">${text.plugins}</a>
   </nav>
 </main>
 </body>
 </html>`;
+}
 
-function notFoundResponse(request: NextRequest): NextResponse {
-  const response = new NextResponse(
-    request.method === 'HEAD' ? null : NOT_FOUND_HTML,
-    { status: 404 },
-  );
+function notFoundResponse(locale: Locale, method: string): NextResponse {
+  const response = new NextResponse(method === 'HEAD' ? null : notFoundHtml(locale), {
+    status: 404,
+  });
 
   response.headers.set('Content-Type', 'text/html; charset=utf-8');
   response.headers.set('Cache-Control', 'no-store, max-age=0');
@@ -138,11 +205,7 @@ async function publishedDetailExists(kind: string, slug: string): Promise<boolea
   if (kind === 'news') {
     const now = Temporal.Now.instant();
     const row = await db.orm.public.News.where((entry) =>
-      and(
-        entry.slug.eq(slug),
-        entry.isPublished.eq(true),
-        entry.publishedAt.lte(now),
-      ),
+      and(entry.slug.eq(slug), entry.isPublished.eq(true), entry.publishedAt.lte(now)),
     )
       .select('id')
       .first();
@@ -152,10 +215,54 @@ async function publishedDetailExists(kind: string, slug: string): Promise<boolea
   return true;
 }
 
-export async function proxy(request: NextRequest): Promise<NextResponse> {
-  const { pathname } = request.nextUrl;
+/**
+ * Locale cookie options.
+ *
+ * `httpOnly` because only the server reads it (proxy and server components),
+ * `sameSite=lax` so a normal top-level navigation carries it, `secure` in
+ * production and `path=/` so every page sees the same choice. No personal data
+ * beyond the two-letter language code is stored.
+ */
+function localeCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: process.env['NODE_ENV'] === 'production',
+    path: '/',
+    maxAge: LOCALE_COOKIE_MAX_AGE,
+  };
+}
 
-  const requiresAuth = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const { pathname, search } = request.nextUrl;
+
+  const pathLocale = localeFromPath(pathname);
+
+  // --- Locale prefix -------------------------------------------------------
+  if (!pathLocale) {
+    const detection = detectLocale({
+      cookie: request.cookies.get(LOCALE_COOKIE)?.value ?? null,
+      acceptLanguage: request.headers.get('accept-language'),
+      country: request.headers.get('x-vercel-ip-country'),
+    });
+
+    const target = new URL(localizePath(detection.locale, pathname), request.url);
+    target.search = search;
+
+    const redirect = NextResponse.redirect(target, 307);
+
+    if (shouldPersistDetection(detection)) {
+      redirect.cookies.set(LOCALE_COOKIE, detection.locale, localeCookieOptions());
+    }
+
+    return redirect;
+  }
+
+  const locale = pathLocale;
+  // Everything below reasons about the locale-independent path.
+  const internalPath = stripLocale(pathname);
+
+  const requiresAuth = PROTECTED_PREFIXES.some((prefix) => internalPath.startsWith(prefix));
 
   if (requiresAuth) {
     const hasSessionCookie = SESSION_COOKIE_NAMES.some(
@@ -163,13 +270,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     );
 
     if (!hasSessionCookie) {
-      const loginUrl = new URL('/auth/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
+      const loginUrl = new URL(localizePath(locale, '/auth/login'), request.url);
+      loginUrl.searchParams.set('callbackUrl', `${pathname}${search}`);
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  const detailMatch = pathname.match(DETAIL_ROUTE_PATTERN);
+  const detailMatch = internalPath.match(DETAIL_ROUTE_PATTERN);
   if (detailMatch && (request.method === 'GET' || request.method === 'HEAD')) {
     const kind = detailMatch[1]!;
     let slug = detailMatch[2]!;
@@ -177,13 +284,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     try {
       slug = decodeURIComponent(slug);
     } catch {
-      return notFoundResponse(request);
+      return notFoundResponse(locale, request.method);
     }
 
     try {
       const exists = await publishedDetailExists(kind, slug);
       if (!exists) {
-        return notFoundResponse(request);
+        return notFoundResponse(locale, request.method);
       }
     } catch {
       // A database outage is handled by the page's error state; do not turn it
@@ -198,12 +305,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 export const config = {
   /*
    * Match all paths EXCEPT:
+   *   - api           (route handlers are not localized)
    *   - _next/static  (Next.js static assets)
    *   - _next/image   (Next.js image optimisation)
    *   - favicon.ico
-   *   - public assets (images, fonts, etc.)
+   *   - public assets (images, fonts, robots.txt, sitemap.xml, …)
    */
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest)$).*)',
   ],
 };
