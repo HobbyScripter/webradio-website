@@ -10,7 +10,7 @@
         }
       ]
     },
-    "src/app/api/cron/translations/route.ts": {
+    "src/app/api/schedules/translations/route.ts": {
       "experimentalTriggers": [
         {
           "type": "schedule/v1beta"
@@ -42,7 +42,7 @@
     "translations-worker": {
       "schedule": "30 5 * * *",
       "timezone": "UTC",
-      "function": "api/cron/translations"
+      "function": "api/schedules/translations"
     }
   }
 }

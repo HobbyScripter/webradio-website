@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
 import { verifyCronRequest } from '@/lib/cron-auth';
-import { runTranslationWorker } from '@/lib/translation/engine';
-import { readTranslationConfig } from '@/lib/translation/registry';
+import { executeTranslationSchedule } from '@/lib/translation/schedule-execution';
 
 /**
  * Portable trigger for the translation worker.
  *
- * Runs the same engine as the admin button, so a Linux server only needs cron
- * (or a systemd timer) — Vercel Schedules calls the same route:
+ * Runs the same engine as the admin button and the Vercel Schedule
+ * (`POST /api/schedules/translations`), so a Linux server only needs cron or a
+ * systemd timer:
  *
  *   curl -fsS -X POST "https://<host>/api/cron/translations?limit=20" \
  *     -H "Authorization: Bearer $CRON_SECRET"
+ *
+ * This URL stays public on purpose — it is the documented external trigger, and
+ * every request is authenticated below. The Vercel-side schedule does not use
+ * it; it dispatches to the private `/api/schedules/translations` function.
  *
  * Guarantees:
  * - fails closed without `CRON_SECRET` (503) and rejects a wrong token (401),
@@ -33,10 +37,11 @@ function json(body: unknown, status: number, extraHeaders: Record<string, string
 }
 
 /** Bounded so one run always fits the function timeout. */
-function readLimit(request: Request, fallback: number): number {
+function readLimit(request: Request): number | undefined {
   const raw = new URL(request.url).searchParams.get('limit');
-  const value = raw === null ? Number.NaN : Number.parseInt(raw, 10);
-  if (!Number.isFinite(value)) return fallback;
+  if (raw === null) return undefined;
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isFinite(value)) return undefined;
   return Math.min(Math.max(value, 1), 100);
 }
 
@@ -61,8 +66,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     return json({ error: 'UNAUTHORIZED', message: 'Zugriff verweigert.' }, 401);
   }
 
-  const config = readTranslationConfig();
-  if (config.provider === 'deepl' && !config.deeplConfigured) {
+  const result = await executeTranslationSchedule({ limit: readLimit(request) });
+
+  if (result.errorCode === 'NOT_CONFIGURED') {
     console.warn(
       JSON.stringify({ event: 'cron.translations.skipped', reason: 'NOT_CONFIGURED' }),
     );
@@ -75,33 +81,28 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const limit = readLimit(request, config.batchLimit);
-
-  try {
-    const result = await runTranslationWorker({ limit });
-    const body = {
-      ok: result.batch.ok,
-      outdated: result.outdated,
-      provider: result.batch.provider,
-      attempted: result.batch.attempted,
-      translated: result.batch.translated,
-      skipped: result.batch.skipped,
-      blocked: result.batch.blocked,
-      failed: result.batch.failed,
-      characters: result.batch.characters,
-      durationMs: result.batch.durationMs,
-    };
-
-    return json(body, result.batch.failed > 0 ? 500 : 200);
-  } catch (error) {
+  if (result.errorCode === 'JOB_FAILED') {
     console.error(
-      JSON.stringify({
-        event: 'cron.translations.failed',
-        reason: error instanceof Error ? error.name : 'unknown',
-      }),
+      JSON.stringify({ event: 'cron.translations.failed', reason: 'JOB_FAILED', level: 'error' }),
     );
     return json({ error: 'JOB_FAILED' }, 500);
   }
+
+  return json(
+    {
+      ok: result.ok,
+      outdated: result.outdated,
+      provider: result.provider,
+      attempted: result.attempted,
+      translated: result.translated,
+      skipped: result.skipped,
+      blocked: result.blocked,
+      failed: result.failed,
+      characters: result.characters,
+      durationMs: result.durationMs,
+    },
+    result.failed > 0 ? 500 : 200,
+  );
 }
 
 export function GET() {

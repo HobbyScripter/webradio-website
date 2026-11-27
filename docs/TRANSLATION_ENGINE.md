@@ -249,7 +249,7 @@ Warteschlange:
 | Auslöser | Aufruf | Grenze |
 |---|---|---|
 | Admin-Button | `startTranslationAction` → `runTranslationBatch` | `TRANSLATION_BATCH_LIMIT` |
-| Vercel Schedule | `POST /api/schedules/...` nicht verwendet; eigener Eintrag `translations-worker` (täglich 05:30 UTC) | `?limit=` ≤ 100 |
+| Vercel Schedule | `POST /api/schedules/translations` (`handleSchedule`, private URL; Eintrag `translations-worker`, täglich 05:30 UTC) | `TRANSLATION_BATCH_LIMIT` |
 | Cron/systemd | `curl -X POST /api/cron/translations -H "Authorization: Bearer $CRON_SECRET"` | `?limit=` ≤ 100 |
 
 ```bash
